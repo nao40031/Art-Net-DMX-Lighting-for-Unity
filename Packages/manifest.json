@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.unity.cinemachine": "3.1.5",
     "com.unity.collab-proxy": "2.10.2",
     "com.unity.feature.development": "1.0.2",
     "com.unity.multiplayer.center": "1.0.0",

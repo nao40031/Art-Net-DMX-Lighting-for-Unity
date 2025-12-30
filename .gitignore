@@ -70,5 +70,14 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
+# Custom folders to ignore
+/MagicaCloth2/
+/Stage/
+/MMD4Mecanim/
+Assets/Stage
+Assets/MMD4Mecanim
+Assets/Editor
+Assets/MagicaCloth2
+
 # idea
 .idea
