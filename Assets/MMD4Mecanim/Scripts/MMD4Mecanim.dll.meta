@@ -1,0 +1,138 @@
+fileFormatVersion: 2
+guid: 237a2ace0fe23084c9cdd0d1311ed775
+PluginImporter:
+  externalObjects: {}
+  serializedVersion: 3
+  iconMap: {}
+  executionOrder:
+    MMD4MecanimBulletPhysics: 10001
+  defineConstraints: []
+  isPreloaded: 0
+  isOverridable: 0
+  isExplicitlyReferenced: 0
+  validateReferences: 1
+  platformData:
+    :
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    Android:
+      enabled: 1
+      settings:
+        CPU: ARMv7
+    Any:
+      enabled: 0
+      settings:
+        Exclude Android: 1
+        Exclude Editor: 0
+        Exclude Linux: 1
+        Exclude Linux64: 1
+        Exclude LinuxUniversal: 1
+        Exclude OSXIntel: 0
+        Exclude OSXIntel64: 0
+        Exclude OSXUniversal: 0
+        Exclude SamsungTV: 1
+        Exclude Tizen: 1
+        Exclude WebGL: 1
+        Exclude Win: 0
+        Exclude Win64: 0
+        Exclude WindowsStoreApps: 0
+        Exclude iOS: 1
+        Exclude tvOS: 1
+    CloudRendering:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    Editor:
+      enabled: 1
+      settings:
+        CPU: AnyCPU
+        DefaultValueInitialized: true
+        OS: AnyOS
+    EmbeddedLinux:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    GameCoreScarlett:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    GameCoreXboxOne:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    Kepler:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    Linux64:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    OSXUniversal:
+      enabled: 1
+      settings:
+        CPU: AnyCPU
+    PS4:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    PS5:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    QNX:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    ReservedCFE:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    Switch:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    VisionOS:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    WebGL:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    Win:
+      enabled: 1
+      settings:
+        CPU: AnyCPU
+    Win64:
+      enabled: 1
+      settings:
+        CPU: AnyCPU
+    WindowsStoreApps:
+      enabled: 1
+      settings:
+        CPU: AnyCPU
+        DontProcess: False
+        PlaceholderPath: 
+        SDK: AnySDK
+        ScriptingBackend: AnyScriptingBackend
+    XboxOne:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+    iOS:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+        CompileFlags: 
+        FrameworkDependencies: 
+    tvOS:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+        CompileFlags: 
+        FrameworkDependencies: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

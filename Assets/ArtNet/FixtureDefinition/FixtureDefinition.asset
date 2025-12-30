@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d7931bb03141c24a862d747383aae68, type: 3}
+  m_Name: FixtureDefinition
+  m_EditorClassIdentifier: 
+  manufacturer: 
+  model: 
+  revision: 
+  displayName: 
+  modes:
+  - modeName: 9-Channel Mode
+    channelCount: 9
+    channels:
+    - function: 4
+      channel: 0
+    - function: 6
+      channel: 2
+    - function: 0
+      channel: 3
+    - function: 1
+      channel: 4
+    - function: 2
+      channel: 5
+    - function: 3
+      channel: 6
+    - function: 14
+      channel: 7
+    - function: 15
+      channel: 8
+    - function: 16
+      channel: 9
