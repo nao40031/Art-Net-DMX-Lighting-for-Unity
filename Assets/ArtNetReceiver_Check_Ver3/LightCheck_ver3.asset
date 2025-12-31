@@ -650,17 +650,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   threshold:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0.44
   stretch:
-    m_OverrideState: 0
-    m_Value: 0.75
+    m_OverrideState: 1
+    m_Value: 0.596
   intensity:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 1
   tint:
-    m_OverrideState: 0
-    m_Value: {r: 0.55, g: 0.55, b: 1, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 0.7121457, g: 0.54901963, b: 1, a: 1}
 --- !u!114 &7703664347771317264
 MonoBehaviour:
   m_ObjectHideFlags: 3

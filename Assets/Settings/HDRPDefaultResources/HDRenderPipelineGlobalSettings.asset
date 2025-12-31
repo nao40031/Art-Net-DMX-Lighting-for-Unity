@@ -313,7 +313,9 @@ MonoBehaviour:
           m_CustomPostProcessTypesAsString: []
         m_BeforePostProcessCustomPostProcesses:
           m_InjectionPoint: 1
-          m_CustomPostProcessTypesAsString: []
+          m_CustomPostProcessTypesAsString:
+          - Kino.PostProcessing.Streak, Kino.Postprocessing, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
         m_AfterPostProcessBlursCustomPostProcesses:
           m_InjectionPoint: 4
           m_CustomPostProcessTypesAsString: []
