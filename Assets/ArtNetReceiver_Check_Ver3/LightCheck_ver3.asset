@@ -488,6 +488,7 @@ MonoBehaviour:
   - {fileID: 1628241389679574028}
   - {fileID: -594557709274498917}
   - {fileID: 2826873014921343171}
+  - {fileID: 5133211665342429064}
 --- !u!114 &952511473013257117
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -635,6 +636,31 @@ MonoBehaviour:
   saturation:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &5133211665342429064
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f019255bcd1cb489b193b5e8443a27, type: 3}
+  m_Name: Streak
+  m_EditorClassIdentifier: 
+  active: 1
+  threshold:
+    m_OverrideState: 0
+    m_Value: 1
+  stretch:
+    m_OverrideState: 0
+    m_Value: 0.75
+  intensity:
+    m_OverrideState: 0
+    m_Value: 0
+  tint:
+    m_OverrideState: 0
+    m_Value: {r: 0.55, g: 0.55, b: 1, a: 1}
 --- !u!114 &7703664347771317264
 MonoBehaviour:
   m_ObjectHideFlags: 3
