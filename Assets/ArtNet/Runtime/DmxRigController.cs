@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
+
 namespace ArtNet.Runtime
 {
     /// <summary>
@@ -10,6 +15,7 @@ namespace ArtNet.Runtime
     /// Fixtureの設定/適用は DmxFixtureComponent 側に寄せる。
     ///
     /// 追加：Hierarchy順の自動採番（addressingRoot配下を上から順に辿る）
+    /// 追加：Editモードで採番値をシーンへ保存（ベイク）する機能
     /// </summary>
     [DisallowMultipleComponent]
     public class DmxRigController : MonoBehaviour
@@ -23,11 +29,13 @@ namespace ArtNet.Runtime
         public bool autoDiscoverFixturesOnEnable = true;
 
         [Header("Apply")]
-        [Tooltip("DMXを受信したUniverseを毎フレームFixtureへ適用します")]
+        [Tooltip("Update内で最後に受信したUniverseを毎フレ適用します（受信頻度が高い場合はfalse推奨）")]
         public bool applyOnUpdate = true;
 
-        [Header("Logging")]
+        [Header("Debug")]
+        [Tooltip("受信レートをログ表示します")]
         public bool logRxRate = true;
+
         [Range(0.2f, 5f)] public float logRxIntervalSec = 1.0f;
 
         [Tooltip("適用時に先頭CHをログ表示（デバッグ用）")]
@@ -52,6 +60,10 @@ namespace ArtNet.Runtime
         [Tooltip("512chを超えたらUniverseを自動で+1して続行します")]
         public bool autoIncrementUniverse = true;
 
+        [Header("Bake (Persist in Scene)")]
+        [Tooltip("Editモードで採番してシーンに保存（PrefabインスタンスOverride含む）します。Play中に採番しても停止時に戻るのはUnity仕様です")]
+        public bool bakeWritesToScene = true;
+
         // ------------------------------------------------------------
         // runtime
         // ------------------------------------------------------------
@@ -73,15 +85,13 @@ namespace ArtNet.Runtime
 
         private void OnEnable()
         {
-            _detectedHdrp = DetectIsHDRP();
-
             if (receiver == null)
                 receiver = FindReceiver();
 
             if (receiver != null)
                 receiver.OnDataReceived += OnArtNetData;
-            else
-                Debug.LogWarning("[DmxRigController] ArtNetReceiver not found in scene.");
+
+            _detectedHdrp = DetectIsHDRP();
 
             if (autoDiscoverFixturesOnEnable)
                 DiscoverAndInitializeAllFixtures();
@@ -95,14 +105,25 @@ namespace ArtNet.Runtime
 
         private void Update()
         {
-            if (logRxRate && (Time.unscaledTime - _lastRxLogTime) >= logRxIntervalSec)
-            {
-                float dt = Mathf.Max(0.0001f, Time.unscaledTime - _lastRxLogTime);
-                int perSec = Mathf.RoundToInt(_rxCount / dt);
-                _rxCount = 0;
-                _lastRxLogTime = Time.unscaledTime;
+            if (!logRxRate && !applyOnUpdate) return;
 
-                Debug.Log($"[DmxRigController] DMX RX: ~{perSec}/sec  lastUniverse:{_lastUniverse}  offset:{_lastOffset}");
+            if (logRxRate)
+            {
+                float t = Time.unscaledTime;
+                if (_lastRxLogTime <= 0f) _lastRxLogTime = t;
+
+                if ((t - _lastRxLogTime) >= logRxIntervalSec)
+                {
+                    float dt = Mathf.Max(0.0001f, (t - _lastRxLogTime));
+                    float rate = _rxCount / dt;
+
+                    int u, off;
+                    lock (_lock) { u = _lastUniverse; off = _lastOffset; }
+
+                    Debug.Log($"[DmxRigController] DMX RX: ~{rate:0}/sec  lastUniverse:{u}  offset:{off}");
+                    _rxCount = 0;
+                    _lastRxLogTime = t;
+                }
             }
 
             if (!applyOnUpdate) return;
@@ -119,56 +140,39 @@ namespace ArtNet.Runtime
 
         public void Register(DmxFixtureComponent fixture)
         {
-            if (fixture == null) return;
-
-            lock (_lock)
-            {
-                if (!_fixturesByUniverse.TryGetValue(fixture.universe, out var list))
-                {
-                    list = new List<DmxFixtureComponent>();
-                    _fixturesByUniverse[fixture.universe] = list;
-                }
-
-                if (!list.Contains(fixture))
-                    list.Add(fixture);
-
-                GetOrCreateUniverseBuffer(fixture.universe);
-            }
+            // 任意：今はDiscover側で収集するため、Registerは必須ではない
+            // （DmxFixtureComponent側が Register/Unregister を持っている互換のため残す）
         }
 
         public void Unregister(DmxFixtureComponent fixture)
         {
-            if (fixture == null) return;
-
-            lock (_lock)
-            {
-                if (_fixturesByUniverse.TryGetValue(fixture.universe, out var list))
-                {
-                    list.Remove(fixture);
-                }
-            }
+            // 任意
         }
 
         // ------------------------------------------------------------
-        // Art-Net callback
+        // Receiver callback
         // ------------------------------------------------------------
 
         private void OnArtNetData(ArtNetData data)
         {
             if (data.Channels == null) return;
 
-            int universe = data.Universe;
-            var buf = GetOrCreateUniverseBuffer(universe);
+            lock (_lock)
+            {
+                _rxCount++;
+                _lastUniverse = data.Universe;
+                _lastOffset = 0;
+            }
+
+            byte[] buf = GetOrCreateUniverseBuffer(data.Universe);
 
             int len = Mathf.Min(512, data.Channels.Length);
             for (int i = 0; i < len; i++)
-                buf[i] = (byte)Mathf.Clamp(data.Channels[i], 0, 255);
-
-            lock (_lock)
             {
-                _lastUniverse = universe;
-                _lastOffset = 0;
-                _rxCount++;
+                int v = data.Channels[i];
+                if (v < 0) v = 0;
+                if (v > 255) v = 255;
+                buf[i] = (byte)v;
             }
         }
 
@@ -188,30 +192,35 @@ namespace ArtNet.Runtime
 
             // 自動採番（必要なら）
             if (autoAssignStartAddressOnEnable)
-                AutoAssignStartAddresses(fixtures);
-
-            // 登録し直し
-            lock (_lock)
             {
-                _fixturesByUniverse.Clear();
-                _universeBuffers.Clear();
+#if UNITY_EDITOR
+                bool writeToScene = !Application.isPlaying && bakeWritesToScene;
+                AutoAssignStartAddresses(fixtures, writeToScene);
+#else
+                AutoAssignStartAddresses(fixtures, false);
+#endif
             }
 
+            // Universe別にまとめる
+            _fixturesByUniverse.Clear();
             int registered = 0;
-            for (int i = 0; i < fixtures.Length; i++)
-            {
-                var f = fixtures[i];
-                if (f == null) continue;
-                Register(f);
-                registered++;
-            }
 
-            // 初期化（互換Initialize(bool)を想定）
             for (int i = 0; i < fixtures.Length; i++)
             {
                 var f = fixtures[i];
                 if (f == null) continue;
+
+                // 初期化（Fixture側でMappingなどを解決）
                 f.Initialize(_detectedHdrp);
+
+                // ルーティング登録
+                if (!_fixturesByUniverse.TryGetValue(f.universe, out var list))
+                {
+                    list = new List<DmxFixtureComponent>(32);
+                    _fixturesByUniverse.Add(f.universe, list);
+                }
+                list.Add(f);
+                registered++;
             }
 
             Debug.Log($"[DmxRigController] Discovered fixtures: {fixtures.Length} (registered: {registered})");
@@ -228,7 +237,7 @@ namespace ArtNet.Runtime
 
             lock (_lock)
             {
-                if (!_universeBuffers.TryGetValue(universe, out uniBuf) || uniBuf == null || uniBuf.Length != 512)
+                if (!_universeBuffers.TryGetValue(universe, out uniBuf) || uniBuf == null || uniBuf.Length < 512)
                     return;
 
                 if (!_fixturesByUniverse.TryGetValue(universe, out list) || list == null || list.Count == 0)
@@ -262,17 +271,38 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            AutoAssignStartAddresses(fixtures);
+            AutoAssignStartAddresses(fixtures, writeToScene: false);
             Debug.Log("[DmxRigController] AutoAssignStartAddresses done (Hierarchy Order).");
         }
 
-        private void AutoAssignStartAddresses(DmxFixtureComponent[] fixtures)
+#if UNITY_EDITOR
+        [ContextMenu("BAKE StartAddress to Scene (Hierarchy Order)")]
+        public void BakeStartAddressToScene_ContextMenu()
         {
-            // ★Hierarchy順でターゲット列を作る
+            if (Application.isPlaying)
+            {
+                Debug.LogWarning("[DmxRigController] BAKEはEditモード専用です。Playを停止してから実行してください。", this);
+                return;
+            }
+
+            var fixtures = FindAllFixtures(includeInactive: true);
+            if (fixtures == null || fixtures.Length == 0)
+            {
+                Debug.LogWarning("[DmxRigController] No fixtures found for bake auto addressing.", this);
+                return;
+            }
+
+            AutoAssignStartAddresses(fixtures, writeToScene: true);
+            Debug.Log($"[DmxRigController] Baked StartAddress for {fixtures.Length} fixtures.", this);
+        }
+#endif
+
+        private void AutoAssignStartAddresses(DmxFixtureComponent[] fixtures, bool writeToScene)
+        {
             List<DmxFixtureComponent> targets;
+
             if (addressingRoot != null)
             {
-                // addressingRoot配下を、Hierarchy（兄弟順）で上から順に収集
                 targets = CollectFixturesInHierarchyOrder(addressingRoot, includeRoot: false);
             }
             else
@@ -288,7 +318,7 @@ namespace ArtNet.Runtime
 
             if (targets.Count == 0)
             {
-                Debug.LogWarning("[DmxRigController] No fixtures found for auto addressing.");
+                Debug.LogWarning("[DmxRigController] No fixtures resolved for auto addressing.");
                 return;
             }
 
@@ -315,7 +345,7 @@ namespace ArtNet.Runtime
 
                         if (curAddr + chCount - 1 > 512)
                         {
-                            Debug.LogWarning($"[DmxRigController] Cannot fit fixture '{f.name}' (chCount={chCount}) even after universe increment. Stop.");
+                            Debug.LogWarning($"[DmxRigController] Address overflow at '{f.name}' (chCount={chCount}) even after universe increment. Stop.");
                             break;
                         }
                     }
@@ -326,8 +356,28 @@ namespace ArtNet.Runtime
                     }
                 }
 
+#if UNITY_EDITOR
+                if (writeToScene && !Application.isPlaying)
+                {
+                    Undo.RecordObject(f, "Bake DMX StartAddress");
+                    f.universe = curUni;
+                    f.startAddress = curAddr;
+
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(f);
+                    EditorUtility.SetDirty(f);
+
+                    var sc = f.gameObject.scene;
+                    if (sc.IsValid() && sc.isLoaded) EditorSceneManager.MarkSceneDirty(sc);
+                }
+                else
+                {
+                    f.universe = curUni;
+                    f.startAddress = curAddr;
+                }
+#else
                 f.universe = curUni;
                 f.startAddress = curAddr;
+#endif
 
                 curAddr += chCount;
             }
@@ -347,19 +397,18 @@ namespace ArtNet.Runtime
             CollectRecursive(root, list);
             return list;
 
-            static void CollectRecursive(Transform parent, List<DmxFixtureComponent> acc)
+            static void CollectRecursive(Transform t, List<DmxFixtureComponent> acc)
             {
-                // 子をHierarchy順（sibling index順）に辿る
-                for (int i = 0; i < parent.childCount; i++)
+                int n = t.childCount;
+                for (int i = 0; i < n; i++)
                 {
-                    var t = parent.GetChild(i);
+                    var c = t.GetChild(i);
+                    if (c == null) continue;
 
-                    var f = t.GetComponent<DmxFixtureComponent>();
+                    var f = c.GetComponent<DmxFixtureComponent>();
                     if (f != null) acc.Add(f);
 
-                    // 孫も同じ順で
-                    if (t.childCount > 0)
-                        CollectRecursive(t, acc);
+                    CollectRecursive(c, acc);
                 }
             }
         }
@@ -368,34 +417,25 @@ namespace ArtNet.Runtime
         {
             if (f == null) return 1;
 
-            // DmxFixtureComponent の fixture/mode から読む（現行実装に合わせる）
-            if (f.fixture == null || f.fixture.modes == null || f.fixture.modes.Count == 0)
-                return 1;
+            if (f.fixture != null && f.fixture.modes != null && f.fixture.modes.Count > 0)
+            {
+                int mi = Mathf.Clamp(f.mode, 0, f.fixture.modes.Count - 1);
+                var md = f.fixture.modes[mi];
+                return Mathf.Clamp(md.channelCount, 1, 512);
+            }
 
-            int m = Mathf.Clamp(f.mode, 0, f.fixture.modes.Count - 1);
-            return Mathf.Clamp(f.fixture.modes[m].channelCount, 1, 512);
+            return 1;
         }
-
-        // ------------------------------------------------------------
-        // Universe buffer
-        // ------------------------------------------------------------
 
         private byte[] GetOrCreateUniverseBuffer(int universe)
         {
-            lock (_lock)
+            if (!_universeBuffers.TryGetValue(universe, out var buf) || buf == null || buf.Length != 512)
             {
-                if (!_universeBuffers.TryGetValue(universe, out var buf) || buf == null || buf.Length != 512)
-                {
-                    buf = new byte[512];
-                    _universeBuffers[universe] = buf;
-                }
-                return buf;
+                buf = new byte[512];
+                _universeBuffers[universe] = buf;
             }
+            return buf;
         }
-
-        // ------------------------------------------------------------
-        // Finders
-        // ------------------------------------------------------------
 
         private static DmxFixtureComponent[] FindAllFixtures(bool includeInactive)
         {
@@ -405,7 +445,7 @@ namespace ArtNet.Runtime
                 FindObjectsSortMode.None
             );
 #else
-            return GameObject.FindObjectsOfType<DmxFixtureComponent>(includeInactive);
+            return FindObjectsOfType<DmxFixtureComponent>(includeInactive);
 #endif
         }
 
@@ -423,9 +463,10 @@ namespace ArtNet.Runtime
             var rp = GraphicsSettings.currentRenderPipeline;
             if (rp == null) return false;
 
-            string typeName = rp.GetType().FullName ?? "";
-            return typeName.IndexOf("HighDefinition", StringComparison.OrdinalIgnoreCase) >= 0
-                || typeName.IndexOf("HDRenderPipeline", StringComparison.OrdinalIgnoreCase) >= 0;
+            var typeName = rp.GetType().FullName;
+            if (string.IsNullOrEmpty(typeName)) return false;
+
+            return typeName.IndexOf("HighDefinition", StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }
