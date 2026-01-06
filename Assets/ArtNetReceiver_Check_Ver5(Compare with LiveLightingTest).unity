@@ -605,6 +605,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ea78cfa4d590273479651f4427daa5b6, type: 3}
   m_PrefabInstance: {fileID: 732632366}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &170130281 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 32b1a6e2b70a8f84487446ac9c4bdab2, type: 3}
+  m_PrefabInstance: {fileID: 1385330173}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &171871175
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1393,7 +1398,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &296931073
 Transform:
   m_ObjectHideFlags: 0
@@ -3498,7 +3503,7 @@ Light:
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 23.535534}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShadowRadius: 0.025
   m_ShadowAngle: 0
@@ -3806,6 +3811,39 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!1 &854969632
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 854969633}
+  m_Layer: 0
+  m_Name: Avator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &854969633
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 854969632}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 170130281}
+  - {fileID: 1745745634}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &862297238
 GameObject:
   m_ObjectHideFlags: 0
@@ -4640,7 +4678,7 @@ Light:
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 23.535534}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShadowRadius: 0.025
   m_ShadowAngle: 0
@@ -6084,7 +6122,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 854969633}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 85884e76327670240a26d33377c9bc6f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6104,15 +6142,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 85884e76327670240a26d33377c9bc6f, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 85884e76327670240a26d33377c9bc6f, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 85884e76327670240a26d33377c9bc6f, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 85884e76327670240a26d33377c9bc6f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -6265,7 +6303,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 854969633}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 32b1a6e2b70a8f84487446ac9c4bdab2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6285,7 +6323,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b1a6e2b70a8f84487446ac9c4bdab2, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b1a6e2b70a8f84487446ac9c4bdab2, type: 3}
       propertyPath: m_LocalRotation.y
@@ -6293,7 +6331,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b1a6e2b70a8f84487446ac9c4bdab2, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b1a6e2b70a8f84487446ac9c4bdab2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -7672,6 +7710,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!4 &1745745634 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 85884e76327670240a26d33377c9bc6f, type: 3}
+  m_PrefabInstance: {fileID: 1319455181}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1749018324
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8372,7 +8415,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1944701796
 Transform:
   m_ObjectHideFlags: 0
@@ -9256,7 +9299,7 @@ Light:
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 23.535534}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShadowRadius: 0.025
   m_ShadowAngle: 0
@@ -10768,7 +10811,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!33 &4315694760056170950
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -10828,7 +10871,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &4475247968524242928
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -13336,7 +13379,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 50f0c60bbeb83d04696581adc921d01b, type: 2}
+  - {fileID: 2100000, guid: fde6c8c82d772564b93af805a7f8f1e3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -13620,9 +13663,8 @@ SceneRoots:
   - {fileID: 1315033211}
   - {fileID: 477062991}
   - {fileID: 10464051}
-  - {fileID: 1385330173}
-  - {fileID: 1319455181}
   - {fileID: 1872532876}
   - {fileID: 200503633}
   - {fileID: 668999581}
   - {fileID: 203929738}
+  - {fileID: 854969633}
