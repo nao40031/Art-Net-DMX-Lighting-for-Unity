@@ -72,6 +72,10 @@ namespace ArtNet.Runtime
         private readonly Dictionary<int, byte[]> _universeBuffers = new Dictionary<int, byte[]>();
         private readonly Dictionary<int, List<DmxFixtureComponent>> _fixturesByUniverse = new Dictionary<int, List<DmxFixtureComponent>>();
 
+        // Dirty universe apply (avoid applying only last universe and reduce allocations)
+        private readonly HashSet<int> _dirtyUniverses = new HashSet<int>();
+        private readonly List<int> _dirtyScratch = new List<int>(8);
+
         private int _rxCount;
         private float _lastRxLogTime;
         private int _lastUniverse;
@@ -101,6 +105,15 @@ namespace ArtNet.Runtime
         {
             if (receiver != null)
                 receiver.OnDataReceived -= OnArtNetData;
+
+            lock (_lock)
+            {
+                _dirtyUniverses.Clear();
+                _dirtyScratch.Clear();
+                _rxCount = 0;
+                _lastUniverse = 0;
+                _lastOffset = 0;
+            }
         }
 
         private void Update()
@@ -128,10 +141,20 @@ namespace ArtNet.Runtime
 
             if (!applyOnUpdate) return;
 
-            int uni;
-            lock (_lock) { uni = _lastUniverse; }
+            // Dirty方式：このフレームで更新があったUniverseだけ適用する（2Universe以上で効果大）
+            _dirtyScratch.Clear();
+            lock (_lock)
+            {
+                if (_dirtyUniverses.Count == 0) return;
 
-            ApplyUniverse(uni);
+                foreach (var u in _dirtyUniverses)
+                    _dirtyScratch.Add(u);
+
+                _dirtyUniverses.Clear();
+            }
+
+            for (int i = 0; i < _dirtyScratch.Count; i++)
+                ApplyUniverse(_dirtyScratch[i]);
         }
 
         // ------------------------------------------------------------
@@ -162,6 +185,9 @@ namespace ArtNet.Runtime
                 _rxCount++;
                 _lastUniverse = data.Universe;
                 _lastOffset = 0;
+
+                // mark dirty universe for Update apply
+                _dirtyUniverses.Add(data.Universe);
             }
 
             byte[] buf = GetOrCreateUniverseBuffer(data.Universe);

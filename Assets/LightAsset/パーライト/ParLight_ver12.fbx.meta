@@ -3,7 +3,37 @@ guid: 099a1c4a368889148aaca691b0995e27
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "\u30B1\u30FC\u30D6\u30EB"
+    second: {fileID: 2100000, guid: fd616d5e7adde184d8c74129a078ac5c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "\u30D1\u30FC\u30E9\u30A4\u30C8\u30AC\u30E9\u30B9"
+    second: {fileID: 2100000, guid: 7f64f7932b6ac7945a99a4881e0cdadb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "\u30D1\u30FC\u30E9\u30A4\u30C8\u30AC\u30E9\u30B9.001"
+    second: {fileID: 2100000, guid: 8f691915e2bd8cc46ab28931c35e3618, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "\u30D1\u30FC\u30E9\u30A4\u30C8\uFF08\u91D1\u5C5E\uFF09"
+    second: {fileID: 2100000, guid: 015dbbc105d461c40b338fe41441a58c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "\u30D5\u30A3\u30E9\u30E1\u30F3\u30C8"
+    second: {fileID: 2100000, guid: 08e6cb52d0574d74cb7f43017904dc0a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "\u30EA\u30D5\u30EC\u30AF\u30BF\u30FC.001"
+    second: {fileID: 2100000, guid: 7914a9194cf22a143b8b480234e12dbd, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -16,8 +46,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 

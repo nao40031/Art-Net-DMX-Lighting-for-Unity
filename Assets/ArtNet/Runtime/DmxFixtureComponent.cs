@@ -39,6 +39,35 @@ namespace ArtNet.Runtime
         public Transform panTransform;
         public Transform tiltTransform;
 
+
+        // ------------------------------------------------------------
+        // Lens (ShaderGraph DMX Sync)
+        // ------------------------------------------------------------
+
+        [Header("Lens (ShaderGraph DMX Sync)")]
+        [Tooltip("レンズ面のRenderer。ShaderGraph側に _DmxColor(Color) / _DmxDimmer(Float) がある前提で、DMXの色とDimmerを渡します。")]
+        [SerializeField] private Renderer lensRenderer;
+
+        [Tooltip("レンズが複数Rendererに分かれている場合は追加で登録します（任意）。")]
+        [SerializeField] private Renderer[] extraLensRenderers;
+
+        [Tooltip("レンズへDMX同期を行うか")]
+        [SerializeField] private bool syncLensToDmx = true;
+
+        [Tooltip("ShaderGraphのColorプロパティ名（Reference）。例: _DmxColor")]
+        [SerializeField] private string lensColorProperty = "_DmxColor";
+
+        [Tooltip("ShaderGraphのFloatプロパティ名（Reference）。例: _DmxDimmer")]
+        [SerializeField] private string lensDimmerProperty = "_DmxDimmer";
+
+        [Tooltip("Dimmer(0-1)に掛ける倍率。レンズが暗い/明るすぎる時の調整用。")]
+        [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
+
+        // MaterialPropertyBlockで per-renderer に安全に書き込む（マテリアル複製を避ける）
+        private MaterialPropertyBlock _lensMpb;
+        private int _lensColorId;
+        private int _lensDimmerId;
+        private bool _lensPropertyIdsReady;
         [Header("Pan/Tilt Range (degrees)")]
         public float panRangeDeg = 540f;
         public float tiltRangeDeg = 270f;
@@ -93,6 +122,10 @@ namespace ArtNet.Runtime
         [Range(0f, 30f)]
         [Tooltip("Pan/Tiltの追従スムージング。0=即時、値を上げるほどヌルッと動く")]
         public float panTiltSmoothing = 12f;
+
+
+        [Tooltip("DMX受信更新(例:40Hz)と描画(例:60Hz)の差で段差が見える場合に、毎フレーム補間で滑らかにします")]
+        public bool enableContinuousPanTiltUpdate = true;
 
         [Header("Pan/Tilt Speed (deg/sec)  ※PanTiltSpeedがある場合のみ有効")]
         [Tooltip("PanTiltSpeed=0 のときの角速度")]
@@ -178,6 +211,17 @@ namespace ArtNet.Runtime
         private Quaternion _tiltBaseLocalRot;
         private bool _movementBaseCaptured;
 
+
+        // --- Pan/Tilt continuous interpolation targets (updated by DMX, applied every frame) ---
+        private bool _hasPanTarget;
+        private bool _hasTiltTarget;
+        private Quaternion _panTargetLocalRot;
+        private Quaternion _tiltTargetLocalRot;
+        private float _panTargetMaxDegPerSec = -1f;
+        private float _tiltTargetMaxDegPerSec = -1f;
+        private float _panTargetSmoothing = 0.15f;
+        private float _tiltTargetSmoothing = 0.15f;
+
         private readonly Dictionary<FixtureFunction, int> _relativeMap = new();
         [SerializeField] private string _activeProfileLabel;
         [SerializeField] private string _activeModeLabel;
@@ -223,14 +267,7 @@ namespace ArtNet.Runtime
 
         public void ApplyFromUniverseBuffer(int[] universe512) => ApplyFromUniverseBufferInternal(universe512);
 
-        public void ApplyFromUniverseBuffer(byte[] universe512)
-        {
-            if (universe512 == null) return;
-            int len = universe512.Length;
-            var tmp = new int[len];
-            for (int i = 0; i < len; i++) tmp[i] = universe512[i];
-            ApplyFromUniverseBufferInternal(tmp);
-        }
+        public void ApplyFromUniverseBuffer(byte[] universe512) => ApplyFromUniverseBufferInternal(universe512);
 
         // ------------------------------------------------------------
         // Unity lifecycle
@@ -258,6 +295,8 @@ namespace ArtNet.Runtime
 
         private void Update()
         {
+            UpdatePanTiltMotion();
+
             if (!monitorEnabled) return;
             if (!enablePeriodicLog) return;
 
@@ -598,6 +637,10 @@ namespace ArtNet.Runtime
                 }
             }
 
+
+            // --- Lens (ShaderGraph) ---
+            ApplyLensDmx(rgb, dim01);
+
             // --- Pan/Tilt Speed（あればスムージング適用） ---
             bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
             float maxDegPerSec = panTiltSpeedMaxDegPerSec;
@@ -622,15 +665,8 @@ namespace ArtNet.Runtime
                 if (panInvert) panDeg = -panDeg;
                 panDeg += panOffsetDeg;
 
-                ApplyAxisRotation(
-                    panTransform,
-                    _panBaseLocalRot,
-                    panAxis,
-                    panDeg,
-                    hasSpeed ? maxDegPerSec : -1f,
-                    panTiltSmoothing
-                );
-            }
+                SetPanTarget(panDeg, hasSpeed ? maxDegPerSec : -1f, panTiltSmoothing);
+}
 
             // --- Tilt ---
             if (tiltTransform != null && TryGetRelativeChannel(FixtureFunction.TiltCoarse, out int tiltCoarseRel))
@@ -647,19 +683,128 @@ namespace ArtNet.Runtime
                 if (tiltInvert) tiltDeg = -tiltDeg;
                 tiltDeg += tiltOffsetDeg;
 
-                ApplyAxisRotation(
-                    tiltTransform,
-                    _tiltBaseLocalRot,
-                    tiltAxis,
-                    tiltDeg,
-                    hasSpeed ? maxDegPerSec : -1f,
-                    panTiltSmoothing
-                );
-            }
+                SetTiltTarget(tiltDeg, hasSpeed ? maxDegPerSec : -1f, panTiltSmoothing);
+}
 
             // --- Monitoring update (per-fixture realtime values) ---
             UpdateMonitorValues(universe512);
         }
+
+        private void ApplyFromUniverseBufferInternal(byte[] universe512)
+        {
+            if (universe512 == null) return;
+            if (!IsValid) return;
+
+            if (targetLight == null) Context_AutoAttachTargetLight();
+
+            // --- Reset ---
+            if (TryGetRelativeChannel(FixtureFunction.Reset, out int resetRel))
+            {
+                int resetAbs = startAddress + resetRel - 1;
+                int resetVal = Read8Abs(universe512, resetAbs);
+                if (resetVal >= resetTriggerThreshold)
+                    PerformReset();
+            }
+
+            // --- Dimmer ---
+            float dim01 = 1f;
+            if (TryGetRelativeChannel(FixtureFunction.Dimmer, out int dimRel))
+            {
+                int dimAbs = startAddress + dimRel - 1;
+                dim01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, dimAbs));
+            }
+
+            // --- RGB (+White) ---
+            Color rgb = Color.white;
+
+            bool hasR = TryGetRelativeChannel(FixtureFunction.Red, out int rRel);
+            bool hasG = TryGetRelativeChannel(FixtureFunction.Green, out int gRel);
+            bool hasB = TryGetRelativeChannel(FixtureFunction.Blue, out int bRel);
+
+            if (hasR && hasG && hasB)
+            {
+                float r = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + rRel - 1));
+                float g = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + gRel - 1));
+                float b = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + bRel - 1));
+
+                rgb = new Color(r, g, b, 1f);
+
+                // Whiteが割り当てられている場合は「白方向に寄せる」簡易モデル
+                if (TryGetRelativeChannel(FixtureFunction.White, out int wRel))
+                {
+                    float w = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + wRel - 1));
+                    rgb = rgb + Color.white * w;
+                }
+            }
+
+            // --- Apply to Light via Driver ---
+            if (isInitialized && runtimeDriver != null)
+            {
+                runtimeDriver.Apply(dim01, rgb);
+            }
+            else
+            {
+                // ドライバ未使用でも最低限は反映（保険）
+                if (targetLight != null)
+                {
+                    targetLight.color = rgb;
+                    targetLight.intensity = dim01 * 10f;
+                }
+            }
+
+
+            // --- Lens (ShaderGraph) ---
+            ApplyLensDmx(rgb, dim01);
+
+            // --- Pan/Tilt Speed（あればスムージング適用） ---
+            bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
+            float maxDegPerSec = panTiltSpeedMaxDegPerSec;
+            if (hasSpeed)
+            {
+                float sp01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + spRel - 1)); // slow -> fast
+                maxDegPerSec = Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, sp01);
+            }
+
+            // --- Pan ---
+            if (panTransform != null && TryGetRelativeChannel(FixtureFunction.PanCoarse, out int panCoarseRel))
+            {
+                int panFineRel = TryGetRelativeChannel(FixtureFunction.PanFine, out int pf) ? pf : -1;
+
+                int panAbsCoarse = startAddress + panCoarseRel - 1;
+                int panAbsFine = (panFineRel > 0) ? (startAddress + panFineRel - 1) : -1;
+
+                int pan16 = Read16Abs(universe512, panAbsCoarse, panAbsFine);
+                float pan01 = pan16 / 65535f;
+                float panDeg = (pan01 - 0.5f) * panRangeDeg;
+
+                if (panInvert) panDeg = -panDeg;
+                panDeg += panOffsetDeg;
+
+                SetPanTarget(panDeg, hasSpeed ? maxDegPerSec : -1f, panTiltSmoothing);
+}
+
+            // --- Tilt ---
+            if (tiltTransform != null && TryGetRelativeChannel(FixtureFunction.TiltCoarse, out int tiltCoarseRel))
+            {
+                int tiltFineRel = TryGetRelativeChannel(FixtureFunction.TiltFine, out int tf) ? tf : -1;
+
+                int tiltAbsCoarse = startAddress + tiltCoarseRel - 1;
+                int tiltAbsFine = (tiltFineRel > 0) ? (startAddress + tiltFineRel - 1) : -1;
+
+                int tilt16 = Read16Abs(universe512, tiltAbsCoarse, tiltAbsFine);
+                float tilt01 = tilt16 / 65535f;
+                float tiltDeg = (tilt01 - 0.5f) * tiltRangeDeg;
+
+                if (tiltInvert) tiltDeg = -tiltDeg;
+                tiltDeg += tiltOffsetDeg;
+
+                SetTiltTarget(tiltDeg, hasSpeed ? maxDegPerSec : -1f, panTiltSmoothing);
+}
+
+            // --- Monitoring update (per-fixture realtime values) ---
+            UpdateMonitorValues(universe512);
+        }
+
 
         private void UpdateMonitorValues(int[] universe512)
         {
@@ -686,6 +831,33 @@ namespace ArtNet.Runtime
 
             _hasNewDataSinceLastLog = true;
         }
+
+        private void UpdateMonitorValues(byte[] universe512)
+        {
+            if (!monitorEnabled) return;
+
+            // 5ch quick monitor (absolute)
+            ch1 = Read8Abs(universe512, monitorCh1);
+            ch2 = Read8Abs(universe512, monitorCh2);
+            ch3 = Read8Abs(universe512, monitorCh3);
+            ch4 = Read8Abs(universe512, monitorCh4);
+            ch5 = Read8Abs(universe512, monitorCh5);
+
+            // Function / relative list
+            if (monitorItems != null)
+            {
+                for (int i = 0; i < monitorItems.Count; i++)
+                {
+                    var it = monitorItems[i];
+                    it.absoluteCh = Mathf.Clamp(startAddress + it.relativeCh - 1, 1, 512);
+                    it.value = Read8Abs(universe512, it.absoluteCh);
+                    monitorItems[i] = it;
+                }
+            }
+
+            _hasNewDataSinceLastLog = true;
+        }
+
 
         private string BuildMonitorSummaryLog()
         {
@@ -747,7 +919,59 @@ namespace ArtNet.Runtime
                 targetLight.intensity = 0f;
                 targetLight.color = Color.white;
             }
+            // --- Lens (ShaderGraph) reset ---
+            ApplyLensDmx(Color.white, 0f);
         }
+        
+// ------------------------------------------------------------
+        // Lens DMX sync helpers
+        // ------------------------------------------------------------
+
+        private void EnsureLensPropertyIds()
+        {
+            if (_lensPropertyIdsReady) return;
+
+            // property名が空だと PropertyToID で0になるので、最低限ガード
+            if (string.IsNullOrWhiteSpace(lensColorProperty)) lensColorProperty = "_DmxColor";
+            if (string.IsNullOrWhiteSpace(lensDimmerProperty)) lensDimmerProperty = "_DmxDimmer";
+
+            _lensColorId = Shader.PropertyToID(lensColorProperty);
+            _lensDimmerId = Shader.PropertyToID(lensDimmerProperty);
+            _lensMpb ??= new MaterialPropertyBlock();
+            _lensPropertyIdsReady = true;
+        }
+
+        private void ApplyLensDmx(Color rgb, float dim01)
+        {
+            if (!syncLensToDmx) return;
+
+            // Renderer未設定でも安全にスルー
+            if (lensRenderer == null && (extraLensRenderers == null || extraLensRenderers.Length == 0))
+                return;
+
+            EnsureLensPropertyIds();
+
+            float d = Mathf.Clamp01(dim01) * Mathf.Max(0f, lensDimmerScale);
+
+            // まずは共通のMPBに値をセット（RendererごとにSetPropertyBlockする）
+            _lensMpb.Clear();
+            _lensMpb.SetColor(_lensColorId, rgb);
+            _lensMpb.SetFloat(_lensDimmerId, d);
+
+            if (lensRenderer != null)
+                lensRenderer.SetPropertyBlock(_lensMpb);
+
+            if (extraLensRenderers != null)
+            {
+                for (int i = 0; i < extraLensRenderers.Length; i++)
+                {
+                    var r = extraLensRenderers[i];
+                    if (r != null) r.SetPropertyBlock(_lensMpb);
+                }
+            }
+        }
+
+
 
         // ------------------------------------------------------------
         // Helpers
@@ -760,6 +984,14 @@ namespace ArtNet.Runtime
             return DmxValueUtils.ClampByte(universe512[idx]);
         }
 
+        private static int Read8Abs(byte[] universe512, int absCh1Based)
+        {
+            int idx = absCh1Based - 1;
+            if (idx < 0 || idx >= universe512.Length) return 0;
+            return universe512[idx];
+        }
+
+
         private static int Read16Abs(int[] universe512, int absCoarseCh1Based, int absFineCh1BasedOrMinus1)
         {
             int coarse = Read8Abs(universe512, absCoarseCh1Based);
@@ -768,7 +1000,77 @@ namespace ArtNet.Runtime
             return (coarse << 8) | fine;
         }
 
-        private static Vector3 AxisToVector(LocalAxis a) => a switch
+        private static int Read16Abs(byte[] universe512, int absCoarseCh1Based, int absFineCh1BasedOrMinus1)
+        {
+            int coarse = Read8Abs(universe512, absCoarseCh1Based);
+            if (absFineCh1BasedOrMinus1 <= 0) return coarse << 8;
+            int fine = Read8Abs(universe512, absFineCh1BasedOrMinus1);
+            return (coarse << 8) | fine;
+        }
+
+
+        
+        // ------------------------------------------------------------
+        // Pan/Tilt continuous interpolation (target set on DMX update, applied every frame)
+        // ------------------------------------------------------------
+
+        private void SetPanTarget(float panDeg, float maxDegPerSec, float smoothing01)
+        {
+            _panTargetLocalRot = _panBaseLocalRot * Quaternion.AngleAxis(panDeg, AxisToVector(panAxis));
+            _hasPanTarget = true;
+            _panTargetMaxDegPerSec = maxDegPerSec;
+            _panTargetSmoothing = smoothing01;
+        }
+
+        private void SetTiltTarget(float tiltDeg, float maxDegPerSec, float smoothing01)
+        {
+            _tiltTargetLocalRot = _tiltBaseLocalRot * Quaternion.AngleAxis(tiltDeg, AxisToVector(tiltAxis));
+            _hasTiltTarget = true;
+            _tiltTargetMaxDegPerSec = maxDegPerSec;
+            _tiltTargetSmoothing = smoothing01;
+        }
+
+        private void UpdatePanTiltMotion()
+        {
+            if (!enableContinuousPanTiltUpdate) return;
+
+            // DMXがまだ来ていないときは何もしない
+            if (panTransform != null && _hasPanTarget)
+            {
+                ApplyRotationToTarget(panTransform, _panTargetLocalRot, _panTargetMaxDegPerSec, _panTargetSmoothing);
+            }
+
+            if (tiltTransform != null && _hasTiltTarget)
+            {
+                ApplyRotationToTarget(tiltTransform, _tiltTargetLocalRot, _tiltTargetMaxDegPerSec, _tiltTargetSmoothing);
+            }
+        }
+
+        private static void ApplyRotationToTarget(Transform t, Quaternion targetLocalRot, float maxDegPerSec, float smoothing01)
+        {
+            if (t == null) return;
+
+            if (maxDegPerSec > 0f)
+            {
+                float dt = Mathf.Max(0.0001f, Time.deltaTime);
+                float step = maxDegPerSec * dt;
+                t.localRotation = Quaternion.RotateTowards(t.localRotation, targetLocalRot, step);
+                return;
+            }
+
+            if (smoothing01 <= 0f)
+            {
+                t.localRotation = targetLocalRot;
+                return;
+            }
+
+            float dt2 = Mathf.Max(0.0001f, Time.deltaTime);
+            // smoothing01 を「60fps基準の係数」に変換してフレームレート差を吸収
+            float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(smoothing01), dt2 * 60f);
+            t.localRotation = Quaternion.Slerp(t.localRotation, targetLocalRot, k);
+        }
+
+private static Vector3 AxisToVector(LocalAxis a) => a switch
         {
             LocalAxis.X => Vector3.right,
             LocalAxis.Y => Vector3.up,

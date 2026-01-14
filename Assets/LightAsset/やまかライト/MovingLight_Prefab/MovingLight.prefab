@@ -304,6 +304,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 717a517fcb7038c4fb0c0c974b29b31e, type: 2}
     - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: m_Name
       value: MovingLight
@@ -325,6 +329,11 @@ PrefabInstance:
 --- !u!4 &1013826615945173212 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4502219153963124162, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+  m_PrefabInstance: {fileID: 3488826918228270366}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &2523771333444109262 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
   m_PrefabInstance: {fileID: 3488826918228270366}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &3456986391419752059 stripped
@@ -376,6 +385,13 @@ MonoBehaviour:
   targetLight: {fileID: 5435452863099544097}
   panTransform: {fileID: 1013826615945173212}
   tiltTransform: {fileID: 3456986391419752059}
+  lensRenderer: {fileID: 0}
+  extraLensRenderers:
+  - {fileID: 2523771333444109262}
+  syncLensToDmx: 1
+  lensColorProperty: _DmxColor
+  lensDimmerProperty: _DmxDimmer
+  lensDimmerScale: 1
   panRangeDeg: 540
   tiltRangeDeg: 270
   pipelineMode: 0
@@ -391,10 +407,65 @@ MonoBehaviour:
   panOffsetDeg: 0
   tiltOffsetDeg: 0
   panTiltSmoothing: 12
+  enableContinuousPanTiltUpdate: 1
   panTiltSpeedMinDegPerSec: 30
   panTiltSpeedMaxDegPerSec: 720
   resetTriggerThreshold: 250
   autoResolveOnValidate: 1
+  monitorEnabled: 1
+  monitorCh1: 1
+  monitorCh2: 2
+  monitorCh3: 3
+  monitorCh4: 4
+  monitorCh5: 5
+  monitorIncludeResolvedFunctions: 1
+  monitorExtraRelativeChannels: 
+  ch1: 0
+  ch2: 0
+  ch3: 0
+  ch4: 0
+  ch5: 0
+  monitorItems:
+  - function: 4
+    relativeCh: 1
+    absoluteCh: 1
+    value: 0
+  - function: 6
+    relativeCh: 2
+    absoluteCh: 2
+    value: 0
+  - function: 0
+    relativeCh: 3
+    absoluteCh: 3
+    value: 0
+  - function: 1
+    relativeCh: 4
+    absoluteCh: 4
+    value: 0
+  - function: 2
+    relativeCh: 5
+    absoluteCh: 5
+    value: 0
+  - function: 3
+    relativeCh: 6
+    absoluteCh: 6
+    value: 0
+  - function: 14
+    relativeCh: 7
+    absoluteCh: 7
+    value: 0
+  - function: 15
+    relativeCh: 8
+    absoluteCh: 8
+    value: 0
+  - function: 16
+    relativeCh: 9
+    absoluteCh: 9
+    value: 0
+  enablePeriodicLog: 0
+  logIntervalSec: 1
+  logOnlyWhenDataArrived: 1
+  includeHeaderInLog: 1
   _activeProfileLabel: 
   _activeModeLabel: 9-Channel Mode
   _resolvedItems:
@@ -408,8 +479,8 @@ MonoBehaviour:
     relativeChannel: 3
     absoluteChannel: 3
   - function: 1
-    relativeChannel: 1
-    absoluteChannel: 1
+    relativeChannel: 4
+    absoluteChannel: 4
   - function: 2
     relativeChannel: 5
     absoluteChannel: 5
