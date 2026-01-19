@@ -1,0 +1,357 @@
+Head no,Universe,DMX Address,X Pos,Y Pos,Z Pos,Name,Path
+0,0,0,0,0,0,MovingLightGroup,MovingLightGroup
+0,0,1,-6.155,9.073,-4.35,MovingLight,MovingLightGroup/MovingLight
+0,0,10,-4.629,9.073,-4.35,MovingLight_1,MovingLightGroup/MovingLight_1
+0,0,19,-3.08,9.073,-4.35,MovingLight_2,MovingLightGroup/MovingLight_2
+0,0,28,-1.536,9.073,-4.35,MovingLight_3,MovingLightGroup/MovingLight_3
+0,0,37,-0.005,9.073,-4.35,MovingLight_4,MovingLightGroup/MovingLight_4
+0,0,46,1.546,9.073,-4.35,MovingLight_5,MovingLightGroup/MovingLight_5
+0,0,55,3.09,9.073,-4.35,MovingLight_6,MovingLightGroup/MovingLight_6
+0,0,64,4.606,9.073,-4.35,MovingLight_7,MovingLightGroup/MovingLight_7
+0,0,73,6.17,9.073,-4.35,MovingLight_8,MovingLightGroup/MovingLight_8
+0,0,82,-6.155,9.073,-1.34,MovingLight_9,MovingLightGroup/MovingLight_9
+0,0,91,-4.629,9.073,-1.34,MovingLight_10,MovingLightGroup/MovingLight_10
+0,0,100,-3.08,9.073,-1.34,MovingLight_11,MovingLightGroup/MovingLight_11
+0,0,109,-1.536,9.073,-1.34,MovingLight_12,MovingLightGroup/MovingLight_12
+0,0,118,-0.005,9.073,-1.34,MovingLight_13,MovingLightGroup/MovingLight_13
+0,0,127,1.546,9.073,-1.34,MovingLight_14,MovingLightGroup/MovingLight_14
+0,0,136,3.09,9.073,-1.34,MovingLight_15,MovingLightGroup/MovingLight_15
+0,0,145,4.606,9.073,-1.34,MovingLight_16,MovingLightGroup/MovingLight_16
+0,0,154,6.17,9.073,-1.34,MovingLight_17,MovingLightGroup/MovingLight_17
+0,0,163,-6.155,9.073,1.64,MovingLight_18,MovingLightGroup/MovingLight_18
+0,0,172,-4.629,9.073,1.64,MovingLight_19,MovingLightGroup/MovingLight_19
+0,0,181,-3.08,9.073,1.64,MovingLight_20,MovingLightGroup/MovingLight_20
+0,0,190,-1.536,9.073,1.64,MovingLight_21,MovingLightGroup/MovingLight_21
+0,0,199,-0.005,9.073,1.64,MovingLight_22,MovingLightGroup/MovingLight_22
+0,0,208,1.546,9.073,1.64,MovingLight_23,MovingLightGroup/MovingLight_23
+0,0,217,3.09,9.073,1.64,MovingLight_24,MovingLightGroup/MovingLight_24
+0,0,226,4.606,9.073,1.64,MovingLight_25,MovingLightGroup/MovingLight_25
+0,0,235,6.17,9.073,1.64,MovingLight_26,MovingLightGroup/MovingLight_26
+0,0,244,-7.988,3.647,3.915,MovingLight_27,MovingLightGroup/MovingLight_27
+0,0,253,-3.994,3.647,3.915,MovingLight_28,MovingLightGroup/MovingLight_28
+0,0,262,-0.023,3.647,3.915,MovingLight_29,MovingLightGroup/MovingLight_29
+0,0,271,3.992,3.647,3.915,MovingLight_30,MovingLightGroup/MovingLight_30
+0,0,280,7.995,3.647,3.915,MovingLight_31,MovingLightGroup/MovingLight_31
+0,0,289,-7.98,0.49,-3.11,MovingLight_32,MovingLightGroup/MovingLight_32
+0,0,298,-4.003,0.49,-3.11,MovingLight_33,MovingLightGroup/MovingLight_33
+0,0,307,-0.007,0.49,-3.11,MovingLight_34,MovingLightGroup/MovingLight_34
+0,0,316,3.998,0.49,-3.11,MovingLight_35,MovingLightGroup/MovingLight_35
+0,0,325,7.999,0.49,-3.11,MovingLight_36,MovingLightGroup/MovingLight_36
+0,0,334,11.806,1.795,-4.318,MovingLight_37,MovingLightGroup/MovingLight_37
+0,0,343,11.806,1.795,-1.122,MovingLight_38,MovingLightGroup/MovingLight_38
+0,0,352,11.806,1.795,2.158,MovingLight_39,MovingLightGroup/MovingLight_39
+0,0,361,11.806,3.796,-4.318,MovingLight_40,MovingLightGroup/MovingLight_40
+0,0,370,11.806,3.796,-1.122,MovingLight_41,MovingLightGroup/MovingLight_41
+0,0,379,11.806,3.796,2.158,MovingLight_42,MovingLightGroup/MovingLight_42
+0,0,388,11.806,5.818,-4.318,MovingLight_43,MovingLightGroup/MovingLight_43
+0,0,397,11.806,5.818,-1.122,MovingLight_44,MovingLightGroup/MovingLight_44
+0,0,406,11.806,5.818,2.158,MovingLight_45,MovingLightGroup/MovingLight_45
+0,0,415,11.806,7.851,-4.318,MovingLight_46,MovingLightGroup/MovingLight_46
+0,0,424,11.806,7.851,-1.122,MovingLight_47,MovingLightGroup/MovingLight_47
+0,0,433,11.806,7.851,2.158,MovingLight_48,MovingLightGroup/MovingLight_48
+0,0,442,-11.723,1.795,-4.318,MovingLight_49,MovingLightGroup/MovingLight_49
+0,0,451,-11.723,1.795,-1.122,MovingLight_50,MovingLightGroup/MovingLight_50
+0,0,460,-11.723,1.795,2.158,MovingLight_51,MovingLightGroup/MovingLight_51
+0,0,469,-11.723,3.796,-4.318,MovingLight_52,MovingLightGroup/MovingLight_52
+0,0,478,-11.723,3.796,-1.122,MovingLight_53,MovingLightGroup/MovingLight_53
+0,0,487,-11.723,3.796,2.158,MovingLight_54,MovingLightGroup/MovingLight_54
+0,0,496,-11.723,5.818,-4.318,MovingLight_55,MovingLightGroup/MovingLight_55
+0,1,1,-11.723,5.818,-1.122,MovingLight_56,MovingLightGroup/MovingLight_56
+0,1,10,-11.723,5.818,2.158,MovingLight_57,MovingLightGroup/MovingLight_57
+0,1,19,-11.723,7.851,-4.318,MovingLight_58,MovingLightGroup/MovingLight_58
+0,1,28,-11.723,7.851,-1.122,MovingLight_59,MovingLightGroup/MovingLight_59
+0,1,37,-11.723,7.851,2.158,MovingLight_60,MovingLightGroup/MovingLight_60
+0,1,46,-8.029,5.809,5.355,MovingLight_61,MovingLightGroup/MovingLight_61
+0,1,55,-4.074,5.815,5.355,MovingLight_62,MovingLightGroup/MovingLight_62
+0,1,64,-0.034,5.815,5.355,MovingLight_63,MovingLightGroup/MovingLight_63
+0,1,73,3.834,5.815,5.355,MovingLight_64,MovingLightGroup/MovingLight_64
+0,1,82,7.922,5.815,5.355,MovingLight_65,MovingLightGroup/MovingLight_65
+0,1,91,-8.029,7.86,5.355,MovingLight_66,MovingLightGroup/MovingLight_66
+0,1,100,-4.074,7.866,5.355,MovingLight_67,MovingLightGroup/MovingLight_67
+0,1,109,-0.034,7.866,5.355,MovingLight_68,MovingLightGroup/MovingLight_68
+0,1,118,3.834,7.866,5.355,MovingLight_69,MovingLightGroup/MovingLight_69
+0,1,127,7.922,7.866,5.355,MovingLight_70,MovingLightGroup/MovingLight_70
+0,0,0,-6.155,8.893,-4.35,PanBody,MovingLightGroup/MovingLight/PanBody
+0,0,0,-4.629,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_1/PanBody
+0,0,0,-3.08,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_2/PanBody
+0,0,0,-1.536,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_3/PanBody
+0,0,0,-0.005,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_4/PanBody
+0,0,0,1.546,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_5/PanBody
+0,0,0,3.09,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_6/PanBody
+0,0,0,4.606,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_7/PanBody
+0,0,0,6.17,8.893,-4.35,PanBody,MovingLightGroup/MovingLight_8/PanBody
+0,0,0,-6.155,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_9/PanBody
+0,0,0,-4.629,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_10/PanBody
+0,0,0,-3.08,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_11/PanBody
+0,0,0,-1.536,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_12/PanBody
+0,0,0,-0.005,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_13/PanBody
+0,0,0,1.546,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_14/PanBody
+0,0,0,3.09,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_15/PanBody
+0,0,0,4.606,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_16/PanBody
+0,0,0,6.17,8.893,-1.34,PanBody,MovingLightGroup/MovingLight_17/PanBody
+0,0,0,-6.155,8.893,1.64,PanBody,MovingLightGroup/MovingLight_18/PanBody
+0,0,0,-4.629,8.893,1.64,PanBody,MovingLightGroup/MovingLight_19/PanBody
+0,0,0,-3.08,8.893,1.64,PanBody,MovingLightGroup/MovingLight_20/PanBody
+0,0,0,-1.536,8.893,1.64,PanBody,MovingLightGroup/MovingLight_21/PanBody
+0,0,0,-0.005,8.893,1.64,PanBody,MovingLightGroup/MovingLight_22/PanBody
+0,0,0,1.546,8.893,1.64,PanBody,MovingLightGroup/MovingLight_23/PanBody
+0,0,0,3.09,8.893,1.64,PanBody,MovingLightGroup/MovingLight_24/PanBody
+0,0,0,4.606,8.893,1.64,PanBody,MovingLightGroup/MovingLight_25/PanBody
+0,0,0,6.17,8.893,1.64,PanBody,MovingLightGroup/MovingLight_26/PanBody
+0,0,0,-7.988,3.827,3.915,PanBody,MovingLightGroup/MovingLight_27/PanBody
+0,0,0,-3.994,3.827,3.915,PanBody,MovingLightGroup/MovingLight_28/PanBody
+0,0,0,-0.023,3.827,3.915,PanBody,MovingLightGroup/MovingLight_29/PanBody
+0,0,0,3.992,3.827,3.915,PanBody,MovingLightGroup/MovingLight_30/PanBody
+0,0,0,7.995,3.827,3.915,PanBody,MovingLightGroup/MovingLight_31/PanBody
+0,0,0,-7.98,0.67,-3.11,PanBody,MovingLightGroup/MovingLight_32/PanBody
+0,0,0,-4.003,0.67,-3.11,PanBody,MovingLightGroup/MovingLight_33/PanBody
+0,0,0,-0.007,0.67,-3.11,PanBody,MovingLightGroup/MovingLight_34/PanBody
+0,0,0,3.998,0.67,-3.11,PanBody,MovingLightGroup/MovingLight_35/PanBody
+0,0,0,7.999,0.67,-3.11,PanBody,MovingLightGroup/MovingLight_36/PanBody
+0,0,0,11.626,1.795,-4.318,PanBody,MovingLightGroup/MovingLight_37/PanBody
+0,0,0,11.626,1.795,-1.122,PanBody,MovingLightGroup/MovingLight_38/PanBody
+0,0,0,11.626,1.795,2.158,PanBody,MovingLightGroup/MovingLight_39/PanBody
+0,0,0,11.626,3.796,-4.318,PanBody,MovingLightGroup/MovingLight_40/PanBody
+0,0,0,11.626,3.796,-1.122,PanBody,MovingLightGroup/MovingLight_41/PanBody
+0,0,0,11.626,3.796,2.158,PanBody,MovingLightGroup/MovingLight_42/PanBody
+0,0,0,11.626,5.818,-4.318,PanBody,MovingLightGroup/MovingLight_43/PanBody
+0,0,0,11.626,5.818,-1.122,PanBody,MovingLightGroup/MovingLight_44/PanBody
+0,0,0,11.626,5.818,2.158,PanBody,MovingLightGroup/MovingLight_45/PanBody
+0,0,0,11.626,7.851,-4.318,PanBody,MovingLightGroup/MovingLight_46/PanBody
+0,0,0,11.626,7.851,-1.122,PanBody,MovingLightGroup/MovingLight_47/PanBody
+0,0,0,11.626,7.851,2.158,PanBody,MovingLightGroup/MovingLight_48/PanBody
+0,0,0,-11.543,1.795,-4.318,PanBody,MovingLightGroup/MovingLight_49/PanBody
+0,0,0,-11.543,1.795,-1.122,PanBody,MovingLightGroup/MovingLight_50/PanBody
+0,0,0,-11.543,1.795,2.158,PanBody,MovingLightGroup/MovingLight_51/PanBody
+0,0,0,-11.543,3.796,-4.318,PanBody,MovingLightGroup/MovingLight_52/PanBody
+0,0,0,-11.543,3.796,-1.122,PanBody,MovingLightGroup/MovingLight_53/PanBody
+0,0,0,-11.543,3.796,2.158,PanBody,MovingLightGroup/MovingLight_54/PanBody
+0,0,0,-11.543,5.818,-4.318,PanBody,MovingLightGroup/MovingLight_55/PanBody
+0,0,0,-11.543,5.818,-1.122,PanBody,MovingLightGroup/MovingLight_56/PanBody
+0,0,0,-11.543,5.818,2.158,PanBody,MovingLightGroup/MovingLight_57/PanBody
+0,0,0,-11.543,7.851,-4.318,PanBody,MovingLightGroup/MovingLight_58/PanBody
+0,0,0,-11.543,7.851,-1.122,PanBody,MovingLightGroup/MovingLight_59/PanBody
+0,0,0,-11.543,7.851,2.158,PanBody,MovingLightGroup/MovingLight_60/PanBody
+0,0,0,-8.029,5.809,5.175,PanBody,MovingLightGroup/MovingLight_61/PanBody
+0,0,0,-4.074,5.815,5.175,PanBody,MovingLightGroup/MovingLight_62/PanBody
+0,0,0,-0.034,5.815,5.175,PanBody,MovingLightGroup/MovingLight_63/PanBody
+0,0,0,3.834,5.815,5.175,PanBody,MovingLightGroup/MovingLight_64/PanBody
+0,0,0,7.922,5.815,5.175,PanBody,MovingLightGroup/MovingLight_65/PanBody
+0,0,0,-8.029,7.86,5.175,PanBody,MovingLightGroup/MovingLight_66/PanBody
+0,0,0,-4.074,7.866,5.175,PanBody,MovingLightGroup/MovingLight_67/PanBody
+0,0,0,-0.034,7.866,5.175,PanBody,MovingLightGroup/MovingLight_68/PanBody
+0,0,0,3.834,7.866,5.175,PanBody,MovingLightGroup/MovingLight_69/PanBody
+0,0,0,7.922,7.866,5.175,PanBody,MovingLightGroup/MovingLight_70/PanBody
+0,0,0,-6.155,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight/PanBody/TiltBody/TiltBody.001
+0,0,0,-6.155,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-4.629,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_1/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-3.08,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_2/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-1.536,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_3/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-0.005,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_4/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,1.546,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_5/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,3.09,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_6/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,4.606,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_7/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,6.17,8.728,-4.35,Spot Light,MovingLightGroup/MovingLight_8/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-6.155,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_9/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-4.629,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_10/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-3.08,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_11/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-1.536,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_12/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-0.005,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_13/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,1.546,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_14/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,3.09,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_15/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,4.606,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_16/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,6.17,8.728,-1.34,Spot Light,MovingLightGroup/MovingLight_17/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-6.155,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_18/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-4.629,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_19/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-3.08,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_20/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-1.536,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_21/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-0.005,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_22/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,1.546,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_23/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,3.09,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_24/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,4.606,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_25/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,6.17,8.728,1.64,Spot Light,MovingLightGroup/MovingLight_26/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-7.988,3.992,3.915,Spot Light,MovingLightGroup/MovingLight_27/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-3.994,3.992,3.915,Spot Light,MovingLightGroup/MovingLight_28/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-0.023,3.992,3.915,Spot Light,MovingLightGroup/MovingLight_29/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,3.992,3.992,3.915,Spot Light,MovingLightGroup/MovingLight_30/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,7.995,3.992,3.915,Spot Light,MovingLightGroup/MovingLight_31/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-7.98,0.835,-3.11,Spot Light,MovingLightGroup/MovingLight_32/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-4.003,0.835,-3.11,Spot Light,MovingLightGroup/MovingLight_33/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-0.007,0.835,-3.11,Spot Light,MovingLightGroup/MovingLight_34/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,3.998,0.835,-3.11,Spot Light,MovingLightGroup/MovingLight_35/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,7.999,0.835,-3.11,Spot Light,MovingLightGroup/MovingLight_36/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,1.795,-4.318,Spot Light,MovingLightGroup/MovingLight_37/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,1.795,-1.122,Spot Light,MovingLightGroup/MovingLight_38/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,1.795,2.158,Spot Light,MovingLightGroup/MovingLight_39/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,3.796,-4.318,Spot Light,MovingLightGroup/MovingLight_40/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,3.796,-1.122,Spot Light,MovingLightGroup/MovingLight_41/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,3.796,2.158,Spot Light,MovingLightGroup/MovingLight_42/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,5.818,-4.318,Spot Light,MovingLightGroup/MovingLight_43/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,5.818,-1.122,Spot Light,MovingLightGroup/MovingLight_44/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,5.818,2.158,Spot Light,MovingLightGroup/MovingLight_45/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,7.851,-4.318,Spot Light,MovingLightGroup/MovingLight_46/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,7.851,-1.122,Spot Light,MovingLightGroup/MovingLight_47/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,11.461,7.851,2.158,Spot Light,MovingLightGroup/MovingLight_48/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,1.795,-4.318,Spot Light,MovingLightGroup/MovingLight_49/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,1.795,-1.122,Spot Light,MovingLightGroup/MovingLight_50/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,1.795,2.158,Spot Light,MovingLightGroup/MovingLight_51/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,3.796,-4.318,Spot Light,MovingLightGroup/MovingLight_52/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,3.796,-1.122,Spot Light,MovingLightGroup/MovingLight_53/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,3.796,2.158,Spot Light,MovingLightGroup/MovingLight_54/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,5.818,-4.318,Spot Light,MovingLightGroup/MovingLight_55/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,5.818,-1.122,Spot Light,MovingLightGroup/MovingLight_56/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,5.818,2.158,Spot Light,MovingLightGroup/MovingLight_57/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,7.851,-4.318,Spot Light,MovingLightGroup/MovingLight_58/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,7.851,-1.122,Spot Light,MovingLightGroup/MovingLight_59/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-11.378,7.851,2.158,Spot Light,MovingLightGroup/MovingLight_60/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-8.029,5.809,5.01,Spot Light,MovingLightGroup/MovingLight_61/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-4.074,5.815,5.01,Spot Light,MovingLightGroup/MovingLight_62/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-0.034,5.815,5.01,Spot Light,MovingLightGroup/MovingLight_63/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,3.834,5.815,5.01,Spot Light,MovingLightGroup/MovingLight_64/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,7.922,5.815,5.01,Spot Light,MovingLightGroup/MovingLight_65/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-8.029,7.86,5.01,Spot Light,MovingLightGroup/MovingLight_66/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-4.074,7.866,5.01,Spot Light,MovingLightGroup/MovingLight_67/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-0.034,7.866,5.01,Spot Light,MovingLightGroup/MovingLight_68/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,3.834,7.866,5.01,Spot Light,MovingLightGroup/MovingLight_69/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,7.922,7.866,5.01,Spot Light,MovingLightGroup/MovingLight_70/PanBody/TiltBody/TiltBody.001/Spot Light
+0,0,0,-4.629,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_1/PanBody/TiltBody/TiltBody.001
+0,0,0,-3.08,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_2/PanBody/TiltBody/TiltBody.001
+0,0,0,-1.536,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_3/PanBody/TiltBody/TiltBody.001
+0,0,0,-0.005,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_4/PanBody/TiltBody/TiltBody.001
+0,0,0,1.546,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_5/PanBody/TiltBody/TiltBody.001
+0,0,0,3.09,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_6/PanBody/TiltBody/TiltBody.001
+0,0,0,4.606,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_7/PanBody/TiltBody/TiltBody.001
+0,0,0,6.17,8.728,-4.35,TiltBody.001,MovingLightGroup/MovingLight_8/PanBody/TiltBody/TiltBody.001
+0,0,0,-6.155,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_9/PanBody/TiltBody/TiltBody.001
+0,0,0,-6.155,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight/PanBody/TiltBody
+0,0,0,-4.629,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_10/PanBody/TiltBody/TiltBody.001
+0,0,0,-4.629,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_1/PanBody/TiltBody
+0,0,0,-3.08,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_2/PanBody/TiltBody
+0,0,0,-1.536,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_3/PanBody/TiltBody
+0,0,0,-0.005,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_4/PanBody/TiltBody
+0,0,0,1.546,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_5/PanBody/TiltBody
+0,0,0,3.09,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_6/PanBody/TiltBody
+0,0,0,4.606,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_7/PanBody/TiltBody
+0,0,0,6.17,8.728,-4.35,TiltBody,MovingLightGroup/MovingLight_8/PanBody/TiltBody
+0,0,0,-6.155,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_9/PanBody/TiltBody
+0,0,0,-4.629,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_10/PanBody/TiltBody
+0,0,0,-3.08,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_11/PanBody/TiltBody
+0,0,0,-1.536,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_12/PanBody/TiltBody
+0,0,0,-0.005,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_13/PanBody/TiltBody
+0,0,0,1.546,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_14/PanBody/TiltBody
+0,0,0,3.09,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_15/PanBody/TiltBody
+0,0,0,4.606,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_16/PanBody/TiltBody
+0,0,0,6.17,8.728,-1.34,TiltBody,MovingLightGroup/MovingLight_17/PanBody/TiltBody
+0,0,0,-6.155,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_18/PanBody/TiltBody
+0,0,0,-4.629,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_19/PanBody/TiltBody
+0,0,0,-3.08,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_20/PanBody/TiltBody
+0,0,0,-1.536,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_21/PanBody/TiltBody
+0,0,0,-0.005,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_22/PanBody/TiltBody
+0,0,0,1.546,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_23/PanBody/TiltBody
+0,0,0,3.09,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_24/PanBody/TiltBody
+0,0,0,4.606,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_25/PanBody/TiltBody
+0,0,0,6.17,8.728,1.64,TiltBody,MovingLightGroup/MovingLight_26/PanBody/TiltBody
+0,0,0,-7.988,3.992,3.915,TiltBody,MovingLightGroup/MovingLight_27/PanBody/TiltBody
+0,0,0,-3.994,3.992,3.915,TiltBody,MovingLightGroup/MovingLight_28/PanBody/TiltBody
+0,0,0,-0.023,3.992,3.915,TiltBody,MovingLightGroup/MovingLight_29/PanBody/TiltBody
+0,0,0,3.992,3.992,3.915,TiltBody,MovingLightGroup/MovingLight_30/PanBody/TiltBody
+0,0,0,7.995,3.992,3.915,TiltBody,MovingLightGroup/MovingLight_31/PanBody/TiltBody
+0,0,0,-7.98,0.835,-3.11,TiltBody,MovingLightGroup/MovingLight_32/PanBody/TiltBody
+0,0,0,-4.003,0.835,-3.11,TiltBody,MovingLightGroup/MovingLight_33/PanBody/TiltBody
+0,0,0,-0.007,0.835,-3.11,TiltBody,MovingLightGroup/MovingLight_34/PanBody/TiltBody
+0,0,0,3.998,0.835,-3.11,TiltBody,MovingLightGroup/MovingLight_35/PanBody/TiltBody
+0,0,0,7.999,0.835,-3.11,TiltBody,MovingLightGroup/MovingLight_36/PanBody/TiltBody
+0,0,0,11.461,1.795,-4.318,TiltBody,MovingLightGroup/MovingLight_37/PanBody/TiltBody
+0,0,0,11.461,1.795,-1.122,TiltBody,MovingLightGroup/MovingLight_38/PanBody/TiltBody
+0,0,0,11.461,1.795,2.158,TiltBody,MovingLightGroup/MovingLight_39/PanBody/TiltBody
+0,0,0,11.461,3.796,-4.318,TiltBody,MovingLightGroup/MovingLight_40/PanBody/TiltBody
+0,0,0,11.461,3.796,-1.122,TiltBody,MovingLightGroup/MovingLight_41/PanBody/TiltBody
+0,0,0,11.461,3.796,2.158,TiltBody,MovingLightGroup/MovingLight_42/PanBody/TiltBody
+0,0,0,11.461,5.818,-4.318,TiltBody,MovingLightGroup/MovingLight_43/PanBody/TiltBody
+0,0,0,11.461,5.818,-1.122,TiltBody,MovingLightGroup/MovingLight_44/PanBody/TiltBody
+0,0,0,11.461,5.818,2.158,TiltBody,MovingLightGroup/MovingLight_45/PanBody/TiltBody
+0,0,0,11.461,7.851,-4.318,TiltBody,MovingLightGroup/MovingLight_46/PanBody/TiltBody
+0,0,0,11.461,7.851,-1.122,TiltBody,MovingLightGroup/MovingLight_47/PanBody/TiltBody
+0,0,0,11.461,7.851,2.158,TiltBody,MovingLightGroup/MovingLight_48/PanBody/TiltBody
+0,0,0,-11.378,1.795,-4.318,TiltBody,MovingLightGroup/MovingLight_49/PanBody/TiltBody
+0,0,0,-11.378,1.795,-1.122,TiltBody,MovingLightGroup/MovingLight_50/PanBody/TiltBody
+0,0,0,-11.378,1.795,2.158,TiltBody,MovingLightGroup/MovingLight_51/PanBody/TiltBody
+0,0,0,-11.378,3.796,-4.318,TiltBody,MovingLightGroup/MovingLight_52/PanBody/TiltBody
+0,0,0,-11.378,3.796,-1.122,TiltBody,MovingLightGroup/MovingLight_53/PanBody/TiltBody
+0,0,0,-11.378,3.796,2.158,TiltBody,MovingLightGroup/MovingLight_54/PanBody/TiltBody
+0,0,0,-11.378,5.818,-4.318,TiltBody,MovingLightGroup/MovingLight_55/PanBody/TiltBody
+0,0,0,-11.378,5.818,-1.122,TiltBody,MovingLightGroup/MovingLight_56/PanBody/TiltBody
+0,0,0,-11.378,5.818,2.158,TiltBody,MovingLightGroup/MovingLight_57/PanBody/TiltBody
+0,0,0,-11.378,7.851,-4.318,TiltBody,MovingLightGroup/MovingLight_58/PanBody/TiltBody
+0,0,0,-11.378,7.851,-1.122,TiltBody,MovingLightGroup/MovingLight_59/PanBody/TiltBody
+0,0,0,-11.378,7.851,2.158,TiltBody,MovingLightGroup/MovingLight_60/PanBody/TiltBody
+0,0,0,-8.029,5.809,5.01,TiltBody,MovingLightGroup/MovingLight_61/PanBody/TiltBody
+0,0,0,-4.074,5.815,5.01,TiltBody,MovingLightGroup/MovingLight_62/PanBody/TiltBody
+0,0,0,-0.034,5.815,5.01,TiltBody,MovingLightGroup/MovingLight_63/PanBody/TiltBody
+0,0,0,3.834,5.815,5.01,TiltBody,MovingLightGroup/MovingLight_64/PanBody/TiltBody
+0,0,0,7.922,5.815,5.01,TiltBody,MovingLightGroup/MovingLight_65/PanBody/TiltBody
+0,0,0,-8.029,7.86,5.01,TiltBody,MovingLightGroup/MovingLight_66/PanBody/TiltBody
+0,0,0,-4.074,7.866,5.01,TiltBody,MovingLightGroup/MovingLight_67/PanBody/TiltBody
+0,0,0,-0.034,7.866,5.01,TiltBody,MovingLightGroup/MovingLight_68/PanBody/TiltBody
+0,0,0,3.834,7.866,5.01,TiltBody,MovingLightGroup/MovingLight_69/PanBody/TiltBody
+0,0,0,7.922,7.866,5.01,TiltBody,MovingLightGroup/MovingLight_70/PanBody/TiltBody
+0,0,0,-3.08,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_11/PanBody/TiltBody/TiltBody.001
+0,0,0,-1.536,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_12/PanBody/TiltBody/TiltBody.001
+0,0,0,-0.005,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_13/PanBody/TiltBody/TiltBody.001
+0,0,0,1.546,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_14/PanBody/TiltBody/TiltBody.001
+0,0,0,3.09,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_15/PanBody/TiltBody/TiltBody.001
+0,0,0,4.606,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_16/PanBody/TiltBody/TiltBody.001
+0,0,0,6.17,8.728,-1.34,TiltBody.001,MovingLightGroup/MovingLight_17/PanBody/TiltBody/TiltBody.001
+0,0,0,-6.155,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_18/PanBody/TiltBody/TiltBody.001
+0,0,0,-4.629,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_19/PanBody/TiltBody/TiltBody.001
+0,0,0,-3.08,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_20/PanBody/TiltBody/TiltBody.001
+0,0,0,-1.536,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_21/PanBody/TiltBody/TiltBody.001
+0,0,0,-0.005,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_22/PanBody/TiltBody/TiltBody.001
+0,0,0,1.546,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_23/PanBody/TiltBody/TiltBody.001
+0,0,0,3.09,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_24/PanBody/TiltBody/TiltBody.001
+0,0,0,4.606,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_25/PanBody/TiltBody/TiltBody.001
+0,0,0,6.17,8.728,1.64,TiltBody.001,MovingLightGroup/MovingLight_26/PanBody/TiltBody/TiltBody.001
+0,0,0,-7.988,3.992,3.915,TiltBody.001,MovingLightGroup/MovingLight_27/PanBody/TiltBody/TiltBody.001
+0,0,0,-3.994,3.992,3.915,TiltBody.001,MovingLightGroup/MovingLight_28/PanBody/TiltBody/TiltBody.001
+0,0,0,-0.023,3.992,3.915,TiltBody.001,MovingLightGroup/MovingLight_29/PanBody/TiltBody/TiltBody.001
+0,0,0,3.992,3.992,3.915,TiltBody.001,MovingLightGroup/MovingLight_30/PanBody/TiltBody/TiltBody.001
+0,0,0,7.995,3.992,3.915,TiltBody.001,MovingLightGroup/MovingLight_31/PanBody/TiltBody/TiltBody.001
+0,0,0,-7.98,0.835,-3.11,TiltBody.001,MovingLightGroup/MovingLight_32/PanBody/TiltBody/TiltBody.001
+0,0,0,-4.003,0.835,-3.11,TiltBody.001,MovingLightGroup/MovingLight_33/PanBody/TiltBody/TiltBody.001
+0,0,0,-0.007,0.835,-3.11,TiltBody.001,MovingLightGroup/MovingLight_34/PanBody/TiltBody/TiltBody.001
+0,0,0,3.998,0.835,-3.11,TiltBody.001,MovingLightGroup/MovingLight_35/PanBody/TiltBody/TiltBody.001
+0,0,0,7.999,0.835,-3.11,TiltBody.001,MovingLightGroup/MovingLight_36/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,1.795,-4.318,TiltBody.001,MovingLightGroup/MovingLight_37/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,1.795,-1.122,TiltBody.001,MovingLightGroup/MovingLight_38/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,1.795,2.158,TiltBody.001,MovingLightGroup/MovingLight_39/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,3.796,-4.318,TiltBody.001,MovingLightGroup/MovingLight_40/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,3.796,-1.122,TiltBody.001,MovingLightGroup/MovingLight_41/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,3.796,2.158,TiltBody.001,MovingLightGroup/MovingLight_42/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,5.818,-4.318,TiltBody.001,MovingLightGroup/MovingLight_43/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,5.818,-1.122,TiltBody.001,MovingLightGroup/MovingLight_44/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,5.818,2.158,TiltBody.001,MovingLightGroup/MovingLight_45/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,7.851,-4.318,TiltBody.001,MovingLightGroup/MovingLight_46/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,7.851,-1.122,TiltBody.001,MovingLightGroup/MovingLight_47/PanBody/TiltBody/TiltBody.001
+0,0,0,11.461,7.851,2.158,TiltBody.001,MovingLightGroup/MovingLight_48/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,1.795,-4.318,TiltBody.001,MovingLightGroup/MovingLight_49/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,1.795,-1.122,TiltBody.001,MovingLightGroup/MovingLight_50/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,1.795,2.158,TiltBody.001,MovingLightGroup/MovingLight_51/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,3.796,-4.318,TiltBody.001,MovingLightGroup/MovingLight_52/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,3.796,-1.122,TiltBody.001,MovingLightGroup/MovingLight_53/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,3.796,2.158,TiltBody.001,MovingLightGroup/MovingLight_54/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,5.818,-4.318,TiltBody.001,MovingLightGroup/MovingLight_55/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,5.818,-1.122,TiltBody.001,MovingLightGroup/MovingLight_56/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,5.818,2.158,TiltBody.001,MovingLightGroup/MovingLight_57/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,7.851,-4.318,TiltBody.001,MovingLightGroup/MovingLight_58/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,7.851,-1.122,TiltBody.001,MovingLightGroup/MovingLight_59/PanBody/TiltBody/TiltBody.001
+0,0,0,-11.378,7.851,2.158,TiltBody.001,MovingLightGroup/MovingLight_60/PanBody/TiltBody/TiltBody.001
+0,0,0,-8.029,5.809,5.01,TiltBody.001,MovingLightGroup/MovingLight_61/PanBody/TiltBody/TiltBody.001
+0,0,0,-4.074,5.815,5.01,TiltBody.001,MovingLightGroup/MovingLight_62/PanBody/TiltBody/TiltBody.001
+0,0,0,-0.034,5.815,5.01,TiltBody.001,MovingLightGroup/MovingLight_63/PanBody/TiltBody/TiltBody.001
+0,0,0,3.834,5.815,5.01,TiltBody.001,MovingLightGroup/MovingLight_64/PanBody/TiltBody/TiltBody.001
+0,0,0,7.922,5.815,5.01,TiltBody.001,MovingLightGroup/MovingLight_65/PanBody/TiltBody/TiltBody.001
+0,0,0,-8.029,7.86,5.01,TiltBody.001,MovingLightGroup/MovingLight_66/PanBody/TiltBody/TiltBody.001
+0,0,0,-4.074,7.866,5.01,TiltBody.001,MovingLightGroup/MovingLight_67/PanBody/TiltBody/TiltBody.001
+0,0,0,-0.034,7.866,5.01,TiltBody.001,MovingLightGroup/MovingLight_68/PanBody/TiltBody/TiltBody.001
+0,0,0,3.834,7.866,5.01,TiltBody.001,MovingLightGroup/MovingLight_69/PanBody/TiltBody/TiltBody.001
+0,0,0,7.922,7.866,5.01,TiltBody.001,MovingLightGroup/MovingLight_70/PanBody/TiltBody/TiltBody.001

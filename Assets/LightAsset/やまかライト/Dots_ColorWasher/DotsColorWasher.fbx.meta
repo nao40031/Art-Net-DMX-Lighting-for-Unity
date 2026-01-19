@@ -3,7 +3,17 @@ guid: 142343bbbfeaf65459bd9444936777f4
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_DotsColorWasher
+    second: {fileID: 2100000, guid: 01a5db7f1f6aaf5468c44d9e0bffae62, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_LED_DotsColorWasher
+    second: {fileID: 2100000, guid: 4770cec4428644942abec5d3dc5ac0d2, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
