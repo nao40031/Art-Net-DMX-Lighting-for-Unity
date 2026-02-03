@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SG_LensFakeDepth_HDRP
+  m_Name: ParLight_SG_LensFakeDepth_HDRP
   m_Shader: {fileID: -6465566751694194690, guid: 979877e4630f71a408ed480916d0212b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -262,7 +262,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
-    - _DmxColor: {r: 0.7815504, g: 0.85547805, b: 0.8584906, a: 0.21176471}
+    - _DmxColor: {r: 0.7830189, g: 0.5686905, b: 0.380429, a: 0.21176471}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

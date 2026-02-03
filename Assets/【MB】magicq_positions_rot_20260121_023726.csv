@@ -1,0 +1,191 @@
+Head no,Universe,DMX Address,X Pos,Y Pos,Z Pos,RotX,RotY,RotZ,Name,Path
+0,0,0,0,0,0,0,0,0,MBLight,Lighting/MBLight
+0,1,136,-5.42,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher
+0,1,137,-3.802,8.827,-4.594,272.21,180,0,DotsColorWasher_1,Lighting/MBLight/DotsColorWasher_1
+0,1,138,-2.35,8.827,-4.594,272.21,180,0,DotsColorWasher_2,Lighting/MBLight/DotsColorWasher_2
+0,1,139,-0.72,8.827,-4.594,272.21,180,0,DotsColorWasher_3,Lighting/MBLight/DotsColorWasher_3
+0,1,140,0.735,8.827,-4.594,272.21,180,0,DotsColorWasher_4,Lighting/MBLight/DotsColorWasher_4
+0,1,141,2.359,8.827,-4.594,272.21,180,0,DotsColorWasher_5,Lighting/MBLight/DotsColorWasher_5
+0,1,142,3.823,8.827,-4.594,272.21,180,0,DotsColorWasher_6,Lighting/MBLight/DotsColorWasher_6
+0,1,143,5.44,8.827,-4.594,272.21,180,0,DotsColorWasher_7,Lighting/MBLight/DotsColorWasher_7
+0,1,144,6.9,8.827,-4.594,272.21,180,0,DotsColorWasher_8,Lighting/MBLight/DotsColorWasher_8
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher/DotsColorWasher
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_01.001
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_02
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_03
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_04
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_05
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_06
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_06.001
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_07
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_08
+0,0,0,-5.42,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_09
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_1/DotsColorWasher
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_01.001
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_02
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_03
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_04
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_05
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_06
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_06.001
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_07
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_08
+0,0,0,-3.802,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_09
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_2/DotsColorWasher
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_01.001
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_02
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_03
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_04
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_05
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_06
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_06.001
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_07
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_08
+0,0,0,-2.35,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_09
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_3/DotsColorWasher
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_01.001
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_02
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_03
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_04
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_05
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_06
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_06.001
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_07
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_08
+0,0,0,-0.72,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_09
+0,0,0,0.735,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_4/DotsColorWasher
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_01.001
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_02
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_03
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_04
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_05
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_06
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_06.001
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_07
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_08
+0,0,0,0.735,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_09
+0,0,0,2.359,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_5/DotsColorWasher
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_01.001
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_02
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_03
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_04
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_05
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_06
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_06.001
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_07
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_08
+0,0,0,2.359,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_09
+0,0,0,3.823,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_6/DotsColorWasher
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_01.001
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_02
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_03
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_04
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_05
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_06
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_06.001
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_07
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_08
+0,0,0,3.823,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_09
+0,0,0,5.44,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_7/DotsColorWasher
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_01.001
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_02
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_03
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_04
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_05
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_06
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_06.001
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_07
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_08
+0,0,0,5.44,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_09
+0,0,0,6.9,8.827,-4.594,272.21,180,0,DotsColorWasher,Lighting/MBLight/DotsColorWasher_8/DotsColorWasher
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_01.001,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_01.001
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_02,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_02
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_03,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_03
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_04,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_04
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_05,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_05
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_06
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_06.001,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_06.001
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_07,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_07
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_08,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_08
+0,0,0,6.9,8.827,-4.594,272.21,180,0,LED_DotsColorWasher_09,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_09
+0,0,0,-5.578,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,-5.42,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,-5.266,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,-5.579,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,-5.421,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,-5.265,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,-5.577,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,-5.42,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,-5.259,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,-3.96,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,-3.802,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,-3.648,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,-3.961,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,-3.803,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,-3.647,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,-3.959,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,-3.802,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,-3.641,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_1/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,-2.508,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,-2.35,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,-2.196,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,-2.509,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,-2.351,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,-2.195,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,-2.507,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,-2.35,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,-2.189,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_2/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,-0.878,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,-0.72,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,-0.566,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,-0.879,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,-0.721,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,-0.565,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,-0.877,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,-0.72,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,-0.559,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_3/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,0.577,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,0.735,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,0.889,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,0.576,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,0.734,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,0.89,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,0.578,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,0.735,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,0.896,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_4/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,2.201,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,2.359,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,2.513,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,2.2,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,2.358,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,2.514,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,2.202,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,2.359,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,2.52,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_5/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,3.665,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,3.823,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,3.977,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,3.664,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,3.822,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,3.978,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,3.666,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,3.823,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,3.984,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_6/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,5.282,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,5.44,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,5.594,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,5.281,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,5.439,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,5.595,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,5.283,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,5.44,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,5.601,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_7/LED_DotsColorWasher_09/Spot Light_8
+0,0,0,6.742,8.934,-4.769,2.21,180,0,Spot Light,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_01.001/Spot Light
+0,0,0,6.9,8.934,-4.769,2.21,180,0,Spot Light_1,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_02/Spot Light_1
+0,0,0,7.054,8.933,-4.769,2.21,180,0,Spot Light_2,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_03/Spot Light_2
+0,0,0,6.741,8.773,-4.763,2.21,180,0,Spot Light_3,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_04/Spot Light_3
+0,0,0,6.899,8.773,-4.763,2.21,180,0,Spot Light_4,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_05/Spot Light_4
+0,0,0,7.055,8.773,-4.763,2.21,180,0,Spot Light_5,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_06/Spot Light_5
+0,0,0,6.743,8.607,-4.757,2.21,180,0,Spot Light_6,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_07/Spot Light_6
+0,0,0,6.9,8.607,-4.757,2.21,180,0,Spot Light_7,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_08/Spot Light_7
+0,0,0,7.061,8.608,-4.74,2.21,180,0,Spot Light_8,Lighting/MBLight/DotsColorWasher_8/LED_DotsColorWasher_09/Spot Light_8

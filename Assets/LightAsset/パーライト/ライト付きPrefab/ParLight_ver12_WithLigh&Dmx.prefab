@@ -284,9 +284,9 @@ Light:
   serializedVersion: 11
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1951.0873
-  m_Range: 6
-  m_SpotAngle: 36
+  m_Intensity: 165543.56
+  m_Range: 10
+  m_SpotAngle: 15
   m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
@@ -357,7 +357,7 @@ MonoBehaviour:
   m_LightUnit: 0
   m_LuxAtDistance: 1
   m_Intensity: 600
-  m_InnerSpotPercent: 44.3
+  m_InnerSpotPercent: 5.5269594
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
   m_VolumetricDimmer: 4.8
@@ -771,14 +771,14 @@ PrefabInstance:
     - target: {fileID: -238966371585807959, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: a56bc773933f0ad488987e68871e7282, type: 2}
+      objectReference: {fileID: 2100000, guid: 58c22bdff9fdfa6429e9f2a93a8470fd, type: 2}
     - target: {fileID: 874224889034588341, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
       propertyPath: m_Name
       value: "\u30EC\u30F3\u30BA\u9762"
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
       propertyPath: m_Name
-      value: ParLight_ver12_WithLight
+      value: ParLight_ver12_WithLigh&Dmx
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -825,21 +825,21 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 0}
   tiltTransform: {fileID: 0}
-  lensRenderer: {fileID: 0}
+  lensRenderer: {fileID: 6976303601353376417}
   extraLensRenderers: []
   syncLensToDmx: 1
-  syncLensColorToDmx: 1
+  syncLensColorToDmx: 0
   syncLensDimmerToDmx: 1
   lensColorProperty: _DmxColor
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
-  lightResponseMode: 0
-  halogenSourceRiseTime: 0.06
-  halogenSourceFallTime: 0.1
-  halogenBeamOnDelay: 0.04
-  halogenBeamOffDelay: 0.04
-  halogenBeamRiseTime: 0.06
-  halogenBeamFallTime: 0.08
+  lightResponseMode: 1
+  halogenSourceRiseTime: 1
+  halogenSourceFallTime: 1
+  halogenBeamOnDelay: 0.1
+  halogenBeamOffDelay: 0.5
+  halogenBeamRiseTime: 1
+  halogenBeamFallTime: 1
   panRangeDeg: 540
   tiltRangeDeg: 270
   pipelineMode: 0
@@ -911,5 +911,10 @@ MonoBehaviour:
 --- !u!4 &4739125878636549903 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+  m_PrefabInstance: {fileID: 2053582538423626504}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6976303601353376417 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -238966371585807959, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
   m_PrefabInstance: {fileID: 2053582538423626504}
   m_PrefabAsset: {fileID: 0}

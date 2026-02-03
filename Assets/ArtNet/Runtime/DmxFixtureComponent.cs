@@ -36,6 +36,8 @@ namespace ArtNet.Runtime
 
         [Header("Targets")]
         public Light targetLight;
+        [Tooltip("複数ターゲット用。設定すると全てのLightに同じDMXが適用されます（targetLightも併用可）")]
+        public List<Light> targetLights = new();
         public Transform panTransform;
         public Transform tiltTransform;
 
@@ -53,6 +55,8 @@ namespace ArtNet.Runtime
 
         [Tooltip("レンズへDMX同期を行うか")]
         [SerializeField] private bool syncLensToDmx = true;
+        [SerializeField] private bool syncLensColorToDmx = true;
+        [SerializeField] private bool syncLensDimmerToDmx = true;
 
         [Tooltip("ShaderGraphのColorプロパティ名（Reference）。例: _DmxColor")]
         [SerializeField] private string lensColorProperty = "_DmxColor";
@@ -62,6 +66,34 @@ namespace ArtNet.Runtime
 
         [Tooltip("Dimmer(0-1)に掛ける倍率。レンズが暗い/明るすぎる時の調整用。")]
         [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
+
+        // ------------------------------------------------------------
+        // Light Response (LED / Halogen)
+        // ------------------------------------------------------------
+
+        public enum LightResponseMode { Led, Halogen }
+
+        [Header("Light Response")]
+        public LightResponseMode lightResponseMode = LightResponseMode.Led;
+
+        [Header("Halogen Response (seconds)")]
+        [Tooltip("Source (lens) rise time from 0 to 1.")]
+        [SerializeField, Min(0f)] private float halogenSourceRiseTime = 0.06f;
+
+        [Tooltip("Source (lens) fall time from 1 to 0.")]
+        [SerializeField, Min(0f)] private float halogenSourceFallTime = 0.10f;
+
+        [Tooltip("Beam (light) delay on after source turns on.")]
+        [SerializeField, Min(0f)] private float halogenBeamOnDelay = 0.04f;
+
+        [Tooltip("Beam (light) delay off after source turns off.")]
+        [SerializeField, Min(0f)] private float halogenBeamOffDelay = 0.04f;
+
+        [Tooltip("Beam (light) rise time from 0 to 1.")]
+        [SerializeField, Min(0f)] private float halogenBeamRiseTime = 0.06f;
+
+        [Tooltip("Beam (light) fall time from 1 to 0.")]
+        [SerializeField, Min(0f)] private float halogenBeamFallTime = 0.08f;
 
         // MaterialPropertyBlockで per-renderer に安全に書き込む（マテリアル複製を避ける）
         private MaterialPropertyBlock _lensMpb;
@@ -206,10 +238,25 @@ namespace ArtNet.Runtime
 
         [NonSerialized] public ILightDriver runtimeDriver;
         [NonSerialized] public bool isInitialized;
+        [NonSerialized] public List<ILightDriver> runtimeDrivers = new();
 
         private Quaternion _panBaseLocalRot;
         private Quaternion _tiltBaseLocalRot;
         private bool _movementBaseCaptured;
+
+        private bool _hasDmxTargets;
+        private float _targetDimmer01;
+        private Color _targetColor = Color.white;
+        private float _lensTargetDimmer01;
+        private float _lightTargetDimmer01;
+        private float _currentLensDimmer01;
+        private float _currentLightDimmer01;
+        private bool _lightTargetPending;
+        private float _lightTargetPendingAt;
+        private float _pendingLightTargetDimmer01;
+        private bool _lensTargetPending;
+        private float _lensTargetPendingAt;
+        private float _pendingLensTargetDimmer01;
 
 
         // --- Pan/Tilt continuous interpolation targets (updated by DMX, applied every frame) ---
@@ -265,6 +312,15 @@ namespace ArtNet.Runtime
                 targetLight = GetComponentInChildren<Light>(true);
         }
 
+        [ContextMenu("Auto Attach Target Lights (Find in Children)")]
+        public void Context_AutoAttachTargetLights()
+        {
+            var lights = GetComponentsInChildren<Light>(true);
+            targetLights = new List<Light>(lights);
+            if (targetLight == null && lights.Length > 0)
+                targetLight = lights[0];
+        }
+
         public void ApplyFromUniverseBuffer(int[] universe512) => ApplyFromUniverseBufferInternal(universe512);
 
         public void ApplyFromUniverseBuffer(byte[] universe512) => ApplyFromUniverseBufferInternal(universe512);
@@ -296,6 +352,7 @@ namespace ArtNet.Runtime
         private void Update()
         {
             UpdatePanTiltMotion();
+            UpdateLightResponse();
 
             if (!monitorEnabled) return;
             if (!enablePeriodicLog) return;
@@ -336,7 +393,7 @@ namespace ArtNet.Runtime
         {
             ResolveMapping();
             if (monitorEnabled) RebuildMonitorItemsSkeleton();
-            ResolveAndInitializeDriver();
+            ResolveAndInitializeDrivers();
             CaptureMovementBaseIfNeeded(force: false);
         }
 
@@ -453,112 +510,173 @@ namespace ArtNet.Runtime
         public bool TryGetRelativeChannel(FixtureFunction function, out int relative1Based)
             => _relativeMap.TryGetValue(function, out relative1Based);
 
-        private void ResolveAndInitializeDriver()
+        private void ResolveAndInitializeDrivers()
         {
             isInitialized = false;
             runtimeDriver = null;
 
-            if (targetLight == null)
+            if (targetLight == null && (targetLights == null || targetLights.Count == 0))
                 Context_AutoAttachTargetLight();
 
-            if (targetLight == null)
+            if (runtimeDrivers == null) runtimeDrivers = new List<ILightDriver>();
+            runtimeDrivers.Clear();
+
+            var targets = GatherTargetLights();
+            if (targets.Count == 0)
                 return;
 
-            bool detectedHdrp = false;
+            var usedDrivers = new HashSet<ILightDriver>();
+            var overrideDriver = driverOverride as ILightDriver;
+
+            if (driverOverride != null && overrideDriver == null)
+                Debug.LogWarning($"[DmxFixtureComponent] driverOverride is set but does not implement ILightDriver: {driverOverride.GetType().Name}", this);
+
 #if HAS_HDRP
-            detectedHdrp = (targetLight.GetComponent<HDAdditionalLightData>() != null);
+            var hdrpOnSelf = GetComponents<HdrpLightDriver>();
+#endif
+            var genericOnSelf = GetComponents<GenericLightDriver>();
+
+            bool warnedOverrideReuse = false;
+            foreach (var light in targets)
+            {
+                if (light == null) continue;
+
+                bool detectedHdrp = false;
+#if HAS_HDRP
+                detectedHdrp = (light.GetComponent<HDAdditionalLightData>() != null);
 #endif
 
-            bool wantHdrp = pipelineMode switch
-            {
-                PipelineMode.ForceHDRP => true,
-                PipelineMode.ForceGeneric => false,
-                _ => detectedHdrp
-            };
-
-            // 1) override
-            if (driverOverride != null)
-            {
-                runtimeDriver = driverOverride as ILightDriver;
-                if (runtimeDriver == null)
+                bool wantHdrp = pipelineMode switch
                 {
-                    Debug.LogWarning($"[DmxFixtureComponent] driverOverride is set but does not implement ILightDriver: {driverOverride.GetType().Name}", this);
-                }
-            }
+                    PipelineMode.ForceHDRP => true,
+                    PipelineMode.ForceGeneric => false,
+                    _ => detectedHdrp
+                };
 
-            // 2) resolve from SAME GameObject
-            if (runtimeDriver == null)
-            {
+                ILightDriver driver = null;
+
+                // 1) override (first light only)
+                if (overrideDriver != null && !usedDrivers.Contains(overrideDriver))
+                {
+                    driver = overrideDriver;
+                }
+                else if (overrideDriver != null && !warnedOverrideReuse)
+                {
+                    Debug.LogWarning("[DmxFixtureComponent] driverOverride is set but multiple targetLights were found. " +
+                                     "driverOverride will be used for the first light only.", this);
+                    warnedOverrideReuse = true;
+                }
+
+                // 2) resolve from SAME GameObject (unused components only)
+                if (driver == null)
+                {
 #if HAS_HDRP
-                if (wantHdrp)
-                {
-                    var hdrp = GetComponent<HdrpLightDriver>();
-                    if (hdrp != null) runtimeDriver = hdrp;
-                }
-#endif
-                if (runtimeDriver == null)
-                {
-                    var generic = GetComponent<GenericLightDriver>();
-                    if (generic != null) runtimeDriver = generic;
-                }
-            }
-
-            // 2.5) legacy fallback: targetLight側に付いてるドライバを拾う（既存シーン破壊防止）
-            if (runtimeDriver == null && targetLight != null)
-            {
-#if HAS_HDRP
-                var hdrpOnLight = targetLight.GetComponent<HdrpLightDriver>();
-                if (hdrpOnLight != null)
-                {
-                    runtimeDriver = hdrpOnLight;
-                    Debug.LogWarning("[DmxFixtureComponent] Found LightDriver on targetLight GameObject (legacy). " +
-                                     "Now we recommend attaching LightDriver to the same GameObject as DmxFixtureComponent.", this);
-                }
-#endif
-                if (runtimeDriver == null)
-                {
-                    var genericOnLight = targetLight.GetComponent<GenericLightDriver>();
-                    if (genericOnLight != null)
+                    if (wantHdrp)
                     {
-                        runtimeDriver = genericOnLight;
+                        for (int i = 0; i < hdrpOnSelf.Length; i++)
+                        {
+                            if (!usedDrivers.Contains(hdrpOnSelf[i]))
+                            {
+                                driver = hdrpOnSelf[i];
+                                break;
+                            }
+                        }
+                    }
+#endif
+                    if (driver == null)
+                    {
+                        for (int i = 0; i < genericOnSelf.Length; i++)
+                        {
+                            if (!usedDrivers.Contains(genericOnSelf[i]))
+                            {
+                                driver = genericOnSelf[i];
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 2.5) legacy fallback: targetLight???????????????????????
+                if (driver == null)
+                {
+#if HAS_HDRP
+                    var hdrpOnLight = light.GetComponent<HdrpLightDriver>();
+                    if (hdrpOnLight != null && !usedDrivers.Contains(hdrpOnLight))
+                    {
+                        driver = hdrpOnLight;
                         Debug.LogWarning("[DmxFixtureComponent] Found LightDriver on targetLight GameObject (legacy). " +
                                          "Now we recommend attaching LightDriver to the same GameObject as DmxFixtureComponent.", this);
                     }
+#endif
+                    if (driver == null)
+                    {
+                        var genericOnLight = light.GetComponent<GenericLightDriver>();
+                        if (genericOnLight != null && !usedDrivers.Contains(genericOnLight))
+                        {
+                            driver = genericOnLight;
+                            Debug.LogWarning("[DmxFixtureComponent] Found LightDriver on targetLight GameObject (legacy). " +
+                                             "Now we recommend attaching LightDriver to the same GameObject as DmxFixtureComponent.", this);
+                        }
+                    }
+                }
+
+                // 3) auto add to SAME GameObject
+                if (driver == null && autoAddDriverIfMissing)
+                {
+#if HAS_HDRP
+                    if (wantHdrp)
+                        driver = gameObject.AddComponent<HdrpLightDriver>();
+                    else
+                        driver = gameObject.AddComponent<GenericLightDriver>();
+#else
+                    if (wantHdrp)
+                        Debug.LogWarning($"[DmxFixtureComponent] HDRP????? HAS_HDRP ?????? GenericLightDriver ??????: {name}", this);
+
+                    driver = gameObject.AddComponent<GenericLightDriver>();
+#endif
+                }
+
+                if (driver == null) continue;
+
+                usedDrivers.Add(driver);
+                driver.Initialize(light);
+
+                if (overrideDriverMaxIntensity)
+                {
+                    if (driver is GenericLightDriver gd)
+                        gd.maxIntensity = genericMaxIntensity;
+
+#if HAS_HDRP
+                    if (driver is HdrpLightDriver hd)
+                        hd.maxIntensity = hdrpMaxIntensity;
+#endif
+                }
+
+                runtimeDrivers.Add(driver);
+            }
+
+            runtimeDriver = runtimeDrivers.Count > 0 ? runtimeDrivers[0] : null;
+            isInitialized = runtimeDrivers.Count > 0;
+        }
+
+        private List<Light> GatherTargetLights()
+        {
+            var result = new List<Light>();
+
+            if (targetLights != null)
+            {
+                for (int i = 0; i < targetLights.Count; i++)
+                {
+                    var l = targetLights[i];
+                    if (l == null) continue;
+                    if (!result.Contains(l)) result.Add(l);
                 }
             }
 
-            // 3) auto add to SAME GameObject
-            if (runtimeDriver == null && autoAddDriverIfMissing)
-            {
-#if HAS_HDRP
-                if (wantHdrp)
-                    runtimeDriver = gameObject.AddComponent<HdrpLightDriver>();
-                else
-                    runtimeDriver = gameObject.AddComponent<GenericLightDriver>();
-#else
-                if (wantHdrp)
-                    Debug.LogWarning($"[DmxFixtureComponent] HDRP希望ですが HAS_HDRP 未定義のため GenericLightDriver を追加します: {name}", this);
+            if (targetLight != null && !result.Contains(targetLight))
+                result.Add(targetLight);
 
-                runtimeDriver = gameObject.AddComponent<GenericLightDriver>();
-#endif
-            }
-
-            // Initialize
-            runtimeDriver?.Initialize(targetLight);
-
-            // intensity defaults
-            if (overrideDriverMaxIntensity && runtimeDriver != null)
-            {
-                if (runtimeDriver is GenericLightDriver gd)
-                    gd.maxIntensity = genericMaxIntensity;
-
-#if HAS_HDRP
-                if (runtimeDriver is HdrpLightDriver hd)
-                    hd.maxIntensity = hdrpMaxIntensity;
-#endif
-            }
-
-            isInitialized = runtimeDriver != null;
+            return result;
         }
 
         private void CaptureMovementBaseIfNeeded(bool force)
@@ -622,24 +740,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            // --- Apply to Light via Driver ---
-            if (isInitialized && runtimeDriver != null)
-            {
-                runtimeDriver.Apply(dim01, rgb);
-            }
-            else
-            {
-                // ドライバ未使用でも最低限は反映（保険）
-                if (targetLight != null)
-                {
-                    targetLight.color = rgb;
-                    targetLight.intensity = dim01 * 10f;
-                }
-            }
-
-
-            // --- Lens (ShaderGraph) ---
-            ApplyLensDmx(rgb, dim01);
+            UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（あればスムージング適用） ---
             bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
@@ -737,24 +838,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            // --- Apply to Light via Driver ---
-            if (isInitialized && runtimeDriver != null)
-            {
-                runtimeDriver.Apply(dim01, rgb);
-            }
-            else
-            {
-                // ドライバ未使用でも最低限は反映（保険）
-                if (targetLight != null)
-                {
-                    targetLight.color = rgb;
-                    targetLight.intensity = dim01 * 10f;
-                }
-            }
-
-
-            // --- Lens (ShaderGraph) ---
-            ApplyLensDmx(rgb, dim01);
+            UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（あればスムージング適用） ---
             bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
@@ -912,17 +996,156 @@ namespace ArtNet.Runtime
             if (panTransform != null) panTransform.localRotation = _panBaseLocalRot;
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
 
-            if (runtimeDriver != null)
-                runtimeDriver.Apply(0f, Color.white);
-            else if (targetLight != null)
-            {
-                targetLight.intensity = 0f;
-                targetLight.color = Color.white;
-            }
-            // --- Lens (ShaderGraph) reset ---
-            ApplyLensDmx(Color.white, 0f);
+            _hasDmxTargets = true;
+            _targetDimmer01 = 0f;
+            _targetColor = Color.white;
+            _lensTargetDimmer01 = 0f;
+            _lightTargetDimmer01 = 0f;
+            _currentLensDimmer01 = 0f;
+            _currentLightDimmer01 = 0f;
+            _lightTargetPending = false;
+            _lensTargetPending = false;
+
+            ApplyLightAndLens(0f, 0f, Color.white);
         }
-        
+
+        private void UpdateLightTargetsFromDmx(float dim01, Color rgb)
+        {
+            _hasDmxTargets = true;
+            _targetColor = rgb;
+
+            float prevTarget = _targetDimmer01;
+            _targetDimmer01 = Mathf.Clamp01(dim01);
+
+            if (lightResponseMode == LightResponseMode.Led)
+            {
+                _lensTargetDimmer01 = _targetDimmer01;
+                _lightTargetDimmer01 = _targetDimmer01;
+                _lightTargetPending = false;
+                _lensTargetPending = false;
+                _currentLensDimmer01 = _lensTargetDimmer01;
+                _currentLightDimmer01 = _lightTargetDimmer01;
+                ApplyLightAndLens(_currentLightDimmer01, _currentLensDimmer01, _targetColor);
+                return;
+            }
+
+            bool isRising = _targetDimmer01 > prevTarget + 0.0001f;
+            bool isFalling = _targetDimmer01 < prevTarget - 0.0001f;
+
+            if (isRising)
+            {
+                _lensTargetDimmer01 = _targetDimmer01;
+
+                if (halogenBeamOnDelay <= 0f)
+                {
+                    _lightTargetDimmer01 = _targetDimmer01;
+                    _lightTargetPending = false;
+                }
+                else
+                {
+                    _pendingLightTargetDimmer01 = _targetDimmer01;
+                    _lightTargetPendingAt = Time.time + halogenBeamOnDelay;
+                    _lightTargetPending = true;
+                }
+
+                _lensTargetPending = false;
+                return;
+            }
+
+            if (isFalling)
+            {
+                _lightTargetDimmer01 = _targetDimmer01;
+                _lightTargetPending = false;
+
+                if (halogenBeamOffDelay <= 0f)
+                {
+                    _lensTargetDimmer01 = _targetDimmer01;
+                    _lensTargetPending = false;
+                }
+                else
+                {
+                    _pendingLensTargetDimmer01 = _targetDimmer01;
+                    _lensTargetPendingAt = Time.time + halogenBeamOffDelay;
+                    _lensTargetPending = true;
+                }
+                return;
+            }
+
+            _lensTargetDimmer01 = _targetDimmer01;
+            _lightTargetDimmer01 = _targetDimmer01;
+            _lightTargetPending = false;
+            _lensTargetPending = false;
+        }
+
+        private void UpdateLightResponse()
+        {
+            if (!_hasDmxTargets) return;
+
+            if (lightResponseMode == LightResponseMode.Led)
+            {
+                _currentLensDimmer01 = _lensTargetDimmer01;
+                _currentLightDimmer01 = _lightTargetDimmer01;
+            }
+            else
+            {
+                if (_lightTargetPending && Time.time >= _lightTargetPendingAt)
+                {
+                    _lightTargetDimmer01 = _pendingLightTargetDimmer01;
+                    _lightTargetPending = false;
+                }
+
+                if (_lensTargetPending && Time.time >= _lensTargetPendingAt)
+                {
+                    _lensTargetDimmer01 = _pendingLensTargetDimmer01;
+                    _lensTargetPending = false;
+                }
+
+                _currentLensDimmer01 = MoveDimmer(_currentLensDimmer01, _lensTargetDimmer01, halogenSourceRiseTime, halogenSourceFallTime);
+                _currentLightDimmer01 = MoveDimmer(_currentLightDimmer01, _lightTargetDimmer01, halogenBeamRiseTime, halogenBeamFallTime);
+            }
+
+            ApplyLightAndLens(_currentLightDimmer01, _currentLensDimmer01, _targetColor);
+        }
+
+        private void ApplyLightAndLens(float lightDim01, float lensDim01, Color rgb)
+        {
+            if (isInitialized && runtimeDrivers != null && runtimeDrivers.Count > 0)
+            {
+                for (int i = 0; i < runtimeDrivers.Count; i++)
+                    runtimeDrivers[i]?.Apply(lightDim01, rgb);
+            }
+            else
+            {
+                ApplyDirectToLights(rgb, lightDim01);
+            }
+
+            ApplyLensDmx(rgb, lensDim01);
+        }
+
+        private static float MoveDimmer(float current, float target, float riseTime, float fallTime)
+        {
+            if (Mathf.Approximately(current, target)) return target;
+
+            float dt = Mathf.Max(0.0001f, Time.deltaTime);
+            float time = (target > current) ? riseTime : fallTime;
+            if (time <= 0f) return target;
+
+            float step = dt / time;
+            return Mathf.MoveTowards(current, target, step);
+        }
+
+        private void ApplyDirectToLights(Color rgb, float dim01)
+        {
+            var targets = GatherTargetLights();
+            for (int i = 0; i < targets.Count; i++)
+            {
+                var l = targets[i];
+                if (l == null) continue;
+                l.color = rgb;
+                l.intensity = dim01 * 10f;
+            }
+        }
+
 // ------------------------------------------------------------
         // Lens DMX sync helpers
         // ------------------------------------------------------------
@@ -944,6 +1167,7 @@ namespace ArtNet.Runtime
         private void ApplyLensDmx(Color rgb, float dim01)
         {
             if (!syncLensToDmx) return;
+            if (!syncLensColorToDmx && !syncLensDimmerToDmx) return;
 
             // Renderer未設定でも安全にスルー
             if (lensRenderer == null && (extraLensRenderers == null || extraLensRenderers.Length == 0))
@@ -955,8 +1179,10 @@ namespace ArtNet.Runtime
 
             // まずは共通のMPBに値をセット（RendererごとにSetPropertyBlockする）
             _lensMpb.Clear();
-            _lensMpb.SetColor(_lensColorId, rgb);
-            _lensMpb.SetFloat(_lensDimmerId, d);
+            if (syncLensColorToDmx)
+                _lensMpb.SetColor(_lensColorId, rgb);
+            if (syncLensDimmerToDmx)
+                _lensMpb.SetFloat(_lensDimmerId, d);
 
             if (lensRenderer != null)
                 lensRenderer.SetPropertyBlock(_lensMpb);

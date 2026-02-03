@@ -38,3 +38,8 @@ MonoBehaviour:
       channel: 8
     - function: 16
       channel: 9
+  - modeName: Generic Dimmer
+    channelCount: 1
+    channels:
+    - function: 0
+      channel: 0
