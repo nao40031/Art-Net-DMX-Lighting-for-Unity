@@ -6,8 +6,8 @@
 
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 #endif
@@ -28,12 +28,22 @@ namespace ArtNet.Editor
         [SerializeField] private KeyCode startKey = KeyCode.R;
         [SerializeField] private KeyCode stopKey = KeyCode.S;
 
+        [Header("Record Targets")]
+        [Tooltip("trueなら受信した全Universeを録画。falseの場合は targetUniverses のみ録画")]
+        [SerializeField] private bool recordAllUniverses = true;
+
+        [Tooltip("recordAllUniverses=false の時に録画対象にするUniverse一覧")]
+        [SerializeField] private List<int> targetUniverses = new();
+
         [Header("Save (AnimationClip asset)")]
         [Tooltip("Assets配下の保存先フォルダ名（例: Record）")]
         [SerializeField] private string directoryPath = "Record";
 
         [Tooltip("生成するAnimationClip名（拡張子不要）")]
         [SerializeField] private string clipName = "NewArtNetClip";
+
+        [Tooltip("Universe番号をクリップ名に付与（例: NewArtNetClip_U0）")]
+        [SerializeField] private bool appendUniverseSuffix = true;
 
         [Tooltip("SetCurveの対象にするコンポーネントの型名（完全修飾名推奨）\n例: ArtNet.Runtime.ArtNetChannels")]
         [SerializeField] private string channelsComponentTypeName = "ArtNet.Runtime.ArtNetChannels";
@@ -42,7 +52,7 @@ namespace ArtNet.Editor
         [SerializeField, Min(1)] private int channelCount = 512;
         [SerializeField] private bool verboseLog = false;
 
-        private AnimationCurve[] _curves;
+        private readonly Dictionary<int, AnimationCurve[]> _curvesByUniverse = new();
         private bool _isRecording;
         private float _startTime;
 
@@ -64,6 +74,14 @@ namespace ArtNet.Editor
             if (Input.GetKeyDown(stopKey)) StopAndSave();
         }
 
+        public bool IsRecording => _isRecording;
+
+        public void SetRecording(bool enable)
+        {
+            if (enable) StartRecording();
+            else StopAndSave();
+        }
+
         [ContextMenu("Start Recording")]
         public void StartRecording()
         {
@@ -75,9 +93,7 @@ namespace ArtNet.Editor
                 return;
             }
 
-            _curves = new AnimationCurve[channelCount];
-            for (int i = 0; i < channelCount; i++)
-                _curves[i] = new AnimationCurve();
+            _curvesByUniverse.Clear();
 
             _startTime = Time.time;
             _isRecording = true;
@@ -103,13 +119,11 @@ namespace ArtNet.Editor
                 return;
             }
 
-            var clip = new AnimationClip();
-
-            // 512ch分のCurveを登録（プロパティ名: Ch1..Ch512 を想定）
-            for (int i = 0; i < _curves.Length; i++)
+            if (_curvesByUniverse.Count == 0)
             {
-                var propName = $"Ch{i + 1}";
-                clip.SetCurve("", targetType, propName, _curves[i]);
+                Debug.LogWarning("[Recorder] No data recorded.");
+                Cleanup();
+                return;
             }
 
             // 保存先作成
@@ -118,16 +132,37 @@ namespace ArtNet.Editor
             if (!Directory.Exists(fullFolderPath))
                 Directory.CreateDirectory(fullFolderPath);
 
-            // 同名を避けて保存
-            var assetPath = $"{assetFolder}/{clipName}.asset";
-            while (File.Exists(assetPath))
-                assetPath = assetPath.Split('.').First() + "_1.asset";
+            foreach (var kv in _curvesByUniverse)
+            {
+                int universe = kv.Key;
+                var curves = kv.Value;
+                if (curves == null || curves.Length == 0) continue;
 
-            AssetDatabase.CreateAsset(clip, assetPath);
+                var clip = new AnimationClip();
+
+                // 512ch分のCurveを登録（プロパティ名: Ch1..Ch512 を想定）
+                for (int i = 0; i < curves.Length; i++)
+                {
+                    var propName = $"Ch{i + 1}";
+                    clip.SetCurve("", targetType, propName, curves[i]);
+                }
+
+                string name = clipName;
+                if (appendUniverseSuffix || _curvesByUniverse.Count > 1)
+                    name = $"{clipName}_U{universe}";
+
+                var assetPath = $"{assetFolder}/{name}.asset";
+                assetPath = AssetDatabase.GenerateUniqueAssetPath(assetPath);
+
+                AssetDatabase.CreateAsset(clip, assetPath);
+
+                if (verboseLog) Debug.Log($"[Recorder] Saved: {assetPath}");
+            }
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"[Recorder] Record Finish: {assetPath}");
+            Debug.Log($"[Recorder] Record Finish: {assetFolder}");
 
             Cleanup();
         }
@@ -143,17 +178,29 @@ namespace ArtNet.Editor
             // DMX以外は無視
             if (data.OpCode != ArtNetOpCode.OpDmx) return;
 
-            if (_curves == null || _curves.Length == 0) return;
+            if (!recordAllUniverses && (targetUniverses == null || !targetUniverses.Contains(data.Universe)))
+                return;
+
+            if (!_curvesByUniverse.TryGetValue(data.Universe, out var curves))
+            {
+                curves = new AnimationCurve[channelCount];
+                for (int i = 0; i < channelCount; i++)
+                    curves[i] = new AnimationCurve();
+
+                _curvesByUniverse.Add(data.Universe, curves);
+            }
+
+            if (curves == null || curves.Length == 0) return;
 
             float t = Time.time - _startTime;
 
             // 受信ch数が512未満の可能性もあるので短い方に合わせる
-            int len = Mathf.Min(_curves.Length, data.Channels?.Length ?? 0);
+            int len = Mathf.Min(curves.Length, data.Channels?.Length ?? 0);
 
             for (int i = 0; i < len; i++)
             {
                 // 連続同値の中間キーを間引く（元コードの軽量化ロジック）
-                var curve = _curves[i];
+                var curve = curves[i];
                 if (curve.length > 2)
                 {
                     int secondLast = curve.length - 2;
@@ -184,7 +231,7 @@ namespace ArtNet.Editor
 
         private void Cleanup()
         {
-            _curves = null;
+            _curvesByUniverse.Clear();
             _isRecording = false;
             _startTime = 0f;
         }

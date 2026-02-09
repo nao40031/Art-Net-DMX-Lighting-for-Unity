@@ -11,7 +11,7 @@ using UnityEngine;
 namespace ArtNet.Runtime
 {
     [Serializable]
-    public class ArtNetChannels : MonoBehaviour
+    public partial class ArtNetChannels : MonoBehaviour
     {
         public int Ch1;
         public int Ch2;

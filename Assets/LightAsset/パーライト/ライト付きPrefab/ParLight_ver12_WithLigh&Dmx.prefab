@@ -284,9 +284,9 @@ Light:
   serializedVersion: 11
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 165543.56
+  m_Intensity: 161860.52
   m_Range: 10
-  m_SpotAngle: 15
+  m_SpotAngle: 15.170944
   m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
@@ -357,7 +357,7 @@ MonoBehaviour:
   m_LightUnit: 0
   m_LuxAtDistance: 1
   m_Intensity: 600
-  m_InnerSpotPercent: 5.5269594
+  m_InnerSpotPercent: 6.5915475
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
   m_VolumetricDimmer: 4.8
@@ -834,12 +834,12 @@ MonoBehaviour:
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
   lightResponseMode: 1
-  halogenSourceRiseTime: 1
-  halogenSourceFallTime: 1
-  halogenBeamOnDelay: 0.1
-  halogenBeamOffDelay: 0.5
-  halogenBeamRiseTime: 1
-  halogenBeamFallTime: 1
+  halogenSourceRiseTime: 0.5
+  halogenSourceFallTime: 0.85
+  halogenBeamOnDelay: 0
+  halogenBeamOffDelay: 0
+  halogenBeamRiseTime: 0.5
+  halogenBeamFallTime: 0.5
   panRangeDeg: 540
   tiltRangeDeg: 270
   pipelineMode: 0
