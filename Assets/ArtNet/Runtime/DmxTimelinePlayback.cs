@@ -2,9 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace ArtNet.Runtime
 {
     [DisallowMultipleComponent]
+    [ExecuteAlways]
     public class DmxTimelinePlayback : MonoBehaviour
     {
         [Serializable]
@@ -29,6 +34,8 @@ namespace ArtNet.Runtime
 
         [Header("Playback")]
         public bool enablePlayback = true;
+        [Tooltip("Enable preview in edit mode (Timeline Preview)")]
+        public bool enableInEditMode = true;
         public UpdateTiming updateTiming = UpdateTiming.Update;
 
         [Tooltip("0なら毎フレーム。例: 40 で 40Hz 更新")]
@@ -37,9 +44,18 @@ namespace ArtNet.Runtime
         [Tooltip("OnEnable時に値を強制適用（全て0でも一度流す）")]
         public bool forceApplyOnEnable = true;
 
+        [Tooltip("When false, initial Tick won't inject if channels unchanged (prevents zeroing on start).")]
+        public bool applyOnFirstFrame = true;
+
+        [Tooltip("Force Animator culling to Always Animate (so ArtNetChannels updates even if invisible)")]
+        public bool forceAnimatorAlwaysAnimate = true;
+
+        [Tooltip("Reset fixture pan/tilt to base when leaving edit mode preview")]
+        public bool resetPanTiltOnExitingEditMode = true;
+
         [Header("Rig Input Override")]
-        public bool overrideRigInputMode = true;
-        public DmxRigController.InputMode inputModeWhileEnabled = DmxRigController.InputMode.PlaybackOnly;
+        public bool overrideRigInputMode = false;
+        public DmxRigController.InputMode inputModeWhileEnabled = DmxRigController.InputMode.LiveAndPlayback;
 
         [Header("Debug")]
         public bool logMissingRig = true;
@@ -48,6 +64,19 @@ namespace ArtNet.Runtime
         private float _nextSampleTime;
         private DmxRigController.InputMode _prevMode;
         private bool _modeOverridden;
+
+#if UNITY_EDITOR
+        private bool _previewBaseCaptured;
+        private readonly Dictionary<int, PreviewBase> _previewBase = new();
+        private struct PreviewBase
+        {
+            public Quaternion pan;
+            public Quaternion tilt;
+            public bool hasPan;
+            public bool hasTilt;
+
+        }
+#endif
 
         private struct SourceState
         {
@@ -59,11 +88,19 @@ namespace ArtNet.Runtime
 
         private void OnEnable()
         {
+            #if UNITY_EDITOR
+            if (!Application.isPlaying)
+                EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            #endif
             ResolveRig();
             RebuildStates();
+            if (_states.Count == 0 && logMissingRig)
+                Debug.LogWarning("[DmxTimelinePlayback] Sources is empty. Add ArtNetChannels to Sources.", this);
+            if (!Application.isPlaying && enableInEditMode && rig != null)
+                rig.DiscoverAndInitializeAllFixtures();
             _nextSampleTime = 0f;
 
-            if (overrideRigInputMode && rig != null)
+            if (Application.isPlaying && enablePlayback && overrideRigInputMode && rig != null)
             {
                 _prevMode = rig.inputMode;
                 rig.inputMode = inputModeWhileEnabled;
@@ -80,14 +117,129 @@ namespace ArtNet.Runtime
             }
         }
 
+        #if UNITY_EDITOR
+        private void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (state == PlayModeStateChange.ExitingEditMode)
+                ResetPreviewState();
+        }
+
+        private void ResetPreviewState()
+        {
+            if (!resetPanTiltOnExitingEditMode) return;
+
+            if (_previewBaseCaptured)
+            {
+                RestorePreviewBase();
+                return;
+            }
+
+#if UNITY_2023_1_OR_NEWER
+            var fixtures = FindObjectsByType<DmxFixtureComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
+            var fixtures = FindObjectsOfType<DmxFixtureComponent>(true);
+#endif
+            if (fixtures == null) return;
+            for (int i = 0; i < fixtures.Length; i++)
+            {
+                var f = fixtures[i];
+                if (f != null)
+                {
+                    f.ResetPanTiltToBase();
+                    f.RestorePreviewLightBase();
+                    f.RecapturePanTiltBase();
+                }
+            }
+        }
+
+        private void CapturePreviewBase()
+        {
+            if (_previewBaseCaptured) return;
+            _previewBase.Clear();
+
+#if UNITY_2023_1_OR_NEWER
+            var fixtures = FindObjectsByType<DmxFixtureComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
+            var fixtures = FindObjectsOfType<DmxFixtureComponent>(true);
+#endif
+            if (fixtures == null) return;
+
+            for (int i = 0; i < fixtures.Length; i++)
+            {
+                var f = fixtures[i];
+                if (f == null) continue;
+
+                var state = new PreviewBase();
+                if (f.panTransform != null)
+                {
+                    state.pan = f.panTransform.localRotation;
+                    state.hasPan = true;
+                }
+                if (f.tiltTransform != null)
+                {
+                    state.tilt = f.tiltTransform.localRotation;
+                    state.hasTilt = true;
+                }
+
+                f.CapturePreviewLightBase();
+                _previewBase[f.GetInstanceID()] = state;
+            }
+
+            _previewBaseCaptured = true;
+        }
+
+        private void RestorePreviewBase()
+        {
+            if (!_previewBaseCaptured) return;
+
+#if UNITY_2023_1_OR_NEWER
+            var fixtures = FindObjectsByType<DmxFixtureComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
+            var fixtures = FindObjectsOfType<DmxFixtureComponent>(true);
+#endif
+            if (fixtures != null)
+            {
+                for (int i = 0; i < fixtures.Length; i++)
+                {
+                    var f = fixtures[i];
+                    if (f == null) continue;
+
+                    if (_previewBase.TryGetValue(f.GetInstanceID(), out var state))
+                    {
+                        if (state.hasPan && f.panTransform != null)
+                            f.panTransform.localRotation = state.pan;
+                        if (state.hasTilt && f.tiltTransform != null)
+                            f.tiltTransform.localRotation = state.tilt;
+                    }
+                    
+                    f.RestorePreviewLightBase();
+                    f.RecapturePanTiltBase();
+                }
+            }
+
+            _previewBase.Clear();
+            _previewBaseCaptured = false;
+        }
+
+#endif
         private void OnDisable()
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            if (!Application.isPlaying && _previewBaseCaptured)
+                RestorePreviewBase();
+#endif
             if (_modeOverridden && rig != null)
                 rig.inputMode = _prevMode;
         }
 
         private void OnValidate()
         {
+            if (rig == null)
+                rig = GetComponent<DmxRigController>();
+
+
             if (!Application.isPlaying)
                 RebuildStates();
         }
@@ -110,6 +262,13 @@ namespace ArtNet.Runtime
             {
                 var s = sources[i];
                 if (s.channels == null) continue;
+
+                if (forceAnimatorAlwaysAnimate)
+                {
+                    var anim = s.channels.GetComponent<Animator>();
+                    if (anim != null)
+                        anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                }
 
                 _states.Add(new SourceState
                 {
@@ -138,15 +297,34 @@ namespace ArtNet.Runtime
             if (updateTiming == UpdateTiming.FixedUpdate)
                 Tick();
         }
+        private static float GetTime()
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                return (float)UnityEditor.EditorApplication.timeSinceStartup;
+#endif
+            return Time.unscaledTime;
+        }
+
 
         private void Tick(bool force = false)
         {
             if (!enablePlayback) return;
+            #if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                if (!AnimationMode.InAnimationMode() && _previewBaseCaptured)
+                    RestorePreviewBase();
+                if (!enableInEditMode) return;
+            }
+#else
+            if (!Application.isPlaying && !enableInEditMode) return;
+#endif
             if (rig == null) return;
 
             if (sampleRate > 0f && !force)
             {
-                float t = Time.unscaledTime;
+                float t = GetTime();
                 if (t < _nextSampleTime) return;
                 _nextSampleTime = t + 1f / sampleRate;
             }
@@ -157,7 +335,12 @@ namespace ArtNet.Runtime
                 if (st.channels == null) continue;
 
                 bool changed = st.channels.CopyTo(st.buffer);
-                if (changed || force || !st.initialized)
+#if UNITY_EDITOR
+                if (!Application.isPlaying && enableInEditMode && !_previewBaseCaptured && (changed || force))
+                    CapturePreviewBase();
+#endif
+                bool shouldApply = changed || force || (applyOnFirstFrame && !st.initialized);
+                if (shouldApply)
                 {
                     rig.InjectUniverse(st.universe, st.buffer);
                     st.initialized = true;

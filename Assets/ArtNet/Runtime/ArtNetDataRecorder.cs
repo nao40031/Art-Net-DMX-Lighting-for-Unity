@@ -4,20 +4,14 @@
  * - 録画停止時に AnimationClip を .asset として保存（Editor専用）
  */
 
-#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using UnityEditor;
-#endif
-
 using UnityEngine;
-using ArtNet.Runtime;
 
-namespace ArtNet.Editor
+namespace ArtNet.Runtime
 {
-#if UNITY_EDITOR
     public class ArtNetReceiverDmxRecorder : MonoBehaviour
     {
         [Header("Source (Subscribe target)")]
@@ -132,6 +126,7 @@ namespace ArtNet.Editor
             if (!Directory.Exists(fullFolderPath))
                 Directory.CreateDirectory(fullFolderPath);
 
+            bool savedAny = false;
             foreach (var kv in _curvesByUniverse)
             {
                 int universe = kv.Key;
@@ -151,18 +146,23 @@ namespace ArtNet.Editor
                 if (appendUniverseSuffix || _curvesByUniverse.Count > 1)
                     name = $"{clipName}_U{universe}";
 
-                var assetPath = $"{assetFolder}/{name}.asset";
-                assetPath = AssetDatabase.GenerateUniqueAssetPath(assetPath);
-
-                AssetDatabase.CreateAsset(clip, assetPath);
-
-                if (verboseLog) Debug.Log($"[Recorder] Saved: {assetPath}");
+                var assetPath = GetUniqueAssetPath(assetFolder, name);
+                if (TryCreateAsset(clip, assetPath))
+                {
+                    savedAny = true;
+                    if (verboseLog) Debug.Log($"[Recorder] Saved: {assetPath}");
+                }
+                else
+                {
+                    Debug.LogWarning("[Recorder] AssetDatabase が使えないため保存できません（Editor専用）。");
+                }
             }
 
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            Debug.Log($"[Recorder] Record Finish: {assetFolder}");
+            if (savedAny)
+            {
+                TrySaveAssets();
+                Debug.Log($"[Recorder] Record Finish: {assetFolder}");
+            }
 
             Cleanup();
         }
@@ -256,9 +256,59 @@ namespace ArtNet.Editor
             }
             return null;
         }
+        private static string GetUniqueAssetPath(string assetFolder, string name)
+        {
+            string assetPath = $"{assetFolder}/{name}.asset";
+            string projectRoot = GetProjectRootPath();
+            string fullPath = Path.Combine(projectRoot, assetPath);
+
+            int suffix = 1;
+            while (File.Exists(fullPath))
+            {
+                assetPath = $"{assetFolder}/{name}_{suffix}.asset";
+                fullPath = Path.Combine(projectRoot, assetPath);
+                suffix++;
+            }
+
+            return assetPath;
+        }
+
+        private static string GetProjectRootPath()
+        {
+            var dataPath = Application.dataPath;
+            var dir = Directory.GetParent(dataPath);
+            return dir?.FullName ?? Path.GetDirectoryName(dataPath);
+        }
+
+        private static bool TryCreateAsset(UnityEngine.Object asset, string assetPath)
+        {
+            if (!Application.isEditor) return false;
+
+            var assetDbType = Type.GetType("UnityEditor.AssetDatabase, UnityEditor");
+            if (assetDbType == null) return false;
+
+            var create = assetDbType.GetMethod(
+                "CreateAsset",
+                BindingFlags.Public | BindingFlags.Static,
+                null,
+                new[] { typeof(UnityEngine.Object), typeof(string) },
+                null
+            );
+            if (create == null) return false;
+
+            create.Invoke(null, new object[] { asset, assetPath });
+            return true;
+        }
+
+        private static void TrySaveAssets()
+        {
+            if (!Application.isEditor) return;
+
+            var assetDbType = Type.GetType("UnityEditor.AssetDatabase, UnityEditor");
+            if (assetDbType == null) return;
+
+            assetDbType.GetMethod("SaveAssets", BindingFlags.Public | BindingFlags.Static)?.Invoke(null, null);
+            assetDbType.GetMethod("Refresh", BindingFlags.Public | BindingFlags.Static)?.Invoke(null, null);
+        }
     }
-#else
-    // Build時にEditor専用が混ざってもコンパイルを壊さないためのダミー
-    public class ArtNetReceiverDmxRecorder : MonoBehaviour { }
-#endif
 }

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 #if HAS_HDRP
 using UnityEngine.Rendering.HighDefinition;
 #endif
@@ -17,7 +21,7 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Addressing (RigController expects these)")]
-        [Tooltip("DMX Universe番号（送信側と合わせる。0/1始まりどちらでもOK。RigController側と合わせてください）")]
+        [Tooltip("DMX Universe番号�E�送信側と合わせる、E/1始まりどちらでもOK。RigController側と合わせてください�E�E")]
         public int universe = 0;
 
         [Tooltip("DMX Start Address (1-512)")]
@@ -27,7 +31,7 @@ namespace ArtNet.Runtime
         [Header("Profile (Fixture/Mode)")]
         public FixtureDefinition fixture;
 
-        // RigController互換のため public（Editorで ModeName 表示にしていても内部は index）
+        // RigController互換のため public�E�Editorで ModeName 表示にしてぁE��も�E部は index�E�E
         [SerializeField] public int mode = 0;
 
         // ------------------------------------------------------------
@@ -36,7 +40,7 @@ namespace ArtNet.Runtime
 
         [Header("Targets")]
         public Light targetLight;
-        [Tooltip("複数ターゲット用。設定すると全てのLightに同じDMXが適用されます（targetLightも併用可）")]
+        [Tooltip("褁E��ターゲチE��用。設定すると全てのLightに同じDMXが適用されます！EargetLightも併用可�E�E")]
         public List<Light> targetLights = new();
         public Transform panTransform;
         public Transform tiltTransform;
@@ -47,24 +51,24 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Lens (ShaderGraph DMX Sync)")]
-        [Tooltip("レンズ面のRenderer。ShaderGraph側に _DmxColor(Color) / _DmxDimmer(Float) がある前提で、DMXの色とDimmerを渡します。")]
+        [Tooltip("レンズ面のRenderer。ShaderGraph側に _DmxColor(Color) / _DmxDimmer(Float) がある前提で、DMXの色とDimmerを渡します、E")]
         [SerializeField] private Renderer lensRenderer;
 
-        [Tooltip("レンズが複数Rendererに分かれている場合は追加で登録します（任意）。")]
+        [Tooltip("レンズが褁E��Rendererに刁E��れてぁE��場合�E追加で登録します（任意）、E")]
         [SerializeField] private Renderer[] extraLensRenderers;
 
-        [Tooltip("レンズへDMX同期を行うか")]
+        [Tooltip("レンズへDMX同期を行うぁE")]
         [SerializeField] private bool syncLensToDmx = true;
         [SerializeField] private bool syncLensColorToDmx = true;
         [SerializeField] private bool syncLensDimmerToDmx = true;
 
-        [Tooltip("ShaderGraphのColorプロパティ名（Reference）。例: _DmxColor")]
+        [Tooltip("ShaderGraphのColorプロパティ名！Eeference�E�。侁E _DmxColor")]
         [SerializeField] private string lensColorProperty = "_DmxColor";
 
-        [Tooltip("ShaderGraphのFloatプロパティ名（Reference）。例: _DmxDimmer")]
+        [Tooltip("ShaderGraphのFloatプロパティ名！Eeference�E�。侁E _DmxDimmer")]
         [SerializeField] private string lensDimmerProperty = "_DmxDimmer";
 
-        [Tooltip("Dimmer(0-1)に掛ける倍率。レンズが暗い/明るすぎる時の調整用。")]
+        [Tooltip("Dimmer(0-1)に掛ける倍率。レンズが暗ぁE明るすぎる時の調整用、E")]
         [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
 
         // ------------------------------------------------------------
@@ -95,7 +99,7 @@ namespace ArtNet.Runtime
         [Tooltip("Beam (light) fall time from 1 to 0.")]
         [SerializeField, Min(0f)] private float halogenBeamFallTime = 0.08f;
 
-        // MaterialPropertyBlockで per-renderer に安全に書き込む（マテリアル複製を避ける）
+        // MaterialPropertyBlockで per-renderer に安�Eに書き込む�E��EチE��アル褁E��を避ける�E�E
         private MaterialPropertyBlock _lensMpb;
         private int _lensColorId;
         private int _lensDimmerId;
@@ -113,10 +117,10 @@ namespace ArtNet.Runtime
         [Header("Pipeline / Driver")]
         public PipelineMode pipelineMode = PipelineMode.Auto;
 
-        [Tooltip("明示的にドライバを指定したい場合（GenericLightDriver / HdrpLightDriver 等）")]
+        [Tooltip("明示皁E��ドライバを持E��したい場合！EenericLightDriver / HdrpLightDriver 等！E")]
         public MonoBehaviour driverOverride;
 
-        [Tooltip("ドライバが見つからない場合に自動追加します（※追加先はこのDmxFixtureComponentが付いている同一GameObject）")]
+        [Tooltip("ドライバが見つからなぁE��合に自動追加します（※追加先�Eこ�EDmxFixtureComponentが付いてぁE��同一GameObject�E�E")]
         public bool autoAddDriverIfMissing = true;
 
         [Header("Driver Intensity Defaults")]
@@ -126,7 +130,7 @@ namespace ArtNet.Runtime
         [Tooltip("HdrpLightDriver.maxIntensity に設定するデフォルト値")]
         public float hdrpMaxIntensity = 9870f;
 
-        [Tooltip("true の場合、Initialize時に上記 maxIntensity をドライバに上書きします")]
+        [Tooltip("true の場合、Initialize時に上訁EmaxIntensity をドライバに上書きしまぁE")]
         public bool overrideDriverMaxIntensity = true;
 
         // ------------------------------------------------------------
@@ -136,38 +140,42 @@ namespace ArtNet.Runtime
         public enum LocalAxis { X, Y, Z, MinusX, MinusY, MinusZ }
 
         [Header("Pan/Tilt Axis / Tuning")]
-        [Tooltip("Panの回転軸（local）")]
-        public LocalAxis panAxis = LocalAxis.Z; // ✅ デフォルトZ
+        [Tooltip("Panの回転軸�E�Eocal�E�E")]
+        public LocalAxis panAxis = LocalAxis.Z; // ✁EチE��ォルチE
 
-        [Tooltip("Tiltの回転軸（local）")]
+        [Tooltip("Tiltの回転軸�E�Eocal�E�E")]
         public LocalAxis tiltAxis = LocalAxis.X;
 
         public bool panInvert = false;
         public bool tiltInvert = false;
 
-        [Tooltip("Panのオフセット（度）")]
+        [Tooltip("PanのオフセチE���E�度�E�E")]
         public float panOffsetDeg = 0f;
 
-        [Tooltip("Tiltのオフセット（度）")]
+        [Tooltip("TiltのオフセチE���E�度�E�E")]
         public float tiltOffsetDeg = 0f;
 
         [Range(0f, 30f)]
-        [Tooltip("Pan/Tiltの追従スムージング。0=即時、値を上げるほどヌルッと動く")]
+        [Tooltip("Pan/Tiltの追従スムージング、E=即時、値を上げるほどヌルチE��動く")]
         public float panTiltSmoothing = 12f;
 
 
-        [Tooltip("DMX受信更新(例:40Hz)と描画(例:60Hz)の差で段差が見える場合に、毎フレーム補間で滑らかにします")]
+        [Tooltip("DMX受信更新(侁E40Hz)と描画(侁E60Hz)の差で段差が見える場合に、毎フレーム補間で滑らかにしまぁE")]
         public bool enableContinuousPanTiltUpdate = true;
 
-        [Header("Pan/Tilt Speed (deg/sec)  ※PanTiltSpeedがある場合のみ有効")]
-        [Tooltip("PanTiltSpeed=0 のときの角速度")]
+        [Header("Edit Mode Preview")]
+        [Tooltip("Edit���[�h��Timeline�v���r���[����Pan/Tilt�ƌ��ʂ𑦎����f���܂�")]
+        public bool applyImmediateInEditMode = true;
+
+        [Header("Pan/Tilt Speed (deg/sec)  ※PanTiltSpeedがある場合�Eみ有効")]
+        [Tooltip("PanTiltSpeed=0 のとき�E角速度")]
         public float panTiltSpeedMinDegPerSec = 30f;
 
-        [Tooltip("PanTiltSpeed=255 のときの角速度")]
+        [Tooltip("PanTiltSpeed=255 のとき�E角速度")]
         public float panTiltSpeedMaxDegPerSec = 720f;
 
         [Header("Reset Threshold")]
-        [Tooltip("Reset ch がこの値以上のとき Reset を実行（機種により異なるので必要なら調整）")]
+        [Tooltip("Reset ch がこの値以上�EとぁEReset を実行（機種により異なる�Eで忁E��なら調整�E�E")]
         [Range(0, 255)]
         public int resetTriggerThreshold = 250;
 
@@ -179,11 +187,11 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Monitoring (DMX)")]
-        [Tooltip("このFixtureが受信しているDMX値のモニタを有効化（Inspector表示/周期ログ）")]
+        [Tooltip("こ�EFixtureが受信してぁE��DMX値のモニタを有効化！Enspector表示/周期ログ�E�E")]
         [SerializeField] private bool monitorEnabled = true;
 
         [Header("Monitor Channels (Absolute 1-512)")]
-        [Tooltip("Universe内の絶対ch番号（1-512）を監視します")]
+        [Tooltip("Universe冁E�E絶対ch番号�E�E-512�E�を監視しまぁE")]
         [Range(1, 512)] public int monitorCh1 = 1;
         [Range(1, 512)] public int monitorCh2 = 2;
         [Range(1, 512)] public int monitorCh3 = 3;
@@ -191,10 +199,10 @@ namespace ArtNet.Runtime
         [Range(1, 512)] public int monitorCh5 = 5;
 
         [Header("Monitoring (Auto / Relative)")]
-        [Tooltip("FixtureDefinitionのModeで解決された FixtureFunction を自動で一覧モニタします")]
+        [Tooltip("FixtureDefinitionのModeで解決されぁEFixtureFunction を�E動で一覧モニタしまぁE")]
         [SerializeField] private bool monitorIncludeResolvedFunctions = true;
 
-        [Tooltip("startAddress基準の相対ch(1=Start)を追加監視したい場合に指定します（例: 1,2,3,10,11...）")]
+        [Tooltip("startAddress基準�E相対ch(1=Start)を追加監視したい場合に持E��します（侁E 1,2,3,10,11...�E�E")]
         [SerializeField] private List<int> monitorExtraRelativeChannels = new();
 
         [Header("Debug Values (ReadOnly)")]
@@ -207,8 +215,8 @@ namespace ArtNet.Runtime
         [Serializable]
         private struct DmxMonitorItem
         {
-            public FixtureFunction function; // 0の場合は「追加相対ch」枠（ラベルは relXX で表示）
-            public int relativeCh;           // 1-based within fixture (startAddress基準)
+            public FixtureFunction function; // 0の場合�E「追加相対ch」枠�E�ラベルは relXX で表示�E�E
+            public int relativeCh;           // 1-based within fixture (startAddress基溁E
             public int absoluteCh;           // 1-based within universe
             [Range(0, 255)] public int value;
         }
@@ -217,16 +225,16 @@ namespace ArtNet.Runtime
         [SerializeField] private List<DmxMonitorItem> monitorItems = new();
 
         [Header("Periodic Logging (Flood Protection)")]
-        [Tooltip("一定間隔で受信データを要約ログ表示します（ログ洪水対策あり）")]
+        [Tooltip("一定間隔で受信チE�Eタを要紁E��グ表示します（ログ洪水対策あり！E")]
         [SerializeField] private bool enablePeriodicLog = false;
 
-        [Tooltip("ログを出す間隔（秒）。例：1.0 で1秒ごと")]
+        [Tooltip("ログを�Eす間隔（秒）。例！E.0 で1秒ごと")]
         [SerializeField, Min(0.1f)] private float logIntervalSec = 1.0f;
 
-        [Tooltip("受信が無い間隔はログしない（無駄ログ抑制）")]
+        [Tooltip("受信が無ぁE��隔�EログしなぁE��無駁E��グ抑制�E�E")]
         [SerializeField] private bool logOnlyWhenDataArrived = true;
 
-        [Tooltip("ログの先頭にヘッダー（Universe/Start/Mode等）を含める")]
+        [Tooltip("ログの先頭にヘッダー�E�Eniverse/Start/Mode等）を含める")]
         [SerializeField] private bool includeHeaderInLog = true;
 
         private float _nextLogTime;
@@ -243,6 +251,13 @@ namespace ArtNet.Runtime
         private Quaternion _panBaseLocalRot;
         private Quaternion _tiltBaseLocalRot;
         private bool _movementBaseCaptured;
+
+#if UNITY_EDITOR
+        [NonSerialized] private bool _previewLightCaptured;
+        [NonSerialized] private List<Light> _previewLightTargets = new();
+        [NonSerialized] private List<float> _previewLightIntensity = new();
+        [NonSerialized] private List<Color> _previewLightColor = new();
+#endif
 
         private bool _hasDmxTargets;
         private float _targetDimmer01;
@@ -338,6 +353,9 @@ namespace ArtNet.Runtime
         private void OnEnable()
         {
             ResolveAll();
+
+            if (Application.isPlaying)
+                CaptureMovementBaseIfNeeded(force: true);
 
             _nextLogTime = Time.unscaledTime + Mathf.Max(0.1f, logIntervalSec);
             _hasNewDataSinceLastLog = false;
@@ -446,7 +464,7 @@ namespace ArtNet.Runtime
             if (monitorItems == null) monitorItems = new List<DmxMonitorItem>();
             monitorItems.Clear();
 
-            // 1) FixtureDefinitionの Mode 定義（ResolvedItem）をそのまま一覧化
+            // 1) FixtureDefinitionの Mode 定義�E�EesolvedItem�E�をそ�Eまま一覧匁E
             if (monitorIncludeResolvedFunctions && _resolvedItems != null)
             {
                 for (int i = 0; i < _resolvedItems.Count; i++)
@@ -462,7 +480,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            // 2) 任意の相対chを追加（重複は除外）
+            // 2) 任意�E相対chを追加�E�重褁E�E除外！E
             if (monitorExtraRelativeChannels != null)
             {
                 for (int i = 0; i < monitorExtraRelativeChannels.Count; i++)
@@ -492,7 +510,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            // 表示の安定性のため relativeCh順に並べる（小規模なのでO(n^2)で十分）
+            // 表示の安定性のため relativeCh頁E��並べる（小規模なのでO(n^2)で十�E�E�E
             for (int i = 0; i < monitorItems.Count - 1; i++)
             {
                 for (int j = i + 1; j < monitorItems.Count; j++)
@@ -732,7 +750,7 @@ namespace ArtNet.Runtime
 
                 rgb = new Color(r, g, b, 1f);
 
-                // Whiteが割り当てられている場合は「白方向に寄せる」簡易モデル
+                // Whiteが割り当てられてぁE��場合�E「白方向に寁E��る」簡易モチE��
                 if (TryGetRelativeChannel(FixtureFunction.White, out int wRel))
                 {
                     float w = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + wRel - 1));
@@ -742,7 +760,7 @@ namespace ArtNet.Runtime
 
             UpdateLightTargetsFromDmx(dim01, rgb);
 
-            // --- Pan/Tilt Speed（あればスムージング適用） ---
+            // --- Pan/Tilt Speed�E�あれ�Eスムージング適用�E�E---
             bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
             float maxDegPerSec = panTiltSpeedMaxDegPerSec;
             if (hasSpeed)
@@ -789,6 +807,7 @@ namespace ArtNet.Runtime
 
             // --- Monitoring update (per-fixture realtime values) ---
             UpdateMonitorValues(universe512);
+            ApplyImmediateInEditMode();
         }
 
         private void ApplyFromUniverseBufferInternal(byte[] universe512)
@@ -830,7 +849,7 @@ namespace ArtNet.Runtime
 
                 rgb = new Color(r, g, b, 1f);
 
-                // Whiteが割り当てられている場合は「白方向に寄せる」簡易モデル
+                // Whiteが割り当てられてぁE��場合�E「白方向に寁E��る」簡易モチE��
                 if (TryGetRelativeChannel(FixtureFunction.White, out int wRel))
                 {
                     float w = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + wRel - 1));
@@ -840,7 +859,7 @@ namespace ArtNet.Runtime
 
             UpdateLightTargetsFromDmx(dim01, rgb);
 
-            // --- Pan/Tilt Speed（あればスムージング適用） ---
+            // --- Pan/Tilt Speed�E�あれ�Eスムージング適用�E�E---
             bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
             float maxDegPerSec = panTiltSpeedMaxDegPerSec;
             if (hasSpeed)
@@ -887,6 +906,7 @@ namespace ArtNet.Runtime
 
             // --- Monitoring update (per-fixture realtime values) ---
             UpdateMonitorValues(universe512);
+            ApplyImmediateInEditMode();
         }
 
 
@@ -972,7 +992,7 @@ namespace ArtNet.Runtime
                 {
                     var it = monitorItems[i];
 
-                    // functionが0(未設定)なら relXX として表示
+                    // functionぁE(未設宁EなめErelXX として表示
                     string label = (Convert.ToInt32(it.function) == 0)
                         ? $"rel{it.relativeCh}"
                         : it.function.ToString();
@@ -990,6 +1010,90 @@ namespace ArtNet.Runtime
 
             return sb.ToString();
         }
+
+        public void ResetPanTiltToBase()
+        {
+            CaptureMovementBaseIfNeeded(force: false);
+            if (panTransform != null) panTransform.localRotation = _panBaseLocalRot;
+            if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
+            _hasPanTarget = false;
+            _hasTiltTarget = false;
+        }
+        public void RecapturePanTiltBase()
+        {
+            CaptureMovementBaseIfNeeded(force: true);
+        }
+
+#if UNITY_EDITOR
+        public void CapturePreviewLightBase()
+        {
+            if (_previewLightCaptured) return;
+            _previewLightTargets.Clear();
+            _previewLightIntensity.Clear();
+            _previewLightColor.Clear();
+
+            var lights = GatherTargetLights();
+            for (int i = 0; i < lights.Count; i++)
+            {
+                var l = lights[i];
+                if (l == null) continue;
+                _previewLightTargets.Add(l);
+                _previewLightIntensity.Add(l.intensity);
+                _previewLightColor.Add(l.color);
+            }
+
+            _previewLightCaptured = true;
+        }
+
+        public void RestorePreviewLightBase()
+        {
+            if (!_previewLightCaptured) return;
+
+            for (int i = 0; i < _previewLightTargets.Count; i++)
+            {
+                var l = _previewLightTargets[i];
+                if (l == null) continue;
+                if (i < _previewLightIntensity.Count) l.intensity = _previewLightIntensity[i];
+                if (i < _previewLightColor.Count) l.color = _previewLightColor[i];
+            }
+
+            _previewLightTargets.Clear();
+            _previewLightIntensity.Clear();
+            _previewLightColor.Clear();
+            _previewLightCaptured = false;
+        }
+
+        [ContextMenu("Restore Pan/Tilt From Prefab")]
+        public void RestorePanTiltFromPrefab()
+        {
+            if (panTransform != null)
+            {
+                var srcPan = PrefabUtility.GetCorrespondingObjectFromSource(panTransform) as Transform;
+                if (srcPan != null) panTransform.localRotation = srcPan.localRotation;
+            }
+            if (tiltTransform != null)
+            {
+                var srcTilt = PrefabUtility.GetCorrespondingObjectFromSource(tiltTransform) as Transform;
+                if (srcTilt != null) tiltTransform.localRotation = srcTilt.localRotation;
+            }
+            CaptureMovementBaseIfNeeded(force: true);
+        }
+
+        [ContextMenu("Restore Light From Prefab")]
+        public void RestoreLightFromPrefab()
+        {
+            var lights = GatherTargetLights();
+            for (int i = 0; i < lights.Count; i++)
+            {
+                var l = lights[i];
+                if (l == null) continue;
+                var src = PrefabUtility.GetCorrespondingObjectFromSource(l) as Light;
+                if (src == null) continue;
+                l.color = src.color;
+                l.intensity = src.intensity;
+            }
+        }
+#endif
 
         private void PerformReset()
         {
@@ -1107,6 +1211,31 @@ namespace ArtNet.Runtime
             ApplyLightAndLens(_currentLightDimmer01, _currentLensDimmer01, _targetColor);
         }
 
+        private void ApplyImmediateInEditMode()
+        {
+#if UNITY_EDITOR
+            if (Application.isPlaying) return;
+            if (!applyImmediateInEditMode) return;
+
+            if (lightResponseMode == LightResponseMode.Halogen)
+            {
+                _lensTargetDimmer01 = _targetDimmer01;
+                _lightTargetDimmer01 = _targetDimmer01;
+                _lightTargetPending = false;
+                _lensTargetPending = false;
+            }
+
+            _currentLensDimmer01 = _lensTargetDimmer01;
+            _currentLightDimmer01 = _lightTargetDimmer01;
+            ApplyLightAndLens(_currentLightDimmer01, _currentLensDimmer01, _targetColor);
+
+            if (panTransform != null && _hasPanTarget)
+                panTransform.localRotation = _panTargetLocalRot;
+            if (tiltTransform != null && _hasTiltTarget)
+                tiltTransform.localRotation = _tiltTargetLocalRot;
+#endif
+        }
+
         private void ApplyLightAndLens(float lightDim01, float lensDim01, Color rgb)
         {
             if (isInitialized && runtimeDrivers != null && runtimeDrivers.Count > 0)
@@ -1150,17 +1279,17 @@ namespace ArtNet.Runtime
         // Lens DMX sync helpers
         // ------------------------------------------------------------
 
-        private void EnsureLensPropertyIds()
+                private void EnsureLensPropertyIds()
         {
-            if (_lensPropertyIdsReady) return;
+            if (_lensPropertyIdsReady && _lensMpb != null) return;
 
-            // property名が空だと PropertyToID で0になるので、最低限ガード
+            // property���󂾂� PropertyToID ��0�ɂȂ�̂ŁA�Œ���K�[�h
             if (string.IsNullOrWhiteSpace(lensColorProperty)) lensColorProperty = "_DmxColor";
             if (string.IsNullOrWhiteSpace(lensDimmerProperty)) lensDimmerProperty = "_DmxDimmer";
 
             _lensColorId = Shader.PropertyToID(lensColorProperty);
             _lensDimmerId = Shader.PropertyToID(lensDimmerProperty);
-            _lensMpb ??= new MaterialPropertyBlock();
+            if (_lensMpb == null) _lensMpb = new MaterialPropertyBlock();
             _lensPropertyIdsReady = true;
         }
 
@@ -1169,15 +1298,17 @@ namespace ArtNet.Runtime
             if (!syncLensToDmx) return;
             if (!syncLensColorToDmx && !syncLensDimmerToDmx) return;
 
-            // Renderer未設定でも安全にスルー
+            // Renderer未設定でも安�Eにスルー
             if (lensRenderer == null && (extraLensRenderers == null || extraLensRenderers.Length == 0))
                 return;
 
             EnsureLensPropertyIds();
 
+            if (_lensMpb == null) return;
+
             float d = Mathf.Clamp01(dim01) * Mathf.Max(0f, lensDimmerScale);
 
-            // まずは共通のMPBに値をセット（RendererごとにSetPropertyBlockする）
+            // まず�E共通�EMPBに値をセチE���E�EendererごとにSetPropertyBlockする�E�E
             _lensMpb.Clear();
             if (syncLensColorToDmx)
                 _lensMpb.SetColor(_lensColorId, rgb);
@@ -1260,7 +1391,7 @@ namespace ArtNet.Runtime
         {
             if (!enableContinuousPanTiltUpdate) return;
 
-            // DMXがまだ来ていないときは何もしない
+            // DMXがまだ来てぁE��ぁE��き�E何もしなぁE
             if (panTransform != null && _hasPanTarget)
             {
                 ApplyRotationToTarget(panTransform, _panTargetLocalRot, _panTargetMaxDegPerSec, _panTargetSmoothing);
@@ -1291,7 +1422,7 @@ namespace ArtNet.Runtime
             }
 
             float dt2 = Mathf.Max(0.0001f, Time.deltaTime);
-            // smoothing01 を「60fps基準の係数」に変換してフレームレート差を吸収
+            // smoothing01 を、E0fps基準�E係数」に変換してフレームレート差を吸叁E
             float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(smoothing01), dt2 * 60f);
             t.localRotation = Quaternion.Slerp(t.localRotation, targetLocalRot, k);
         }
@@ -1318,7 +1449,7 @@ private static Vector3 AxisToVector(LocalAxis a) => a switch
             var ax = AxisToVector(axis);
             var target = baseLocalRotation * Quaternion.AngleAxis(degrees, ax);
 
-            // Speed優先（PanTiltSpeedがある場合）
+            // Speed優先！EanTiltSpeedがある場合！E
             if (speedDegPerSecOrMinus1 > 0f)
             {
                 t.localRotation = Quaternion.RotateTowards(t.localRotation, target, speedDegPerSecOrMinus1 * Time.deltaTime);

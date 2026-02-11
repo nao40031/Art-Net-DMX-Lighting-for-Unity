@@ -227,6 +227,12 @@ namespace ArtNet.Runtime
             for (int i = 0; i < len; i++)
                 buf[i] = src[i];
 
+            if (!Application.isPlaying)
+            {
+                ApplyUniverse(universe);
+                return;
+            }
+
             lock (_lock)
             {
                 _dirtyUniverses.Add(universe);
@@ -351,6 +357,31 @@ namespace ArtNet.Runtime
 
             AutoAssignStartAddresses(fixtures, writeToScene: true);
             Debug.Log($"[DmxRigController] Baked StartAddress for {fixtures.Length} fixtures.", this);
+        }
+#endif
+
+#if UNITY_EDITOR
+        [ContextMenu("Restore Fixture Defaults From Prefab")]
+        public void RestoreFixtureDefaultsFromPrefab()
+        {
+            var fixtures = FindAllFixtures(includeInactive: true);
+            if (fixtures == null || fixtures.Length == 0)
+            {
+                Debug.LogWarning("[DmxRigController] No fixtures found for restore.");
+                return;
+            }
+
+            int restored = 0;
+            for (int i = 0; i < fixtures.Length; i++)
+            {
+                var f = fixtures[i];
+                if (f == null) continue;
+                f.RestorePanTiltFromPrefab();
+                f.RestoreLightFromPrefab();
+                restored++;
+            }
+
+            Debug.Log($"[DmxRigController] Restored fixture defaults from prefab: {restored}");
         }
 #endif
 

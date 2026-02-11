@@ -856,6 +856,7 @@ MonoBehaviour:
   tiltOffsetDeg: 0
   panTiltSmoothing: 12
   enableContinuousPanTiltUpdate: 1
+  applyImmediateInEditMode: 1
   panTiltSpeedMinDegPerSec: 30
   panTiltSpeedMaxDegPerSec: 720
   resetTriggerThreshold: 250
