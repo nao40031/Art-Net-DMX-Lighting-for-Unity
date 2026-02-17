@@ -1422,7 +1422,7 @@ namespace ArtNet.Runtime
             }
 
             float dt2 = Mathf.Max(0.0001f, Time.deltaTime);
-            // smoothing01 を、E0fps基準�E係数」に変換してフレームレート差を吸叁E
+            // smoothing01 is treated as 0..1
             float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(smoothing01), dt2 * 60f);
             t.localRotation = Quaternion.Slerp(t.localRotation, targetLocalRot, k);
         }

@@ -40,7 +40,15 @@ namespace ArtNet.Runtime
 
         [Tooltip("0なら毎フレーム。例: 40 で 40Hz 更新")]
         [Min(0f)] public float sampleRate = 0f;
-
+        [Header("Live Compatibility")]
+        [Tooltip("Align playback timing with live input conditions.")]
+        public bool useLiveCompatiblePlayback = true;
+        [Tooltip("Force updateTiming to Update in live-compatible mode.")]
+        public bool forceUpdateTimingToUpdate = true;
+        [Tooltip("When sampleRate is 0, apply defaultLiveSampleRate automatically.")]
+        public bool applyDefaultSampleRateWhenZero = true;
+        [Tooltip("Default live-compatible sample rate (typically 40 or 44).")]
+        [Min(1f)] public float defaultLiveSampleRate = 40f;
         [Tooltip("OnEnable時に値を強制適用（全て0でも一度流す）")]
         public bool forceApplyOnEnable = true;
 
@@ -93,6 +101,7 @@ namespace ArtNet.Runtime
                 EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             #endif
             ResolveRig();
+            ApplyLiveCompatibilitySettings();
             RebuildStates();
             if (_states.Count == 0 && logMissingRig)
                 Debug.LogWarning("[DmxTimelinePlayback] Sources is empty. Add ArtNetChannels to Sources.", this);
@@ -239,11 +248,22 @@ namespace ArtNet.Runtime
             if (rig == null)
                 rig = GetComponent<DmxRigController>();
 
+            ApplyLiveCompatibilitySettings();
 
             if (!Application.isPlaying)
                 RebuildStates();
         }
 
+        private void ApplyLiveCompatibilitySettings()
+        {
+            if (!useLiveCompatiblePlayback) return;
+
+            if (forceUpdateTimingToUpdate)
+                updateTiming = UpdateTiming.Update;
+
+            if (applyDefaultSampleRateWhenZero && sampleRate <= 0f)
+                sampleRate = Mathf.Max(1f, defaultLiveSampleRate);
+        }
         private void ResolveRig()
         {
             if (rig == null)
