@@ -77,6 +77,10 @@ namespace ArtNet.Runtime
         [Tooltip("保存時に全チャンネルをConstantに変換します（非推奨）。ONにすると挙動が不安定になる場合があります。")]
         [SerializeField] private bool setCurvesToConstant = false;
 
+        [Header("Clip Length")]
+        [Tooltip("複数Universeを保存する際、全Clipの終端時刻を最長Clipに揃える")]
+        [SerializeField] private bool normalizeClipEndAcrossUniverses = true;
+
         private readonly Dictionary<int, AnimationCurve[]> _curvesByUniverse = new();
         private readonly Dictionary<int, bool[]> _linearChannelsByUniverse = new();
         private bool _isRecording;
@@ -159,12 +163,23 @@ namespace ArtNet.Runtime
             if (!Directory.Exists(fullFolderPath))
                 Directory.CreateDirectory(fullFolderPath);
 
+            float normalizedEndTime = 0f;
+            if (normalizeClipEndAcrossUniverses && _curvesByUniverse.Count > 1)
+            {
+                normalizedEndTime = GetGlobalEndTime(_curvesByUniverse);
+                if (verboseLog)
+                    Debug.Log($"[Recorder] Normalize clip end time: {normalizedEndTime:0.000}s");
+            }
+
             bool savedAny = false;
             foreach (var kv in _curvesByUniverse)
             {
                 int universe = kv.Key;
                 var curves = kv.Value;
                 if (curves == null || curves.Length == 0) continue;
+
+                if (normalizedEndTime > 0f)
+                    ExtendCurvesToEndTime(curves, normalizedEndTime);
 
                 var clip = new AnimationClip();
 
@@ -315,6 +330,47 @@ namespace ArtNet.Runtime
             _linearChannelsByUniverse.Clear();
             _isRecording = false;
             _startTime = 0f;
+        }
+
+        private static float GetGlobalEndTime(Dictionary<int, AnimationCurve[]> curvesByUniverse)
+        {
+            if (curvesByUniverse == null) return 0f;
+
+            float maxTime = 0f;
+            foreach (var kv in curvesByUniverse)
+            {
+                var curves = kv.Value;
+                if (curves == null) continue;
+
+                for (int i = 0; i < curves.Length; i++)
+                {
+                    var curve = curves[i];
+                    if (curve == null || curve.length == 0) continue;
+
+                    var last = curve.keys[curve.length - 1];
+                    if (last.time > maxTime)
+                        maxTime = last.time;
+                }
+            }
+
+            return maxTime;
+        }
+
+        private static void ExtendCurvesToEndTime(AnimationCurve[] curves, float endTime)
+        {
+            if (curves == null || endTime <= 0f) return;
+
+            const float epsilon = 0.00001f;
+            for (int i = 0; i < curves.Length; i++)
+            {
+                var curve = curves[i];
+                if (curve == null || curve.length == 0) continue;
+
+                var last = curve.keys[curve.length - 1];
+                if (endTime <= last.time + epsilon) continue;
+
+                curve.AddKey(new Keyframe(endTime, last.value));
+            }
         }
 
         private static Type ResolveType(string typeName)

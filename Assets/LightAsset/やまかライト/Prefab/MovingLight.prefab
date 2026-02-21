@@ -383,15 +383,25 @@ MonoBehaviour:
   fixture: {fileID: 11400000, guid: ea6c113c24080a647ab302d3a397c294, type: 2}
   mode: 0
   targetLight: {fileID: 5435452863099544097}
+  targetLights: []
   panTransform: {fileID: 1013826615945173212}
   tiltTransform: {fileID: 3456986391419752059}
   lensRenderer: {fileID: 0}
   extraLensRenderers:
   - {fileID: 2523771333444109262}
   syncLensToDmx: 1
+  syncLensColorToDmx: 1
+  syncLensDimmerToDmx: 1
   lensColorProperty: _DmxColor
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
+  lightResponseMode: 0
+  halogenSourceRiseTime: 0.06
+  halogenSourceFallTime: 0.1
+  halogenBeamOnDelay: 0.04
+  halogenBeamOffDelay: 0.04
+  halogenBeamRiseTime: 0.06
+  halogenBeamFallTime: 0.08
   panRangeDeg: 540
   tiltRangeDeg: 270
   pipelineMode: 0
@@ -408,9 +418,10 @@ MonoBehaviour:
   tiltOffsetDeg: 0
   panTiltSmoothing: 12
   enableContinuousPanTiltUpdate: 1
+  applyImmediateInEditMode: 1
   panTiltSpeedMinDegPerSec: 30
   panTiltSpeedMaxDegPerSec: 720
-  resetTriggerThreshold: 250
+  resetTriggerThreshold: 255
   autoResolveOnValidate: 1
   monitorEnabled: 1
   monitorCh1: 1
