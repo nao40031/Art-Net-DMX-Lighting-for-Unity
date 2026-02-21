@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -11,11 +11,11 @@ using UnityEditor.SceneManagement;
 namespace ArtNet.Runtime
 {
     /// <summary>
-    /// ArtNetReceiver を購読し、Universeバッファ更新と Fixture へのルーチE��ングを担当する、E
-    /// Fixtureの設宁E適用は DmxFixtureComponent 側に寁E��る、E
+    /// ArtNetReceiver 繧定ｳｼ隱ｭ縺励ゞniverse繝舌ャ繝輔ぃ譖ｴ譁ｰ縺ｨ Fixture 縺ｸ縺ｮ繝ｫ繝ｼ繝・ぅ繝ｳ繧ｰ繧呈球蠖薙☆繧九・
+    /// Fixture縺ｮ險ｭ螳・驕ｩ逕ｨ縺ｯ DmxFixtureComponent 蛛ｴ縺ｫ蟇・○繧九・
     ///
-    /// 追加�E�Hierarchy頁E�E自動採番�E�EddressingRoot配下を上から頁E��辿る！E
-    /// 追加�E�Editモードで採番値をシーンへ保存（�Eイク�E�する機�E
+    /// 霑ｽ蜉・唏ierarchy鬆・・閾ｪ蜍墓治逡ｪ・・ddressingRoot驟堺ｸ九ｒ荳翫°繧蛾・↓霎ｿ繧具ｼ・
+    /// 霑ｽ蜉・哘dit繝｢繝ｼ繝峨〒謗｡逡ｪ蛟､繧偵す繝ｼ繝ｳ縺ｸ菫晏ｭ假ｼ医・繧､繧ｯ・峨☆繧区ｩ溯・
     /// </summary>
     [DisallowMultipleComponent]
     public class DmxRigController : MonoBehaviour
@@ -31,47 +31,47 @@ namespace ArtNet.Runtime
         public InputMode inputMode = InputMode.LiveOnly;
 
         [Header("Art-Net Source")]
-        [Tooltip("受信允E��未設定ならシーンから自動で探しまぁE")]
+        [Tooltip("ArtNetReceiver参照。未設定ならシーン内から自動検索します。")]
         public ArtNetReceiver receiver;
 
         [Header("Auto Discover")]
-        [Tooltip("OnEnable時にシーン冁E�E DmxFixtureComponent を�E動収雁E��て初期化しまぁE")]
+        [Tooltip("OnEnable時にシーン内のDmxFixtureComponentを自動収集して初期化します。")]
         public bool autoDiscoverFixturesOnEnable = true;
 
         [Header("Apply")]
-        [Tooltip("Update冁E��最後に受信したUniverseを毎フレ適用します（受信頻度が高い場合�Efalse推奨�E�E")]
+        [Tooltip("Updateで受信済みUniverseを適用します。受信頻度が高い場合はOFF推奨。")]
         public bool applyOnUpdate = true;
 
         [Header("Debug")]
-        [Tooltip("受信レートをログ表示しまぁE")]
+        [Tooltip("受信レートをログ表示します。")]
         public bool logRxRate = true;
 
         [Range(0.2f, 5f)] public float logRxIntervalSec = 1.0f;
 
-        [Tooltip("適用時に先頭CHをログ表示�E�デバッグ用�E�E")]
+        [Tooltip("適用時に先頭チャンネル値をログ表示します（デバッグ用）。")]
         public bool logApplyHeadChannels = false;
 
         [Header("Auto Addressing (Hierarchy Order)")]
-        [Tooltip("Discover時に addressingRoot 配下�EFixtureへ startAddress を�E動採番します！Eierarchy頁E��E")]
+        [Tooltip("Discover時にaddressingRoot配下のFixtureへstartAddressを自動採番します（Hierarchy順）。")]
         public bool autoAssignStartAddressOnEnable = false;
 
-        [Tooltip("採番対象の親�E�EovingLight群の親�E�。未持E��ならシーン全体（ただし頁E��保証は弱ぁE��E")]
+        [Tooltip("採番対象の親Transform。未設定ならシーン全体を対象にします。")]
         public Transform addressingRoot;
 
-        [Tooltip("起点Universe�E�usePrefabValueAsBase=false のとき�Eみ使用")]
+        [Tooltip("採番開始Universe（usePrefabValueAsBase=false のときのみ使用）。")]
         public int universeStart = 0;
 
-        [Tooltip("起点StartAddress�E�usePrefabValueAsBase=false のとき�Eみ使用")]
+        [Tooltip("採番開始StartAddress（usePrefabValueAsBase=false のときのみ使用）。")]
         [Range(1, 512)] public int startAddressStart = 1;
 
-        [Tooltip("true: addressingRoot配下�E先頭Fixtureの現在値(universe/startAddress)を起点にする�E�EPrefab値を起点にしたぁE��合！E")]
+        [Tooltip("true: 配下先頭Fixtureの現在値(universe/startAddress)を起点に採番します。")]
         public bool usePrefabValueAsBase = true;
 
-        [Tooltip("512chを趁E��たらUniverseを�E動で+1して続行しまぁE")]
+        [Tooltip("512chを超えたらUniverseを自動で+1して続行します。")]
         public bool autoIncrementUniverse = true;
 
         [Header("Bake (Persist in Scene)")]
-        [Tooltip("Editモードで採番してシーンに保存！ErefabインスタンスOverride含む�E�します。Play中に採番しても停止時に戻る�EはUnity仕様でぁE")]
+        [Tooltip("Editモード採番結果をシーンに保存します（Prefab Overrideを含む）。")]
         public bool bakeWritesToScene = true;
 
         // ------------------------------------------------------------
@@ -151,7 +151,7 @@ namespace ArtNet.Runtime
 
             if (!applyOnUpdate) return;
 
-            // Dirty方式：このフレームで更新があったUniverseだけ適用する�E�EUniverse以上で効果大�E�E
+            // Dirty譁ｹ蠑擾ｼ壹％縺ｮ繝輔Ξ繝ｼ繝縺ｧ譖ｴ譁ｰ縺後≠縺｣縺欟niverse縺縺鷹←逕ｨ縺吶ｋ・・Universe莉･荳翫〒蜉ｹ譫懷､ｧ・・
             _dirtyScratch.Clear();
             lock (_lock)
             {
@@ -173,13 +173,13 @@ namespace ArtNet.Runtime
 
         public void Register(DmxFixtureComponent fixture)
         {
-            // 任意：今�EDiscover側で収集するため、Registerは忁E��ではなぁE
-            // �E�EmxFixtureComponent側ぁERegister/Unregister を持ってぁE��互換のため残す�E�E
+            // 莉ｻ諢擾ｼ壻ｻ翫・Discover蛛ｴ縺ｧ蜿朱寔縺吶ｋ縺溘ａ縲ヽegister縺ｯ蠢・医〒縺ｯ縺ｪ縺・
+            // ・・mxFixtureComponent蛛ｴ縺・Register/Unregister 繧呈戟縺｣縺ｦ縺・ｋ莠呈鋤縺ｮ縺溘ａ谿九☆・・
         }
 
         public void Unregister(DmxFixtureComponent fixture)
         {
-            // 任愁E
+            // 莉ｻ諢・
         }
 
         // ------------------------------------------------------------
@@ -253,7 +253,7 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            // 自動採番�E�忁E��なら！E
+            // 閾ｪ蜍墓治逡ｪ・亥ｿ・ｦ√↑繧会ｼ・
             if (autoAssignStartAddressOnEnable)
             {
 #if UNITY_EDITOR
@@ -264,7 +264,7 @@ namespace ArtNet.Runtime
 #endif
             }
 
-            // Universe別にまとめる
+            // Universe蛻･縺ｫ縺ｾ縺ｨ繧√ｋ
             _fixturesByUniverse.Clear();
             int registered = 0;
 
@@ -273,10 +273,10 @@ namespace ArtNet.Runtime
                 var f = fixtures[i];
                 if (f == null) continue;
 
-                // 初期化！Eixture側でMappingなどを解決�E�E
+                // 蛻晄悄蛹厄ｼ・ixture蛛ｴ縺ｧMapping縺ｪ縺ｩ繧定ｧ｣豎ｺ・・
                 f.Initialize(_detectedHdrp);
 
-                // ルーチE��ング登録
+                // 繝ｫ繝ｼ繝・ぅ繝ｳ繧ｰ逋ｻ骭ｲ
                 if (!_fixturesByUniverse.TryGetValue(f.universe, out var list))
                 {
                     list = new List<DmxFixtureComponent>(32);
@@ -344,7 +344,7 @@ namespace ArtNet.Runtime
         {
             if (Application.isPlaying)
             {
-                Debug.LogWarning("[DmxRigController] BAKEはEditモード専用です。Playを停止してから実行してください、E", this);
+                Debug.LogWarning("[DmxRigController] BAKE縺ｯEdit繝｢繝ｼ繝牙ｰら畑縺ｧ縺吶１lay繧貞●豁｢縺励※縺九ｉ螳溯｡後＠縺ｦ縺上□縺輔＞縲・", this);
                 return;
             }
 
@@ -395,7 +395,7 @@ namespace ArtNet.Runtime
             }
             else
             {
-                // addressingRoot未持E��時は全件�E�頁E��保証は弱ぁE��E
+                // addressingRoot譛ｪ謖・ｮ壽凾縺ｯ蜈ｨ莉ｶ・磯・ｺ丈ｿ晁ｨｼ縺ｯ蠑ｱ縺・ｼ・
                 targets = new List<DmxFixtureComponent>(fixtures.Length);
                 for (int i = 0; i < fixtures.Length; i++)
                 {
@@ -423,7 +423,7 @@ namespace ArtNet.Runtime
 
                 int chCount = Mathf.Clamp(GetChannelCountSafe(f), 1, 512);
 
-                // 512趁E��チェチE��
+                // 512雜・∴繝√ぉ繝・け
                 if (curAddr + chCount - 1 > 512)
                 {
                     if (autoIncrementUniverse)
