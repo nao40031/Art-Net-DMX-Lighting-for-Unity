@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 129952875513323186}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.08519992, y: -0.09290007, z: -0.1161}
+  m_LocalPosition: {x: 0.08519992, y: -0.125, z: -0.1161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -230,7 +230,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -267,7 +267,7 @@ Transform:
   m_GameObject: {fileID: 1710606946771713308}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.0866, y: -0.09290007, z: -0.025600001}
+  m_LocalPosition: {x: 0.0866, y: -0.125, z: -0.0256}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -470,7 +470,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -507,7 +507,7 @@ Transform:
   m_GameObject: {fileID: 2422859379980010720}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.0002, y: -0.09290007, z: -0.1161}
+  m_LocalPosition: {x: -0.0002, y: -0.125, z: -0.1161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -710,7 +710,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -747,7 +747,7 @@ Transform:
   m_GameObject: {fileID: 3841667657653406593}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.0835, y: -0.09290007, z: 0.061}
+  m_LocalPosition: {x: -0.0835, y: -0.125, z: 0.061}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -950,7 +950,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -987,7 +987,7 @@ Transform:
   m_GameObject: {fileID: 4185438640145844243}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.00059993373, y: -0.09290008, z: -0.025599921}
+  m_LocalPosition: {x: 0.00059993373, y: -0.125, z: -0.0256}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1190,7 +1190,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -1227,7 +1227,7 @@ Transform:
   m_GameObject: {fileID: 4419530450917804312}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0.0856, y: -0.09290001, z: 0.061599996}
+  m_LocalPosition: {x: 0.0856, y: -0.125, z: 0.0616}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1430,7 +1430,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -1467,7 +1467,7 @@ Transform:
   m_GameObject: {fileID: 5117770833592212212}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -0.0929001, z: 0.061600138}
+  m_LocalPosition: {x: 0, y: -0.125, z: 0.0616}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1670,7 +1670,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -1707,7 +1707,7 @@ Transform:
   m_GameObject: {fileID: 6345929412318215802}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.0875, y: -0.0839, z: -0.1161}
+  m_LocalPosition: {x: -0.0875, y: -0.125, z: -0.1161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1910,7 +1910,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -1947,7 +1947,7 @@ Transform:
   m_GameObject: {fileID: 7641795715347485535}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.0842, y: -0.09290008, z: -0.025599921}
+  m_LocalPosition: {x: -0.0842, y: -0.125, z: -0.0256}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2150,7 +2150,7 @@ MonoBehaviour:
   m_ShadowVariant: 0
   m_ShadowPrecision: 0
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
@@ -2523,28 +2523,28 @@ PrefabInstance:
       addedObject: {fileID: 5721260892242468196}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6836909357028718012}
+      addedObject: {fileID: -4708839406783963790}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8689673237017767947}
+      addedObject: {fileID: 3336849573964436299}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1722015340455420428}
+      addedObject: {fileID: -6432966496021350103}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4063706261077685414}
+      addedObject: {fileID: 3639594025067052901}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6544557517332440887}
+      addedObject: {fileID: -3286906621834261127}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2429922753699751051}
+      addedObject: {fileID: 5291759071634650574}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 645428431105377355}
+      addedObject: {fileID: 8743165047133318578}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7793570188681379385}
+      addedObject: {fileID: 5327998321171331796}
   m_SourcePrefab: {fileID: 100100000, guid: 142343bbbfeaf65459bd9444936777f4, type: 3}
 --- !u!4 &716447759939200 stripped
 Transform:
@@ -2655,6 +2655,15 @@ MonoBehaviour:
   lensColorProperty: _DmxColor
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
+  syncPseudoBeamToDmx: 1
+  beamRenderer: {fileID: 0}
+  extraBeamRenderers: []
+  syncBeamColorToDmx: 1
+  syncBeamDimmerToDmx: 1
+  beamColorProperty: _DmxColor
+  beamDimmerProperty: _DmxDimmer
+  beamDimmerScale: 1
+  beamDimmerFloor: 0
   lightResponseMode: 1
   halogenSourceRiseTime: 1
   halogenSourceFallTime: 1
@@ -2711,7 +2720,7 @@ MonoBehaviour:
   - function: 0
     relativeChannel: 1
     absoluteChannel: 1
---- !u!114 &6836909357028718012
+--- !u!114 &-4708839406783963790
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2731,7 +2740,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &8689673237017767947
+--- !u!114 &3336849573964436299
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2751,7 +2760,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1722015340455420428
+--- !u!114 &-6432966496021350103
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2771,7 +2780,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &4063706261077685414
+--- !u!114 &3639594025067052901
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2791,7 +2800,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &6544557517332440887
+--- !u!114 &-3286906621834261127
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2811,7 +2820,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &2429922753699751051
+--- !u!114 &5291759071634650574
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2831,7 +2840,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &645428431105377355
+--- !u!114 &8743165047133318578
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2851,7 +2860,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &7793570188681379385
+--- !u!114 &5327998321171331796
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

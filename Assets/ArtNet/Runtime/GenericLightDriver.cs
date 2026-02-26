@@ -3,15 +3,16 @@ using UnityEngine;
 namespace ArtNet.Runtime
 {
     /// <summary>
-    /// Built-in / URP 向け：Light.intensity と Light.color を使うドライバ
+    /// Built-in / URP light driver.
+    /// Applies DMX dimmer/color to Light.intensity and Light.color.
     /// </summary>
     public class GenericLightDriver : MonoBehaviour, ILightDriver
     {
         [Header("Generic Light Params")]
-        [Tooltip("Dimmer=1.0 のときの最大 Intensity（Built-in/URPのスケール）")]
+        [Tooltip("Intensity at Dimmer=1.0")]
         public float maxIntensity = 2.0f;
 
-        [Tooltip("Dimmerのカーブ補正（線形のままでよければ未設定でOK）")]
+        [Tooltip("Optional dimmer response curve (0..1 -> 0..1)")]
         public AnimationCurve dimmerCurve;
 
         private Light _light;

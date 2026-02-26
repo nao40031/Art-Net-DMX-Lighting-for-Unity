@@ -31,7 +31,7 @@ namespace ArtNet.Runtime
         [Header("Profile (Fixture/Mode)")]
         public FixtureDefinition fixture;
 
-        // RigController莠呈鋤縺ｮ縺溘ａ public・・ditor縺ｧ ModeName 陦ｨ遉ｺ縺ｫ縺励※縺・※繧ょ・驛ｨ縺ｯ index・・
+        // RigControllerが参照するため public。Inspector上はMode名表示でも内部値はindex。
         [SerializeField] public int mode = 0;
 
         // ------------------------------------------------------------
@@ -72,6 +72,35 @@ namespace ArtNet.Runtime
         [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
 
         // ------------------------------------------------------------
+        // Pseudo Beam (for Volumetrics OFF)
+        // ------------------------------------------------------------
+
+        [Header("Pseudo Beam (Volumetrics OFF Alternative)")]
+        [Tooltip("有効時、ビーム用RendererへDMX同期を行います（擬似ビーム）。")]
+        [SerializeField] private bool syncPseudoBeamToDmx = false;
+
+        [Tooltip("ビームメッシュの代表Renderer。")]
+        [SerializeField] private Renderer beamRenderer;
+
+        [Tooltip("ビームメッシュが複数ある場合の追加Renderer。")]
+        [SerializeField] private Renderer[] extraBeamRenderers;
+
+        [SerializeField] private bool syncBeamColorToDmx = true;
+        [SerializeField] private bool syncBeamDimmerToDmx = true;
+
+        [Tooltip("ビームマテリアルのColorプロパティ名。例: _DmxColor / _BaseColor")]
+        [SerializeField] private string beamColorProperty = "_DmxColor";
+
+        [Tooltip("ビームマテリアルの強度プロパティ名。例: _DmxDimmer / _BeamIntensity")]
+        [SerializeField] private string beamDimmerProperty = "_DmxDimmer";
+
+        [Tooltip("ビーム強度に掛ける倍率。")]
+        [SerializeField, Min(0f)] private float beamDimmerScale = 1.0f;
+
+        [Tooltip("ビーム強度の下限値。暗転時の残光調整用。")]
+        [SerializeField, Range(0f, 1f)] private float beamDimmerFloor = 0f;
+
+        // ------------------------------------------------------------
         // Light Response (LED / Halogen)
         // ------------------------------------------------------------
 
@@ -99,11 +128,16 @@ namespace ArtNet.Runtime
         [Tooltip("ビーム(ライト)の立ち下がり時間（1→0秒）。")]
         [SerializeField, Min(0f)] private float halogenBeamFallTime = 0.08f;
 
-        // MaterialPropertyBlock縺ｧ per-renderer 縺ｫ螳牙・縺ｫ譖ｸ縺崎ｾｼ繧・医・繝・Μ繧｢繝ｫ隍・｣ｽ繧帝∩縺代ｋ・・
+        // MPBで per-renderer 上書きし、マテリアルインスタンス増加を避ける
         private MaterialPropertyBlock _lensMpb;
         private int _lensColorId;
         private int _lensDimmerId;
         private bool _lensPropertyIdsReady;
+
+        private MaterialPropertyBlock _beamMpb;
+        private int _beamColorId;
+        private int _beamDimmerId;
+        private bool _beamPropertyIdsReady;
         [Header("Pan/Tilt Range (degrees)")]
         public float panRangeDeg = 540f;
         public float tiltRangeDeg = 270f;
@@ -141,7 +175,7 @@ namespace ArtNet.Runtime
 
         [Header("Pan/Tilt Axis / Tuning")]
         [Tooltip("Panのローカル回転軸。")]
-        public LocalAxis panAxis = LocalAxis.Z; // 笨・繝・ヵ繧ｩ繝ｫ繝・
+        public LocalAxis panAxis = LocalAxis.Z; // default: Z axis
 
         [Tooltip("Tiltのローカル回転軸。")]
         public LocalAxis tiltAxis = LocalAxis.X;
@@ -167,7 +201,7 @@ namespace ArtNet.Runtime
         [Tooltip("EditモードのTimelineプレビュー時にPan/Tiltと光量を即時反映します。")]
         public bool applyImmediateInEditMode = true;
 
-        [Header("Pan/Tilt Speed (deg/sec)  窶ｻPanTiltSpeed縺後≠繧句ｴ蜷医・縺ｿ譛牙柑")]
+        [Header("Pan/Tilt Speed (deg/sec)  ※PanTiltSpeedがある機種のみ有効")]
         [Tooltip("PanTiltSpeed=0 のときの角速度（deg/sec）。")]
         public float panTiltSpeedMinDegPerSec = 30f;
 
@@ -215,8 +249,8 @@ namespace ArtNet.Runtime
         [Serializable]
         private struct DmxMonitorItem
         {
-            public FixtureFunction function; // 0縺ｮ蝣ｴ蜷医・縲瑚ｿｽ蜉逶ｸ蟇ｾch縲肴棧・医Λ繝吶Ν縺ｯ relXX 縺ｧ陦ｨ遉ｺ・・
-            public int relativeCh;           // 1-based within fixture (startAddress蝓ｺ貅・
+            public FixtureFunction function; // 0 の場合は function未指定。UIでは relXX 表示
+            public int relativeCh;           // fixture内の相対ch（1=startAddress）
             public int absoluteCh;           // 1-based within universe
             [Range(0, 255)] public int value;
         }
@@ -299,7 +333,7 @@ namespace ArtNet.Runtime
         [SerializeField] private List<ResolvedItem> _resolvedItems = new();
 
         // ------------------------------------------------------------
-        // RigController莠呈鋤
+        // RigController integration
         // ------------------------------------------------------------
 
         public bool IsValid
@@ -334,6 +368,42 @@ namespace ArtNet.Runtime
             targetLights = new List<Light>(lights);
             if (targetLight == null && lights.Length > 0)
                 targetLight = lights[0];
+        }
+
+        [ContextMenu("Auto Attach Beam Renderers (Name contains Beam)")]
+        public void Context_AutoAttachBeamRenderers()
+        {
+            var renderers = GetComponentsInChildren<Renderer>(true);
+            var found = new List<Renderer>();
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                var r = renderers[i];
+                if (r == null) continue;
+                if (r == lensRenderer) continue;
+
+                var n = r.gameObject.name;
+                if (n.IndexOf("beam", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("volum", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    found.Add(r);
+                }
+            }
+
+            if (found.Count == 0)
+                return;
+
+            beamRenderer = found[0];
+            if (found.Count > 1)
+            {
+                extraBeamRenderers = new Renderer[found.Count - 1];
+                for (int i = 1; i < found.Count; i++)
+                    extraBeamRenderers[i - 1] = found[i];
+            }
+            else
+            {
+                extraBeamRenderers = Array.Empty<Renderer>();
+            }
         }
 
         public void ApplyFromUniverseBuffer(int[] universe512) => ApplyFromUniverseBufferInternal(universe512);
@@ -464,7 +534,7 @@ namespace ArtNet.Runtime
             if (monitorItems == null) monitorItems = new List<DmxMonitorItem>();
             monitorItems.Clear();
 
-            // 1) FixtureDefinition縺ｮ Mode 螳夂ｾｩ・・esolvedItem・峨ｒ縺昴・縺ｾ縺ｾ荳隕ｧ蛹・
+            // 1) FixtureDefinition modeで解決した関数群を追加
             if (monitorIncludeResolvedFunctions && _resolvedItems != null)
             {
                 for (int i = 0; i < _resolvedItems.Count; i++)
@@ -480,7 +550,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            // 2) 莉ｻ諢上・逶ｸ蟇ｾch繧定ｿｽ蜉・磯㍾隍・・髯､螟厄ｼ・
+            // 2) 追加の相対chを追記（重複除外）
             if (monitorExtraRelativeChannels != null)
             {
                 for (int i = 0; i < monitorExtraRelativeChannels.Count; i++)
@@ -510,7 +580,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            // 陦ｨ遉ｺ縺ｮ螳牙ｮ壽ｧ縺ｮ縺溘ａ relativeCh鬆・↓荳ｦ縺ｹ繧具ｼ亥ｰ剰ｦ乗ｨ｡縺ｪ縺ｮ縺ｧO(n^2)縺ｧ蜊∝・・・
+            // 表示を安定させるため relativeCh 昇順に並べる（件数が少ないため O(n^2) で十分）
             for (int i = 0; i < monitorItems.Count - 1; i++)
             {
                 for (int j = i + 1; j < monitorItems.Count; j++)
@@ -614,7 +684,7 @@ namespace ArtNet.Runtime
                     }
                 }
 
-                // 2.5) legacy fallback: targetLight???????????????????????
+                // 2.5) legacy fallback: targetLight側にあるDriverを探す
                 if (driver == null)
                 {
 #if HAS_HDRP
@@ -648,7 +718,7 @@ namespace ArtNet.Runtime
                         driver = gameObject.AddComponent<GenericLightDriver>();
 #else
                     if (wantHdrp)
-                        Debug.LogWarning($"[DmxFixtureComponent] HDRP????? HAS_HDRP ?????? GenericLightDriver ??????: {name}", this);
+                        Debug.LogWarning($"[DmxFixtureComponent] HDRP is requested but HAS_HDRP is not enabled. Using GenericLightDriver: {name}", this);
 
                     driver = gameObject.AddComponent<GenericLightDriver>();
 #endif
@@ -750,7 +820,7 @@ namespace ArtNet.Runtime
 
                 rgb = new Color(r, g, b, 1f);
 
-                // White縺悟牡繧雁ｽ薙※繧峨ｌ縺ｦ縺・ｋ蝣ｴ蜷医・縲檎區譁ｹ蜷代↓蟇・○繧九咲ｰ｡譏薙Δ繝・Ν
+                // Whiteがある場合は加算して簡易ミックス
                 if (TryGetRelativeChannel(FixtureFunction.White, out int wRel))
                 {
                     float w = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + wRel - 1));
@@ -760,7 +830,7 @@ namespace ArtNet.Runtime
 
             UpdateLightTargetsFromDmx(dim01, rgb);
 
-            // --- Pan/Tilt Speed・医≠繧後・繧ｹ繝繝ｼ繧ｸ繝ｳ繧ｰ驕ｩ逕ｨ・・---
+            // --- Pan/Tilt Speed（ある機種のみ適用） ---
             bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
             float maxDegPerSec = panTiltSpeedMaxDegPerSec;
             if (hasSpeed)
@@ -849,7 +919,7 @@ namespace ArtNet.Runtime
 
                 rgb = new Color(r, g, b, 1f);
 
-                // White縺悟牡繧雁ｽ薙※繧峨ｌ縺ｦ縺・ｋ蝣ｴ蜷医・縲檎區譁ｹ蜷代↓蟇・○繧九咲ｰ｡譏薙Δ繝・Ν
+                // Whiteがある場合は加算して簡易ミックス
                 if (TryGetRelativeChannel(FixtureFunction.White, out int wRel))
                 {
                     float w = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + wRel - 1));
@@ -859,7 +929,7 @@ namespace ArtNet.Runtime
 
             UpdateLightTargetsFromDmx(dim01, rgb);
 
-            // --- Pan/Tilt Speed・医≠繧後・繧ｹ繝繝ｼ繧ｸ繝ｳ繧ｰ驕ｩ逕ｨ・・---
+            // --- Pan/Tilt Speed（ある機種のみ適用） ---
             bool hasSpeed = TryGetRelativeChannel(FixtureFunction.PanTiltSpeed, out int spRel);
             float maxDegPerSec = panTiltSpeedMaxDegPerSec;
             if (hasSpeed)
@@ -992,7 +1062,7 @@ namespace ArtNet.Runtime
                 {
                     var it = monitorItems[i];
 
-                    // function縺・(譛ｪ險ｭ螳・縺ｪ繧・relXX 縺ｨ縺励※陦ｨ遉ｺ
+                    // function未指定なら relXX で表示
                     string label = (Convert.ToInt32(it.function) == 0)
                         ? $"rel{it.relativeCh}"
                         : it.function.ToString();
@@ -1249,6 +1319,7 @@ namespace ArtNet.Runtime
             }
 
             ApplyLensDmx(rgb, lensDim01);
+            ApplyPseudoBeamDmx(rgb, lightDim01);
         }
 
         private static float MoveDimmer(float current, float target, float riseTime, float fallTime)
@@ -1298,7 +1369,7 @@ namespace ArtNet.Runtime
             if (!syncLensToDmx) return;
             if (!syncLensColorToDmx && !syncLensDimmerToDmx) return;
 
-            // Renderer譛ｪ險ｭ螳壹〒繧ょｮ牙・縺ｫ繧ｹ繝ｫ繝ｼ
+            // Renderer未設定なら何もしない
             if (lensRenderer == null && (extraLensRenderers == null || extraLensRenderers.Length == 0))
                 return;
 
@@ -1308,7 +1379,7 @@ namespace ArtNet.Runtime
 
             float d = Mathf.Clamp01(dim01) * Mathf.Max(0f, lensDimmerScale);
 
-            // 縺ｾ縺壹・蜈ｱ騾壹・MPB縺ｫ蛟､繧偵そ繝・ヨ・・enderer縺斐→縺ｫSetPropertyBlock縺吶ｋ・・
+            // 共通のMPBに値をセットし、各Rendererに適用
             _lensMpb.Clear();
             if (syncLensColorToDmx)
                 _lensMpb.SetColor(_lensColorId, rgb);
@@ -1324,6 +1395,52 @@ namespace ArtNet.Runtime
                 {
                     var r = extraLensRenderers[i];
                     if (r != null) r.SetPropertyBlock(_lensMpb);
+                }
+            }
+        }
+
+        private void EnsureBeamPropertyIds()
+        {
+            if (_beamPropertyIdsReady && _beamMpb != null) return;
+
+            if (string.IsNullOrWhiteSpace(beamColorProperty)) beamColorProperty = "_DmxColor";
+            if (string.IsNullOrWhiteSpace(beamDimmerProperty)) beamDimmerProperty = "_DmxDimmer";
+
+            _beamColorId = Shader.PropertyToID(beamColorProperty);
+            _beamDimmerId = Shader.PropertyToID(beamDimmerProperty);
+            if (_beamMpb == null) _beamMpb = new MaterialPropertyBlock();
+            _beamPropertyIdsReady = true;
+        }
+
+        private void ApplyPseudoBeamDmx(Color rgb, float dim01)
+        {
+            if (!syncPseudoBeamToDmx) return;
+            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx) return;
+
+            if (beamRenderer == null && (extraBeamRenderers == null || extraBeamRenderers.Length == 0))
+                return;
+
+            EnsureBeamPropertyIds();
+            if (_beamMpb == null) return;
+
+            float d = Mathf.Clamp01(dim01) * Mathf.Max(0f, beamDimmerScale);
+            d = Mathf.Max(Mathf.Clamp01(beamDimmerFloor), d);
+
+            _beamMpb.Clear();
+            if (syncBeamColorToDmx)
+                _beamMpb.SetColor(_beamColorId, rgb);
+            if (syncBeamDimmerToDmx)
+                _beamMpb.SetFloat(_beamDimmerId, d);
+
+            if (beamRenderer != null)
+                beamRenderer.SetPropertyBlock(_beamMpb);
+
+            if (extraBeamRenderers != null)
+            {
+                for (int i = 0; i < extraBeamRenderers.Length; i++)
+                {
+                    var r = extraBeamRenderers[i];
+                    if (r != null) r.SetPropertyBlock(_beamMpb);
                 }
             }
         }
@@ -1391,7 +1508,7 @@ namespace ArtNet.Runtime
         {
             if (!enableContinuousPanTiltUpdate) return;
 
-            // DMX縺後∪縺譚･縺ｦ縺・↑縺・→縺阪・菴輔ｂ縺励↑縺・
+            // 最初のDMX目標値が来るまでは何もしない
             if (panTransform != null && _hasPanTarget)
             {
                 ApplyRotationToTarget(panTransform, _panTargetLocalRot, _panTargetMaxDegPerSec, _panTargetSmoothing);
@@ -1449,7 +1566,7 @@ private static Vector3 AxisToVector(LocalAxis a) => a switch
             var ax = AxisToVector(axis);
             var target = baseLocalRotation * Quaternion.AngleAxis(degrees, ax);
 
-            // Speed蜆ｪ蜈茨ｼ・anTiltSpeed縺後≠繧句ｴ蜷茨ｼ・
+            // Speed優先（PanTiltSpeedがある場合）
             if (speedDegPerSecOrMinus1 > 0f)
             {
                 t.localRotation = Quaternion.RotateTowards(t.localRotation, target, speedDegPerSecOrMinus1 * Time.deltaTime);

@@ -5,7 +5,8 @@ using UnityEngine.Rendering.HighDefinition;
 namespace ArtNet.Runtime
 {
     /// <summary>
-    /// HDRP向け：HDAdditionalLightData.SetIntensity を使って物理単位で制御するドライバ
+    /// HDRP light driver.
+    /// Applies DMX dimmer/color to Light and HDAdditionalLightData.
     /// </summary>
     public class HdrpLightDriver : MonoBehaviour, ILightDriver
     {
@@ -17,13 +18,13 @@ namespace ArtNet.Runtime
         }
 
         [Header("HDRP Light Params")]
-        [Tooltip("Dimmer=1.0 のときの最大光量（下の単位で解釈）")]
-        public float maxIntensity = 9870f;   // ★変更（以前: 5000f）
+        [Tooltip("Intensity at Dimmer=1.0")]
+        public float maxIntensity = 9870f;
 
-        [Tooltip("HDRPの物理単位")]
+        [Tooltip("HDRP light unit")]
         public HdrpUnit unit = HdrpUnit.Lumen;
 
-        [Tooltip("Dimmerのカーブ補正（線形のままでよければ未設定でOK）")]
+        [Tooltip("Optional dimmer response curve (0..1 -> 0..1)")]
         public AnimationCurve dimmerCurve;
 
         private Light _light;
@@ -44,7 +45,6 @@ namespace ArtNet.Runtime
 
             _light.color = rgb;
 
-            // HDRP追加データが取れれば物理単位で設定、取れなければfallback
             if (_hd != null)
             {
                 try
@@ -53,7 +53,6 @@ namespace ArtNet.Runtime
                 }
                 catch
                 {
-                    // バージョン/ライトタイプによっては失敗し得るので、最後の保険
                     _light.intensity = intensity;
                 }
             }

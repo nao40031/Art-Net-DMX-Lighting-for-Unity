@@ -191,16 +191,6 @@ namespace ArtNet.Runtime
             if (inputMode == InputMode.PlaybackOnly) return;
             if (data.Channels == null) return;
 
-            lock (_lock)
-            {
-                _rxCount++;
-                _lastUniverse = data.Universe;
-                _lastOffset = 0;
-
-                // mark dirty universe for Update apply
-                _dirtyUniverses.Add(data.Universe);
-            }
-
             byte[] buf = GetOrCreateUniverseBuffer(data.Universe);
 
             int len = Mathf.Min(512, data.Channels.Length);
@@ -210,6 +200,14 @@ namespace ArtNet.Runtime
                 if (v < 0) v = 0;
                 if (v > 255) v = 255;
                 buf[i] = (byte)v;
+            }
+
+            lock (_lock)
+            {
+                _rxCount++;
+                _lastUniverse = data.Universe;
+                _lastOffset = 0;
+                _dirtyUniverses.Add(data.Universe);
             }
         }
 
@@ -315,7 +313,6 @@ namespace ArtNet.Runtime
                 var f = list[i];
                 if (f == null) continue;
                 if (!f.IsValid) continue;
-
                 f.ApplyFromUniverseBuffer(uniBuf);
             }
         }

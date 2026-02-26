@@ -883,6 +883,20 @@ MonoBehaviour:
   logIntervalSec: 1
   logOnlyWhenDataArrived: 1
   includeHeaderInLog: 1
+  skipApplyIfNoRelevantChannelChange: 1
+  enableAdaptiveVolumetrics: 0
+  adaptiveVolumetricsCamera: {fileID: 0}
+  useMainCameraWhenAdaptiveCameraMissing: 0
+  adaptiveVolumetricsOffBelowDimmer: 0.03
+  adaptiveVolumetricsFullAtDimmer: 0.35
+  enableAdaptiveVolumetricsHighCut: 0
+  adaptiveVolumetricsOffAboveDimmer: 0.98
+  adaptiveVolumetricsNearDistance: 2
+  adaptiveVolumetricsFarDistance: 18
+  adaptiveVolumetricsCutoff: 0.01
+  adaptiveVolumetricsMultiplierScale: 1
+  adaptiveVolumetricsSmoothing: 8
+  useFixtureCenterForAdaptiveDistance: 0
   _activeProfileLabel: 
   _activeModeLabel: Generic Dimmer
   _resolvedItems:
@@ -909,6 +923,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  skipRedundantApply: 1
+  intensityEpsilon: 0.01
+  colorEpsilon: 0.0001
+  captureBaseVolumetricOnInitialize: 1
+  volumetricEpsilon: 0.0001
 --- !u!4 &4739125878636549903 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}

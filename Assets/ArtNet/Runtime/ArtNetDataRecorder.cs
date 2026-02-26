@@ -26,6 +26,13 @@ namespace ArtNet.Runtime
         [SerializeField] private KeyCode startKey = KeyCode.R;
         [SerializeField] private KeyCode stopKey = KeyCode.S;
 
+        [Header("Recording Mode")]
+        [Tooltip("有効時、録画中は軽量サンプルのみ蓄積し、Stop時にAnimationClipを生成します。")]
+        [SerializeField] private bool useLowGcRecording = true;
+
+        [Tooltip("低GCモード時の1チャネルあたり初期サンプル容量。")]
+        [SerializeField, Min(1)] private int initialSampleCapacityPerChannel = 8;
+
         [Header("Record Targets")]
         [Tooltip("trueなら受信した全Universeを録画。falseの場合は targetUniverses のみ録画")]
         [SerializeField] private bool recordAllUniverses = true;
@@ -82,9 +89,36 @@ namespace ArtNet.Runtime
         [SerializeField] private bool normalizeClipEndAcrossUniverses = true;
 
         private readonly Dictionary<int, AnimationCurve[]> _curvesByUniverse = new();
+        private readonly Dictionary<int, UniverseSampleBuffer> _samplesByUniverse = new();
         private readonly Dictionary<int, bool[]> _linearChannelsByUniverse = new();
         private bool _isRecording;
         private float _startTime;
+
+        private struct DmxSample
+        {
+            public float time;
+            public byte value;
+
+            public DmxSample(float time, byte value)
+            {
+                this.time = time;
+                this.value = value;
+            }
+        }
+
+        private sealed class UniverseSampleBuffer
+        {
+            public readonly List<DmxSample>[] samplesByChannel;
+            public readonly int[] lastValues;
+            public readonly bool[] hasLastValue;
+
+            public UniverseSampleBuffer(int channelCount)
+            {
+                samplesByChannel = new List<DmxSample>[channelCount];
+                lastValues = new int[channelCount];
+                hasLastValue = new bool[channelCount];
+            }
+        }
 
         private void OnEnable()
         {
@@ -124,6 +158,7 @@ namespace ArtNet.Runtime
             }
 
             _curvesByUniverse.Clear();
+            _samplesByUniverse.Clear();
             RebuildLinearChannelCache();
 
             _startTime = Time.time;
@@ -150,7 +185,11 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            if (_curvesByUniverse.Count == 0)
+            var curvesByUniverse = useLowGcRecording
+                ? BuildCurvesFromSamples()
+                : _curvesByUniverse;
+
+            if (curvesByUniverse.Count == 0)
             {
                 Debug.LogWarning("[Recorder] No data recorded.");
                 Cleanup();
@@ -164,15 +203,15 @@ namespace ArtNet.Runtime
                 Directory.CreateDirectory(fullFolderPath);
 
             float normalizedEndTime = 0f;
-            if (normalizeClipEndAcrossUniverses && _curvesByUniverse.Count > 1)
+            if (normalizeClipEndAcrossUniverses && curvesByUniverse.Count > 1)
             {
-                normalizedEndTime = GetGlobalEndTime(_curvesByUniverse);
+                normalizedEndTime = GetGlobalEndTime(curvesByUniverse);
                 if (verboseLog)
                     Debug.Log($"[Recorder] Normalize clip end time: {normalizedEndTime:0.000}s");
             }
 
             bool savedAny = false;
-            foreach (var kv in _curvesByUniverse)
+            foreach (var kv in curvesByUniverse)
             {
                 int universe = kv.Key;
                 var curves = kv.Value;
@@ -198,7 +237,7 @@ namespace ArtNet.Runtime
 #endif
 
                 string name = clipName;
-                if (appendUniverseSuffix || _curvesByUniverse.Count > 1)
+                if (appendUniverseSuffix || curvesByUniverse.Count > 1)
                     name = $"{clipName}_U{universe}";
 
                 var assetPath = GetUniqueAssetPath(assetFolder, name);
@@ -236,6 +275,56 @@ namespace ArtNet.Runtime
             if (!recordAllUniverses && (targetUniverses == null || !targetUniverses.Contains(data.Universe)))
                 return;
 
+            float t = Time.time - _startTime;
+
+            if (useLowGcRecording)
+            {
+                RecordPacketLowGc(data, t);
+            }
+            else
+            {
+                RecordPacketLegacyCurves(data, t);
+            }
+
+            if (verboseLog) Debug.Log($"[Recorder] t={t:0.000}s");
+        }
+
+        private void RecordPacketLowGc(ArtNetData data, float t)
+        {
+            int len = Mathf.Min(channelCount, data.Channels?.Length ?? 0);
+            if (len <= 0) return;
+
+            var buffer = GetOrCreateSampleBuffer(data.Universe);
+
+            for (int i = 0; i < len; i++)
+            {
+                int newVal = Mathf.Clamp(data.Channels[i], 0, 255);
+                int absCh = i + 1;
+                bool isLinearChannel = IsLinearChannel(data.Universe, absCh);
+                int activeDeadband = (isLinearChannel && !applyDeadbandToLinearChannels) ? 0 : deadbandThreshold;
+
+                if (!buffer.hasLastValue[i])
+                {
+                    buffer.hasLastValue[i] = true;
+                    buffer.lastValues[i] = newVal;
+                    GetOrCreateSampleList(buffer, i).Add(new DmxSample(t, (byte)newVal));
+                    continue;
+                }
+
+                int lastVal = buffer.lastValues[i];
+                if (activeDeadband > 0 && Mathf.Abs(newVal - lastVal) < activeDeadband)
+                    continue;
+
+                if (newVal == lastVal)
+                    continue;
+
+                buffer.lastValues[i] = newVal;
+                GetOrCreateSampleList(buffer, i).Add(new DmxSample(t, (byte)newVal));
+            }
+        }
+
+        private void RecordPacketLegacyCurves(ArtNetData data, float t)
+        {
             if (!_curvesByUniverse.TryGetValue(data.Universe, out var curves))
             {
                 curves = new AnimationCurve[channelCount];
@@ -247,15 +336,12 @@ namespace ArtNet.Runtime
 
             if (curves == null || curves.Length == 0) return;
 
-            float t = Time.time - _startTime;
-
-            // 受信ch数が512未満の可能性もあるので短い方に合わせる
             int len = Mathf.Min(curves.Length, data.Channels?.Length ?? 0);
 
             for (int i = 0; i < len; i++)
             {
                 var curve = curves[i];
-                int newVal = data.Channels[i];
+                int newVal = Mathf.Clamp(data.Channels[i], 0, 255);
                 int absCh = i + 1;
                 bool isLinearChannel = IsLinearChannel(data.Universe, absCh);
 
@@ -269,7 +355,6 @@ namespace ArtNet.Runtime
                 int lastVal = Mathf.RoundToInt(lastKey.value);
                 int activeDeadband = (isLinearChannel && !applyDeadbandToLinearChannels) ? 0 : deadbandThreshold;
 
-                // デッドバンド（小さな揺れを無視）
                 if (activeDeadband > 0 && Mathf.Abs(newVal - lastVal) < activeDeadband)
                     continue;
 
@@ -279,22 +364,19 @@ namespace ArtNet.Runtime
                 bool useStepForThisChannel = useStepKeys && !isLinearChannel;
                 if (useStepForThisChannel)
                 {
-                    float tPrev = t - stepEpsilon;
+                    float writeTime = t;
+                    float tPrev = writeTime - stepEpsilon;
                     bool canAddPrev = tPrev > lastKey.time + 0.00001f;
                     if (canAddPrev)
-                    {
                         curve.AddKey(new Keyframe(tPrev, lastVal));
-                    }
 
-                    // 同一時刻キーを避ける
-                    if (t <= lastKey.time)
-                        t = lastKey.time + 0.0001f;
+                    if (writeTime <= lastKey.time)
+                        writeTime = lastKey.time + 0.0001f;
 
-                    curve.AddKey(new Keyframe(t, newVal));
+                    curve.AddKey(new Keyframe(writeTime, newVal));
                 }
                 else
                 {
-                    // 連続同値の中間キーを間引く（元コードの軽量化ロジック）
                     if (curve.length > 2)
                     {
                         int secondLast = curve.length - 2;
@@ -312,8 +394,85 @@ namespace ArtNet.Runtime
                     curve.AddKey(new Keyframe(t, newVal));
                 }
             }
+        }
 
-            if (verboseLog) Debug.Log($"[Recorder] t={t:0.000}s");
+        private UniverseSampleBuffer GetOrCreateSampleBuffer(int universe)
+        {
+            if (_samplesByUniverse.TryGetValue(universe, out var buffer) && buffer != null)
+                return buffer;
+
+            buffer = new UniverseSampleBuffer(channelCount);
+            _samplesByUniverse[universe] = buffer;
+            return buffer;
+        }
+
+        private List<DmxSample> GetOrCreateSampleList(UniverseSampleBuffer buffer, int index)
+        {
+            var list = buffer.samplesByChannel[index];
+            if (list != null) return list;
+
+            list = new List<DmxSample>(Mathf.Max(1, initialSampleCapacityPerChannel));
+            buffer.samplesByChannel[index] = list;
+            return list;
+        }
+
+        private Dictionary<int, AnimationCurve[]> BuildCurvesFromSamples()
+        {
+            var result = new Dictionary<int, AnimationCurve[]>();
+            if (_samplesByUniverse.Count == 0) return result;
+
+            foreach (var kv in _samplesByUniverse)
+            {
+                int universe = kv.Key;
+                var buffer = kv.Value;
+                if (buffer == null) continue;
+
+                var curves = new AnimationCurve[channelCount];
+                for (int i = 0; i < channelCount; i++)
+                {
+                    var curve = new AnimationCurve();
+                    curves[i] = curve;
+
+                    var samples = buffer.samplesByChannel[i];
+                    if (samples == null || samples.Count == 0)
+                        continue;
+
+                    int absCh = i + 1;
+                    bool isLinearChannel = IsLinearChannel(universe, absCh);
+                    bool useStepForThisChannel = useStepKeys && !isLinearChannel;
+
+                    if (!useStepForThisChannel)
+                    {
+                        for (int s = 0; s < samples.Count; s++)
+                            curve.AddKey(new Keyframe(samples[s].time, samples[s].value));
+                        continue;
+                    }
+
+                    var first = samples[0];
+                    curve.AddKey(new Keyframe(first.time, first.value));
+
+                    for (int s = 1; s < samples.Count; s++)
+                    {
+                        var prev = samples[s - 1];
+                        var cur = samples[s];
+
+                        float tPrev = cur.time - stepEpsilon;
+                        float lastKeyTime = curve.keys[curve.length - 1].time;
+                        if (tPrev > lastKeyTime + 0.00001f)
+                            curve.AddKey(new Keyframe(tPrev, prev.value));
+
+                        float tNow = cur.time;
+                        if (tNow <= curve.keys[curve.length - 1].time)
+                            tNow = curve.keys[curve.length - 1].time + 0.0001f;
+
+                        curve.AddKey(new Keyframe(tNow, cur.value));
+                    }
+                }
+
+                result[universe] = curves;
+            }
+
+            return result;
         }
 
         private void Unsubscribe()
@@ -327,6 +486,7 @@ namespace ArtNet.Runtime
         private void Cleanup()
         {
             _curvesByUniverse.Clear();
+            _samplesByUniverse.Clear();
             _linearChannelsByUniverse.Clear();
             _isRecording = false;
             _startTime = 0f;
