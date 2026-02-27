@@ -72,7 +72,6 @@ crashlytics-build.properties
 
 # Custom folders to ignore
 /MagicaCloth2/
-/Stage/
 /MMD4Mecanim/
 Assets/Stage
 Assets/MMD4Mecanim
