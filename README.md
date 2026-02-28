@@ -1,4 +1,4 @@
-# ArtNetForUnity OshinoTools HDRP Test
+# Art-Net DMX Lighting for Unity
 
 Unity上でArt-Net/DMXを受信し、Fixture単位でライト・Pan/Tilt・レンズ表現まで制御するシステムです。  
 ライブ受信とTimeline再生の両方に対応しています。
@@ -8,11 +8,81 @@ Unity上でArt-Net/DMXを受信し、Fixture単位でライト・Pan/Tilt・レ�
 - クイックスタート: この `README.md`
 - 開発スクリプト詳細版: [docs/DEVELOPED_SCRIPTS_GUIDE_JA.md](./docs/DEVELOPED_SCRIPTS_GUIDE_JA.md)
 
+## プロジェクトの取得方法（推奨）
+
+このリポジトリには Git LFS 管理ファイル（`.unity` / `.fbx` など）が含まれます。  
+`Download ZIP` では実体ではなくポインタファイルになる場合があるため、以下の手順で取得してください。
+
+1. PowerShell を「通常権限」で開き、`winget` が使えるか確認します。
+
+```powershell
+winget --version
+```
+
+2. Git をインストールします。
+
+```powershell
+winget install --id Git.Git -e --source winget
+```
+
+3. Git LFS をインストールします。
+
+```powershell
+winget install --id GitHub.GitLFS -e --source winget
+```
+
+4. PowerShell を一度閉じて開き直し、インストール確認をします。
+
+```powershell
+git --version
+git lfs version
+```
+
+5. 取得コマンドを実行します（`git lfs install` は最初の1回だけ）。
+
+```powershell
+git lfs install
+git clone https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git
+cd Art-Net-DMX-Lighting-for-Unity
+git lfs pull
+git lfs checkout
+$projectPath = (Resolve-Path .).Path
+Write-Host "取得完了: $projectPath"
+```
+
+`git clone` は、PowerShellを開いている現在のフォルダ配下に作成されます。  
+現在位置の確認は `pwd`、任意の保存先に移動する場合は `cd <保存先パス>` を先に実行してください。
+
+```powershell
+pwd
+```
+
+エクスプローラーは自動では開きません。必要なら以下で開けます。
+
+```powershell
+explorer .
+```
+
+6. Unity Hub で `Add` を押し、`Art-Net-DMX-Lighting-for-Unity` フォルダを選択して開きます。
+
+`winget` が使えない場合は、Git と Git LFS を通常インストーラーで入れた後に手順 4 以降を実行してください。
+
+### 取得確認
+
+以下を実行して、LFSファイル一覧が表示されれば取得設定は有効です。
+
+```powershell
+git lfs ls-files
+```
+
+`.unity` ファイルの先頭が `%YAML 1.1` なら実体です。  
+`version https://git-lfs.github.com/spec/v1` の場合は、`git lfs pull` を再実行してください。
+
 ## このリポジトリでできること
 
 - Art-Net DMX受信（Universe単位）
-- Fixtureプロファイルに基づくDMX解釈
-- RGB/Dimmer/Pan/Tiltの適用
+- Fixtureプロファイルに基づくDMX制御
+- カラー（RGB）/Dimmer/Pan/Tiltの適用
 - Built-in/URP向けとHDRP向けのLightDriver切替
 - Timeline経由の再生（`ArtNetChannels` + `DmxTimelinePlayback`）
 - DMX記録とAnimationClip書き出し（Recorder）
