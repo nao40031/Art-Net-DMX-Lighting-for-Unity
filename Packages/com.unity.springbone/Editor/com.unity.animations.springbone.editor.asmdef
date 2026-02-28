@@ -1,0 +1,17 @@
+{
+    "name": "com.unity.animations.springbone.editor",
+    "references": [
+        "com.unity.animations.springbone"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -214,9 +214,9 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.springbone": {
-      "version": "file:C:/Users/naoto/Downloads/UnityChanSpringBone-1.2.1-preview/UnityChanSpringBone-1.2.1-preview",
+      "version": "file:com.unity.springbone",
       "depth": 0,
-      "source": "local",
+      "source": "embedded",
       "dependencies": {}
     },
     "com.unity.test-framework": {
