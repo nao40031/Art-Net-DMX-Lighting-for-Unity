@@ -46,8 +46,18 @@ git clone https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git
 cd Art-Net-DMX-Lighting-for-Unity
 git lfs pull
 git lfs checkout
-$projectPath = (Resolve-Path .).Path
-Write-Host "取得完了: $projectPath"
+```
+
+6. 取得したフォルダの場所は、次のコマンドを実行して確認します。
+
+```powershell
+Write-Host "取得完了フォルダ: $((Get-Location).Path)"
+```
+
+必要なら次を実行して、取得フォルダをエクスプローラーで開けます。
+
+```powershell
+explorer .
 ```
 
 `git clone` は、PowerShellを開いている現在のフォルダ配下に作成されます。  
@@ -57,13 +67,9 @@ Write-Host "取得完了: $projectPath"
 pwd
 ```
 
-エクスプローラーは自動では開きません。必要なら以下で開けます。
+PowerShell のプロンプト（`PS C:\...\Art-Net-DMX-Lighting-for-Unity>`）に表示されるパスも、同じ取得先フォルダです。
 
-```powershell
-explorer .
-```
-
-6. Unity Hub で `Add` を押し、`Art-Net-DMX-Lighting-for-Unity` フォルダを選択して開きます。
+7. Unity Hub で `Add` を押し、`Art-Net-DMX-Lighting-for-Unity` フォルダを選択して開きます。
 
 `winget` が使えない場合は、Git と Git LFS を通常インストーラーで入れた後に手順 4 以降を実行してください。
 
@@ -123,4 +129,3 @@ git lfs ls-files
 
 - 詳細な各スクリプトのparameter仕様は、詳細版ドキュメントを参照してください。
 - `Assets/Editor` はEditor拡張、`Assets/ArtNet` はランタイム/再生系の本体です。
-
