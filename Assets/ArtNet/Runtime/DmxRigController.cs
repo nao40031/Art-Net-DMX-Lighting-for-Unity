@@ -70,6 +70,9 @@ namespace ArtNet.Runtime
         [Tooltip("512chを超えたらUniverseを自動で+1して続行します。")]
         public bool autoIncrementUniverse = true;
 
+        [Tooltip("true: Hierarchy上でActiveなFixtureのみを自動採番対象にします。")]
+        public bool autoAssignOnlyActiveInHierarchy = true;
+
         [Header("Bake (Persist in Scene)")]
         [Tooltip("Editモード採番結果をシーンに保存します（Prefab Overrideを含む）。")]
         public bool bakeWritesToScene = true;
@@ -388,7 +391,11 @@ namespace ArtNet.Runtime
 
             if (addressingRoot != null)
             {
-                targets = CollectFixturesInHierarchyOrder(addressingRoot, includeRoot: false);
+                targets = CollectFixturesInHierarchyOrder(
+                    addressingRoot,
+                    includeRoot: false,
+                    onlyActiveInHierarchy: autoAssignOnlyActiveInHierarchy
+                );
             }
             else
             {
@@ -397,7 +404,7 @@ namespace ArtNet.Runtime
                 for (int i = 0; i < fixtures.Length; i++)
                 {
                     var f = fixtures[i];
-                    if (f != null) targets.Add(f);
+                    if (IsAutoAddressTarget(f)) targets.Add(f);
                 }
             }
 
@@ -468,7 +475,18 @@ namespace ArtNet.Runtime
             }
         }
 
-        private static List<DmxFixtureComponent> CollectFixturesInHierarchyOrder(Transform root, bool includeRoot)
+        private bool IsAutoAddressTarget(DmxFixtureComponent fixture)
+        {
+            if (fixture == null) return false;
+            if (!autoAssignOnlyActiveInHierarchy) return true;
+            return fixture.gameObject != null && fixture.gameObject.activeInHierarchy;
+        }
+
+        private static List<DmxFixtureComponent> CollectFixturesInHierarchyOrder(
+            Transform root,
+            bool includeRoot,
+            bool onlyActiveInHierarchy
+        )
         {
             var list = new List<DmxFixtureComponent>(128);
             if (root == null) return list;
@@ -476,24 +494,26 @@ namespace ArtNet.Runtime
             if (includeRoot)
             {
                 var f0 = root.GetComponent<DmxFixtureComponent>();
-                if (f0 != null) list.Add(f0);
+                if (f0 != null && (!onlyActiveInHierarchy || f0.gameObject.activeInHierarchy))
+                    list.Add(f0);
             }
 
-            CollectRecursive(root, list);
+            CollectRecursive(root, list, onlyActiveInHierarchy);
             return list;
 
-            static void CollectRecursive(Transform t, List<DmxFixtureComponent> acc)
+            static void CollectRecursive(Transform t, List<DmxFixtureComponent> acc, bool onlyActive)
             {
                 int n = t.childCount;
                 for (int i = 0; i < n; i++)
                 {
                     var c = t.GetChild(i);
                     if (c == null) continue;
+                    if (onlyActive && !c.gameObject.activeInHierarchy) continue;
 
                     var f = c.GetComponent<DmxFixtureComponent>();
                     if (f != null) acc.Add(f);
 
-                    CollectRecursive(c, acc);
+                    CollectRecursive(c, acc, onlyActive);
                 }
             }
         }

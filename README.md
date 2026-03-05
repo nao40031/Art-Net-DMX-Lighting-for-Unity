@@ -8,6 +8,28 @@ Unity上でArt-Net/DMXを受信し、Fixture単位でライト・Pan/Tilt・レ�
 - クイックスタート: この `README.md`
 - 開発スクリプト詳細版: [docs/DEVELOPED_SCRIPTS_GUIDE_JA.md](./docs/DEVELOPED_SCRIPTS_GUIDE_JA.md)
 
+## このリポジトリでできること
+
+- Art-Net DMX受信（Universe単位）
+- Fixtureプロファイルに基づくDMX制御
+- カラー（RGB）/Dimmer/Pan/Tiltの適用
+- Built-in/URP向けとHDRP向けのLightDriver切替
+- Timeline経由の再生（`ArtNetChannels` + `DmxTimelinePlayback`）
+- DMX記録とAnimationClip書き出し（Recorder）
+- Editor拡張によるPrefab置換・ライト複製・CSV書き出し
+
+## MagicQ Showデータ
+
+MagicQ の show データをリポジトリ内に同梱しています。  
+GitHub の `Download ZIP` / `git clone` のどちらでも取得できます。
+
+- 保存先: `MagicQ/show`
+- [ArtNetTest_LiveLightingTest6(Public).sbk](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.sbk)
+- [ArtNetTest_LiveLightingTest6(Public).shw](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.shw)
+- [ArtNetTest_LiveLightingTest6(Public).xhw](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.xhw)
+
+使用する場合は、必要に応じて `C:\Users\<ユーザー名>\Documents\MagicQ\show` 配下にコピーしてください。
+
 ## プロジェクトの取得方法（推奨）
 
 このリポジトリには Git LFS 管理ファイル（`.unity` / `.fbx` など）が含まれます。  
@@ -73,26 +95,54 @@ PowerShell のプロンプト（`PS C:\...\Art-Net-DMX-Lighting-for-Unity>`）�
 
 `winget` が使えない場合は、Git と Git LFS を通常インストーラーで入れた後に手順 4 以降を実行してください。
 
-### 取得確認
+### macOSで取得する場合
 
-以下を実行して、LFSファイル一覧が表示されれば取得設定は有効です。
+1. ターミナルを開き、`brew` が使えるか確認します。
 
-```powershell
-git lfs ls-files
+```bash
+brew --version
 ```
 
-`.unity` ファイルの先頭が `%YAML 1.1` なら実体です。  
-`version https://git-lfs.github.com/spec/v1` の場合は、`git lfs pull` を再実行してください。
+2. Git と Git LFS をインストールします。
 
-## このリポジトリでできること
+```bash
+brew install git git-lfs
+```
 
-- Art-Net DMX受信（Universe単位）
-- Fixtureプロファイルに基づくDMX制御
-- カラー（RGB）/Dimmer/Pan/Tiltの適用
-- Built-in/URP向けとHDRP向けのLightDriver切替
-- Timeline経由の再生（`ArtNetChannels` + `DmxTimelinePlayback`）
-- DMX記録とAnimationClip書き出し（Recorder）
-- Editor拡張によるPrefab置換・ライト複製・CSV書き出し
+3. インストール確認をします。
+
+```bash
+git --version
+git lfs version
+```
+
+4. 取得コマンドを実行します（`git lfs install` は最初の1回だけ）。
+
+```bash
+git lfs install
+git clone https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git
+cd Art-Net-DMX-Lighting-for-Unity
+git lfs pull
+git lfs checkout
+```
+
+5. 取得したフォルダの場所は、次のコマンドを実行して確認します。
+
+```bash
+echo "取得完了フォルダ: $(pwd)"
+```
+
+必要なら次を実行して、Finderで取得フォルダを開けます。
+
+```bash
+open .
+```
+
+`git clone` は、ターミナルを開いている現在のフォルダ配下に作成されます。  
+現在位置の確認は `pwd`、任意の保存先に移動する場合は `cd <保存先パス>` を先に実行してください。
+
+`brew` が使えない場合は、Homebrew を導入した後に手順 1 以降を実行してください。
+
 
 ## クイックスタート（ライブ受信）
 
@@ -116,14 +166,6 @@ git lfs ls-files
 1. `ArtNetReceiverDmxRecorder`（`ArtNetDataRecorder.cs`）を配置し `receiver` を設定します。
 2. `Start Recording` で録画開始、`Stop & Save` で停止保存します。
 3. `Assets/<directoryPath>` に `ArtNetChannels` 向けAnimationClipが保存されます。
-
-## Notion連携
-
-このリポジトリのドキュメントは、Notion取り込みしやすいMarkdown形式にしています。  
-以下の2ファイルをそのまま `Import > Markdown & CSV` で読み込めます。
-
-- `README.md`
-- `docs/DEVELOPED_SCRIPTS_GUIDE_JA.md`
 
 ## 補足
 
