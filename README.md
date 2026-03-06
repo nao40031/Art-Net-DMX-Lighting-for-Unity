@@ -171,3 +171,13 @@ open .
 
 - 詳細な各スクリプトのparameter仕様は、詳細版ドキュメントを参照してください。
 - `Assets/Editor` はEditor拡張、`Assets/ArtNet` はランタイム/再生系の本体です。
+
+## License
+
+- This project (scripts and Unity assets in this repository) is provided under the **MIT License**.
+- Unity-chan-related assets use **Unity-chan License 3.0 (UCL 3.0)**.
+
+### Unity-chan License 3.0 documents
+- `Assets/Avatar/Unity-chan/License/EN_Unity-Chan License Terms and Condition_UCL3.0.pdf`
+- `Assets/Avatar/Unity-chan/License/JP_Unity-Chan License Terms and Condition_UCL3.0.pdf`
+- `Assets/Avatar/Unity-chan/License/License Logo/` (logo usage/identity guidance)
