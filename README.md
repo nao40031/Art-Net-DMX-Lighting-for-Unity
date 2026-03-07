@@ -3,11 +3,6 @@
 Unity上でArt-Net/DMXを受信し、Fixture単位でライト・Pan/Tilt・レンズ表現まで制御するシステムです。  
 ライブ受信とTimeline再生の両方に対応しています。
 
-## ドキュメント
-
-- クイックスタート: この `README.md`
-- 開発スクリプト詳細版: [docs/DEVELOPED_SCRIPTS_GUIDE_JA.md](./docs/DEVELOPED_SCRIPTS_GUIDE_JA.md)
-
 ## このリポジトリでできること
 
 - Art-Net DMX受信（Universe単位）
@@ -18,19 +13,13 @@ Unity上でArt-Net/DMXを受信し、Fixture単位でライト・Pan/Tilt・レ�
 - DMX記録とAnimationClip書き出し（Recorder）
 - Editor拡張によるPrefab置換・ライト複製・CSV書き出し
 
-## MagicQ Showデータ
+## 詳細ドキュメント
 
-MagicQ の show データをリポジトリ内に同梱しています。  
-GitHub の `Download ZIP` / `git clone` のどちらでも取得できます。
+詳細は以下の Notion ページをご確認ください。
 
-- 保存先: `MagicQ/show`
-- [ArtNetTest_LiveLightingTest6(Public).sbk](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.sbk)
-- [ArtNetTest_LiveLightingTest6(Public).shw](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.shw)
-- [ArtNetTest_LiveLightingTest6(Public).xhw](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.xhw)
+- [Art-Net DMX Lighting for Unity by Oshino](https://sleepy-smoke-ee3.notion.site/Art-Net-DMX-Lighting-for-Unity-by-Oshino-313d1c2c96f580be8e67eef37628ef5f?source=copy_link)
 
-使用する場合は、必要に応じて `C:\Users\<ユーザー名>\Documents\MagicQ\show` 配下にコピーしてください。
-
-## プロジェクトの取得方法（推奨）
+## プロジェクトの取得方法
 
 このリポジトリには Git LFS 管理ファイル（`.unity` / `.fbx` など）が含まれます。  
 `Download ZIP` では実体ではなくポインタファイルになる場合があるため、以下の手順で取得してください。
@@ -97,51 +86,102 @@ PowerShell のプロンプト（`PS C:\...\Art-Net-DMX-Lighting-for-Unity>`）�
 
 ### macOSで取得する場合
 
-1. ターミナルを開き、`brew` が使えるか確認します。
+このリポジトリには Git LFS 管理ファイル（`.unity` / `.fbx` など）が含まれます。  
+`Download ZIP` では実体ではなくポインタファイルになる場合があるため、以下の手順で取得してください。
 
-```bash
-brew --version
-```
-
-2. Git と Git LFS をインストールします。
-
-```bash
-brew install git git-lfs
-```
-
-3. インストール確認をします。
+1. Terminal で Git のバージョンを確認します。
 
 ```bash
 git --version
+```
+
+もし以下のように「Developer tools が見つからない」と表示された場合は、Command Line Tools のインストールが必要です。
+
+- `xcode-select: note: No developer tools were found, requesting install.`
+
+その場合は、次を実行してインストールしてください。
+
+```bash
+xcode-select --install
+```
+
+インストール完了後、再度 Git が使えるか確認します。
+
+```bash
+git --version
+```
+
+2. 次に Git LFS を確認します。
+
+```bash
 git lfs version
 ```
 
-4. 取得コマンドを実行します（`git lfs install` は最初の1回だけ）。
+もし次のように表示された場合、Git LFS はまだ未導入です。
+
+- `git: 'lfs' is not a git command. See 'git --help'.`
+
+未導入の場合は、次のステップで Git LFS をインストールします。
+
+3. Git LFS の配布ページ（Releases または公式サイト）から **macOS 向けバイナリ**をダウンロードします。  
+ダウンロード後、解凍（展開）すると `git-lfs-3.7.1` のようなフォルダができます（※バージョン番号は異なってOK）。
+
+4. まず Downloads に移動し、展開されたフォルダに入ります。
+
+```bash
+cd ~/Downloads
+cd git-lfs-3.7.1
+ls
+```
+
+`install.sh` があることを確認したら実行します。
+
+```bash
+./install.sh
+```
+
+もし次のような権限エラーが出た場合は、`sudo` を付けて実行してください。
+
+- `Error: Insufficient permissions to install in /usr/local. Try running with sudo or choose a different prefix.`
+
+```bash
+sudo ./install.sh
+```
+
+`sudo` 実行時にパスワード入力を求められますが、入力中は文字が表示されなくても正常です（そのまま入力して Enter）。
+
+成功すると `Git LFS initialized.` のような表示が出ます。
+
+5. インストール後、念のため Git LFS を初期化します（1回だけでOK）。
 
 ```bash
 git lfs install
+```
+
+最後にバージョンが表示されることを確認します。
+
+```bash
+git lfs version
+```
+
+`git-lfs/3.x.x` のように表示されればインストール完了です。
+
+Git LFS の導入後、以下の手順でリポジトリを取得してください。
+
+```bash
+cd ~
 git clone https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git
 cd Art-Net-DMX-Lighting-for-Unity
 git lfs pull
 git lfs checkout
+git lfs ls-files
 ```
 
-5. 取得したフォルダの場所は、次のコマンドを実行して確認します。
-
-```bash
-echo "取得完了フォルダ: $(pwd)"
-```
-
-必要なら次を実行して、Finderで取得フォルダを開けます。
+Finder でフォルダを開く場合：
 
 ```bash
 open .
 ```
-
-`git clone` は、ターミナルを開いている現在のフォルダ配下に作成されます。  
-現在位置の確認は `pwd`、任意の保存先に移動する場合は `cd <保存先パス>` を先に実行してください。
-
-`brew` が使えない場合は、Homebrew を導入した後に手順 1 以降を実行してください。
 
 
 ## クイックスタート（ライブ受信）
@@ -166,11 +206,6 @@ open .
 1. `ArtNetReceiverDmxRecorder`（`ArtNetDataRecorder.cs`）を配置し `receiver` を設定します。
 2. `Start Recording` で録画開始、`Stop & Save` で停止保存します。
 3. `Assets/<directoryPath>` に `ArtNetChannels` 向けAnimationClipが保存されます。
-
-## 補足
-
-- 詳細な各スクリプトのparameter仕様は、詳細版ドキュメントを参照してください。
-- `Assets/Editor` はEditor拡張、`Assets/ArtNet` はランタイム/再生系の本体です。
 
 ## License
 
