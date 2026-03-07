@@ -4,6 +4,9 @@
 *.shader text
 *.mat merge=unityyamlmerge eol=lf
 *.anim filter=lfs diff=lfs merge=lfs -text
+# Unity Timeline/record assets
+Assets/RecordDMX/*.asset filter=lfs diff=lfs merge=lfs -text
+Assets/RecordDMX/**/*.asset filter=lfs diff=lfs merge=lfs -text
 *.unity merge=unityyamlmerge eol=lf
 *.physicsMaterial2D merge=unityyamlmerge eol=lf
 *.physicsMaterial merge=unityyamlmerge eol=lf
