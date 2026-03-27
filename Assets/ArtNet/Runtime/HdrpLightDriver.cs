@@ -1,3 +1,10 @@
+/*!
+ * Copyright (c) 2026 Oshino
+ *
+ * Released under the MIT license.
+ * see https://opensource.org/licenses/MIT
+ */
+
 #if HAS_HDRP
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;

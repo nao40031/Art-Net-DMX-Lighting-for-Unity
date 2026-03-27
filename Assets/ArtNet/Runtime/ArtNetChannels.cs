@@ -1,4 +1,12 @@
-﻿using System;
+﻿/*!
+ * Copyright (c) 2021 Takuya Isaki
+ * Copyright (c) 2026 Oshino
+ *
+ * Released under the MIT license.
+ * see https://opensource.org/licenses/MIT
+ */
+
+using System;
 using UnityEngine;
 
 namespace ArtNet.Runtime

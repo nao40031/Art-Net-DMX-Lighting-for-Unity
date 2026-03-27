@@ -1,4 +1,11 @@
-﻿/*
+﻿/*!
+ * Copyright (c) 2026 Oshino
+ *
+ * Released under the MIT license.
+ * see https://opensource.org/licenses/MIT
+ */
+
+/*
  * ArtNetReceiverDmxRecorder.cs
  * - ArtNetReceiver.OnDataReceived を購読して OpDmx の 512ch を時系列で記録
  * - 録画停止時に AnimationClip を .asset として保存（Editor専用）

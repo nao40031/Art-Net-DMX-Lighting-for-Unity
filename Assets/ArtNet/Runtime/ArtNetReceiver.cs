@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*!
+ * Copyright (c) 2026 Oshino
+ *
+ * Released under the MIT license.
+ * see https://opensource.org/licenses/MIT
+ */
+
+using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;

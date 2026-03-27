@@ -1,3 +1,10 @@
+/*!
+ * Copyright (c) 2026 Oshino
+ *
+ * Released under the MIT license.
+ * see https://opensource.org/licenses/MIT
+ */
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -38,7 +45,7 @@ namespace ArtNet.Runtime
         public bool enableInEditMode = true;
         public UpdateTiming updateTiming = UpdateTiming.Update;
 
-        [Tooltip("0‚È‚ç–ˆƒtƒŒ[ƒ€B—á: 40 ‚Å 40Hz XV")]
+        [Tooltip("0ï¿½È‚ç–ˆï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Bï¿½ï¿½: 40 ï¿½ï¿½ 40Hz ï¿½Xï¿½V")]
         [Min(0f)] public float sampleRate = 0f;
         [Header("Live Compatibility")]
         [Tooltip("Align playback timing with live input conditions.")]
@@ -49,7 +56,7 @@ namespace ArtNet.Runtime
         public bool applyDefaultSampleRateWhenZero = true;
         [Tooltip("Default live-compatible sample rate (typically 40 or 44).")]
         [Min(1f)] public float defaultLiveSampleRate = 40f;
-        [Tooltip("OnEnable‚É’l‚ğ‹­§“K—pi‘S‚Ä0‚Å‚àˆê“x—¬‚·j")]
+        [Tooltip("OnEnableï¿½ï¿½ï¿½É’lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Kï¿½pï¿½iï¿½Sï¿½ï¿½0ï¿½Å‚ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½j")]
         public bool forceApplyOnEnable = true;
 
         [Tooltip("When false, initial Tick won't inject if channels unchanged (prevents zeroing on start).")]

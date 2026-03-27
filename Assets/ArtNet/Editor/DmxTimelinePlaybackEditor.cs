@@ -1,3 +1,10 @@
+/*!
+ * Copyright (c) 2026 Oshino
+ *
+ * Released under the MIT license.
+ * see https://opensource.org/licenses/MIT
+ */
+
 using ArtNet.Runtime;
 using UnityEditor;
 using UnityEngine;
