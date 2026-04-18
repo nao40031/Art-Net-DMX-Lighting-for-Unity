@@ -12,6 +12,6 @@ namespace ArtNet.Runtime
     public interface ILightDriver
     {
         void Initialize(Light targetLight);
-        void Apply(float dimmer01, Color rgb);
+        void Apply(FixtureRenderState state);
     }
 }

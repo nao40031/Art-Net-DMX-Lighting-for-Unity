@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 466f185267f601341a0f5b77bc5cd89f, type: 3}
+  m_Name: E3Spot_GoboWheelDefinition
+  m_EditorClassIdentifier: 
+  slots:
+  - name: Gobo1
+    dmxMin: 8
+    dmxMax: 15
+    texture: {fileID: 0}
+    isOpen: 1
+    rotationOffsetDeg: 0
+  - name: Gobo2
+    dmxMin: 16
+    dmxMax: 23
+    texture: {fileID: 2800000, guid: 6ddc4128e4c390644bcb62bd807d289b, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+  - name: Gobo3
+    dmxMin: 24
+    dmxMax: 31
+    texture: {fileID: 2800000, guid: ba77b39b8d19c6347a0ebf94ab48edf2, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+  - name: Gobo4
+    dmxMin: 32
+    dmxMax: 39
+    texture: {fileID: 2800000, guid: 061dc86cd13c56845a1d4ee54dd71aa7, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+  - name: Gobo5
+    dmxMin: 40
+    dmxMax: 47
+    texture: {fileID: 2800000, guid: 9463f6573a811494badb3b6606959617, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+  - name: Gobo5
+    dmxMin: 48
+    dmxMax: 55
+    texture: {fileID: 2800000, guid: 6ddc4128e4c390644bcb62bd807d289b, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+  - name: Gobo7
+    dmxMin: 56
+    dmxMax: 63
+    texture: {fileID: 2800000, guid: a6f52f80de9446f47ad3061efbaf55f5, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0

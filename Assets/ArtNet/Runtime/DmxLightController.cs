@@ -103,8 +103,17 @@ namespace ArtNet.Runtime
 
             float dimmer01 = dimmer / 255f;
             var rgb = new Color(r / 255f, g / 255f, b / 255f, 1f);
+            var state = new FixtureRenderState
+            {
+                lightDimmer01 = dimmer01,
+                lensDimmer01 = dimmer01,
+                color = rgb,
+                goboEnabled = false,
+                goboTexture = null,
+                goboRotationDeg = 0f
+            };
 
-            _driver.Apply(dimmer01, rgb);
+            _driver.Apply(state);
         }
 
         private static byte GetChannelByte(ArtNetData data, int channel1to512)

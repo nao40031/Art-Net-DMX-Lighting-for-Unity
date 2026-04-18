@@ -41,7 +41,11 @@ namespace ArtNet.Runtime
 
         // --- misc ---
         PanTiltSpeed = 15,
-        Reset = 16
+        Reset = 16,
+        GoboRotation = 17,
+        SpecialFunction = 18,
+        DimmerSpeedMode = 19,
+        ColorMacro = 20
     }
 
     [Serializable]

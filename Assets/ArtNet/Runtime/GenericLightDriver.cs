@@ -29,13 +29,14 @@ namespace ArtNet.Runtime
             _light = targetLight;
         }
 
-        public void Apply(float dimmer01, Color rgb)
+        public void Apply(FixtureRenderState state)
         {
             if (_light == null) return;
 
-            float d = ApplyCurve(dimmer01);
+            float d = ApplyCurve(state.lightDimmer01);
             _light.intensity = d * maxIntensity;
-            _light.color = rgb;
+            _light.color = state.color;
+            _light.cookie = state.goboEnabled ? state.goboTexture : null;
         }
 
         private float ApplyCurve(float x)

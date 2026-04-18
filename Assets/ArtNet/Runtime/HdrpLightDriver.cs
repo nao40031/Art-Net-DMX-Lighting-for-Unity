@@ -43,29 +43,33 @@ namespace ArtNet.Runtime
             _hd = (_light != null) ? _light.GetComponent<HDAdditionalLightData>() : null;
         }
 
-        public void Apply(float dimmer01, Color rgb)
+        public void Apply(FixtureRenderState state)
         {
             if (_light == null) return;
 
-            float d = ApplyCurve(dimmer01);
+            float d = ApplyCurve(state.lightDimmer01);
             float intensity = d * maxIntensity;
+            Texture cookie = state.goboEnabled ? state.goboTexture : Texture2D.whiteTexture;
 
-            _light.color = rgb;
+            _light.color = state.color;
 
             if (_hd != null)
             {
                 try
                 {
                     _hd.SetIntensity(intensity, ToLightUnit(unit));
+                    _hd.SetCookie(cookie);
                 }
                 catch
                 {
                     _light.intensity = intensity;
+                    _light.cookie = state.goboEnabled ? state.goboTexture : null;
                 }
             }
             else
             {
                 _light.intensity = intensity;
+                _light.cookie = state.goboEnabled ? state.goboTexture : null;
             }
         }
 

@@ -310,7 +310,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 717a517fcb7038c4fb0c0c974b29b31e, type: 2}
     - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: m_Name
-      value: MovingLight
+      value: MovingLight_withGobo
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -381,7 +381,7 @@ MonoBehaviour:
   universe: 0
   startAddress: 1
   fixture: {fileID: 11400000, guid: ea6c113c24080a647ab302d3a397c294, type: 2}
-  mode: 0
+  mode: 2
   targetLight: {fileID: 5435452863099544097}
   targetLights: []
   panTransform: {fileID: 1013826615945173212}
@@ -395,7 +395,7 @@ MonoBehaviour:
   lensColorProperty: _DmxColor
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
-  goboWheel: {fileID: 0}
+  goboWheel: {fileID: 11400000, guid: 0dff2603d1a09174ea1238d2587ac1e5, type: 2}
   syncLightCookieToGobo: 1
   syncLensGoboToDmx: 1
   syncBeamGoboToDmx: 1
@@ -439,7 +439,7 @@ MonoBehaviour:
   panTiltSmoothing: 12
   enableContinuousPanTiltUpdate: 1
   applyImmediateInEditMode: 1
-  panTiltSpeedMinDegPerSec: 30
+  panTiltSpeedMinDegPerSec: 100
   panTiltSpeedMaxDegPerSec: 720
   resetTriggerThreshold: 255
   autoResolveOnValidate: 1
@@ -461,72 +461,135 @@ MonoBehaviour:
     relativeCh: 1
     absoluteCh: 1
     value: 0
-  - function: 6
+  - function: 5
     relativeCh: 2
     absoluteCh: 2
     value: 0
-  - function: 0
+  - function: 6
     relativeCh: 3
     absoluteCh: 3
     value: 0
-  - function: 1
+  - function: 7
     relativeCh: 4
     absoluteCh: 4
     value: 0
-  - function: 2
+  - function: 15
     relativeCh: 5
     absoluteCh: 5
     value: 0
-  - function: 3
+  - function: 18
     relativeCh: 6
     absoluteCh: 6
     value: 0
-  - function: 14
+  - function: 1
     relativeCh: 7
     absoluteCh: 7
     value: 0
-  - function: 15
+  - function: 2
     relativeCh: 8
     absoluteCh: 8
     value: 0
-  - function: 16
+  - function: 3
     relativeCh: 9
     absoluteCh: 9
+    value: 0
+  - function: 14
+    relativeCh: 10
+    absoluteCh: 10
+    value: 0
+  - function: 20
+    relativeCh: 11
+    absoluteCh: 11
+    value: 0
+  - function: 10
+    relativeCh: 12
+    absoluteCh: 12
+    value: 0
+  - function: 17
+    relativeCh: 13
+    absoluteCh: 13
+    value: 0
+  - function: 11
+    relativeCh: 14
+    absoluteCh: 14
+    value: 0
+  - function: 8
+    relativeCh: 15
+    absoluteCh: 15
+    value: 0
+  - function: 12
+    relativeCh: 16
+    absoluteCh: 16
+    value: 0
+  - function: 0
+    relativeCh: 17
+    absoluteCh: 17
+    value: 0
+  - function: 19
+    relativeCh: 18
+    absoluteCh: 18
     value: 0
   enablePeriodicLog: 0
   logIntervalSec: 1
   logOnlyWhenDataArrived: 1
   includeHeaderInLog: 1
   _activeProfileLabel: 
-  _activeModeLabel: 9-Channel Mode
+  _activeModeLabel: 18-Channel Mode
   _resolvedItems:
   - function: 4
     relativeChannel: 1
     absoluteChannel: 1
-  - function: 6
+  - function: 5
     relativeChannel: 2
     absoluteChannel: 2
-  - function: 0
+  - function: 6
     relativeChannel: 3
     absoluteChannel: 3
-  - function: 1
+  - function: 7
     relativeChannel: 4
     absoluteChannel: 4
-  - function: 2
+  - function: 15
     relativeChannel: 5
     absoluteChannel: 5
-  - function: 3
+  - function: 18
     relativeChannel: 6
     absoluteChannel: 6
-  - function: 14
+  - function: 1
     relativeChannel: 7
     absoluteChannel: 7
-  - function: 15
+  - function: 2
     relativeChannel: 8
     absoluteChannel: 8
-  - function: 16
+  - function: 3
     relativeChannel: 9
     absoluteChannel: 9
+  - function: 14
+    relativeChannel: 10
+    absoluteChannel: 10
+  - function: 20
+    relativeChannel: 11
+    absoluteChannel: 11
+  - function: 10
+    relativeChannel: 12
+    absoluteChannel: 12
+  - function: 17
+    relativeChannel: 13
+    absoluteChannel: 13
+  - function: 11
+    relativeChannel: 14
+    absoluteChannel: 14
+  - function: 8
+    relativeChannel: 15
+    absoluteChannel: 15
+  - function: 12
+    relativeChannel: 16
+    absoluteChannel: 16
+  - function: 0
+    relativeChannel: 17
+    absoluteChannel: 17
+  - function: 19
+    relativeChannel: 18
+    absoluteChannel: 18
 --- !u!4 &8876304756517623177 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}

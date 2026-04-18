@@ -79,6 +79,44 @@ namespace ArtNet.Runtime
         [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
 
         // ------------------------------------------------------------
+        // Gobo
+        // ------------------------------------------------------------
+
+        [Header("Gobo")]
+        [Tooltip("DMX値とゴボテクスチャを対応付ける定義。")]
+        [SerializeField] private GoboWheelDefinition goboWheel;
+
+        [Tooltip("ライトのcookieへゴボを同期します。")]
+        [SerializeField] private bool syncLightCookieToGobo = true;
+
+        [Tooltip("レンズ表現へゴボを同期します。")]
+        [SerializeField] private bool syncLensGoboToDmx = true;
+
+        [Tooltip("ビーム表現へゴボを同期します。")]
+        [SerializeField] private bool syncBeamGoboToDmx = true;
+
+        [Tooltip("GoboRotation=255 のときの角速度（deg/sec）。")]
+        [SerializeField, Min(0f)] private float maxGoboRotateDegPerSec = 360f;
+
+        [Tooltip("レンズ用ゴボTextureプロパティ名。")]
+        [SerializeField] private string lensGoboTextureProperty = "_GoboTexture";
+
+        [Tooltip("レンズ用ゴボ回転プロパティ名。")]
+        [SerializeField] private string lensGoboRotationProperty = "_GoboRotationDeg";
+
+        [Tooltip("レンズ用ゴボ有効プロパティ名。")]
+        [SerializeField] private string lensGoboEnabledProperty = "_GoboEnabled";
+
+        [Tooltip("ビーム用ゴボTextureプロパティ名。")]
+        [SerializeField] private string beamGoboTextureProperty = "_GoboTexture";
+
+        [Tooltip("ビーム用ゴボ回転プロパティ名。")]
+        [SerializeField] private string beamGoboRotationProperty = "_GoboRotationDeg";
+
+        [Tooltip("ビーム用ゴボ有効プロパティ名。")]
+        [SerializeField] private string beamGoboEnabledProperty = "_GoboEnabled";
+
+        // ------------------------------------------------------------
         // Pseudo Beam (for Volumetrics OFF)
         // ------------------------------------------------------------
 
@@ -139,11 +177,17 @@ namespace ArtNet.Runtime
         private MaterialPropertyBlock _lensMpb;
         private int _lensColorId;
         private int _lensDimmerId;
+        private int _lensGoboTextureId;
+        private int _lensGoboRotationId;
+        private int _lensGoboEnabledId;
         private bool _lensPropertyIdsReady;
 
         private MaterialPropertyBlock _beamMpb;
         private int _beamColorId;
         private int _beamDimmerId;
+        private int _beamGoboTextureId;
+        private int _beamGoboRotationId;
+        private int _beamGoboEnabledId;
         private bool _beamPropertyIdsReady;
         [Header("Pan/Tilt Range (degrees)")]
         public float panRangeDeg = 540f;
@@ -313,6 +357,11 @@ namespace ArtNet.Runtime
         private bool _lensTargetPending;
         private float _lensTargetPendingAt;
         private float _pendingLensTargetDimmer01;
+        private bool _goboEnabled;
+        private Texture _goboTexture;
+        private float _goboRotationDeg;
+        private float _goboRotationOffsetDeg;
+        private float _goboRotationSpeedDegPerSec;
 
 
         // --- Pan/Tilt continuous interpolation targets (updated by DMX, applied every frame) ---
@@ -447,6 +496,7 @@ namespace ArtNet.Runtime
         private void Update()
         {
             UpdatePanTiltMotion();
+            UpdateGoboMotion();
             UpdateLightResponse();
 
             if (!monitorEnabled) return;
@@ -835,6 +885,15 @@ namespace ArtNet.Runtime
                 }
             }
 
+            int goboValue = 0;
+            if (TryGetRelativeChannel(FixtureFunction.Gobo, out int goboRel))
+                goboValue = Read8Abs(universe512, startAddress + goboRel - 1);
+
+            int goboRotationValue = 127;
+            if (TryGetRelativeChannel(FixtureFunction.GoboRotation, out int goboRotationRel))
+                goboRotationValue = Read8Abs(universe512, startAddress + goboRotationRel - 1);
+
+            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（ある機種のみ適用） ---
@@ -934,6 +993,15 @@ namespace ArtNet.Runtime
                 }
             }
 
+            int goboValue = 0;
+            if (TryGetRelativeChannel(FixtureFunction.Gobo, out int goboRel))
+                goboValue = Read8Abs(universe512, startAddress + goboRel - 1);
+
+            int goboRotationValue = 127;
+            if (TryGetRelativeChannel(FixtureFunction.GoboRotation, out int goboRotationRel))
+                goboRotationValue = Read8Abs(universe512, startAddress + goboRotationRel - 1);
+
+            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（ある機種のみ適用） ---
@@ -1186,6 +1254,11 @@ namespace ArtNet.Runtime
             _currentLightDimmer01 = 0f;
             _lightTargetPending = false;
             _lensTargetPending = false;
+            _goboEnabled = false;
+            _goboTexture = null;
+            _goboRotationDeg = 0f;
+            _goboRotationOffsetDeg = 0f;
+            _goboRotationSpeedDegPerSec = 0f;
 
             ApplyLightAndLens(0f, 0f, Color.white);
         }
@@ -1315,18 +1388,26 @@ namespace ArtNet.Runtime
 
         private void ApplyLightAndLens(float lightDim01, float lensDim01, Color rgb)
         {
+            var state = BuildRenderState(lightDim01, lensDim01, rgb);
+            var driverState = state;
+            if (!syncLightCookieToGobo)
+            {
+                driverState.goboEnabled = false;
+                driverState.goboTexture = null;
+            }
+
             if (isInitialized && runtimeDrivers != null && runtimeDrivers.Count > 0)
             {
                 for (int i = 0; i < runtimeDrivers.Count; i++)
-                    runtimeDrivers[i]?.Apply(lightDim01, rgb);
+                    runtimeDrivers[i]?.Apply(driverState);
             }
             else
             {
-                ApplyDirectToLights(rgb, lightDim01);
+                ApplyDirectToLights(driverState);
             }
 
-            ApplyLensDmx(rgb, lensDim01);
-            ApplyPseudoBeamDmx(rgb, lightDim01);
+            ApplyLensDmx(state);
+            ApplyPseudoBeamDmx(state);
         }
 
         private static float MoveDimmer(float current, float target, float riseTime, float fallTime)
@@ -1341,15 +1422,16 @@ namespace ArtNet.Runtime
             return Mathf.MoveTowards(current, target, step);
         }
 
-        private void ApplyDirectToLights(Color rgb, float dim01)
+        private void ApplyDirectToLights(FixtureRenderState state)
         {
             var targets = GatherTargetLights();
             for (int i = 0; i < targets.Count; i++)
             {
                 var l = targets[i];
                 if (l == null) continue;
-                l.color = rgb;
-                l.intensity = dim01 * 10f;
+                l.color = state.color;
+                l.intensity = state.lightDimmer01 * 10f;
+                l.cookie = state.goboEnabled ? state.goboTexture : null;
             }
         }
 
@@ -1364,17 +1446,23 @@ namespace ArtNet.Runtime
             // propertyが空だと PropertyToID で0になるので、最低限ガード
             if (string.IsNullOrWhiteSpace(lensColorProperty)) lensColorProperty = "_DmxColor";
             if (string.IsNullOrWhiteSpace(lensDimmerProperty)) lensDimmerProperty = "_DmxDimmer";
+            if (string.IsNullOrWhiteSpace(lensGoboTextureProperty)) lensGoboTextureProperty = "_GoboTexture";
+            if (string.IsNullOrWhiteSpace(lensGoboRotationProperty)) lensGoboRotationProperty = "_GoboRotationDeg";
+            if (string.IsNullOrWhiteSpace(lensGoboEnabledProperty)) lensGoboEnabledProperty = "_GoboEnabled";
 
             _lensColorId = Shader.PropertyToID(lensColorProperty);
             _lensDimmerId = Shader.PropertyToID(lensDimmerProperty);
+            _lensGoboTextureId = Shader.PropertyToID(lensGoboTextureProperty);
+            _lensGoboRotationId = Shader.PropertyToID(lensGoboRotationProperty);
+            _lensGoboEnabledId = Shader.PropertyToID(lensGoboEnabledProperty);
             if (_lensMpb == null) _lensMpb = new MaterialPropertyBlock();
             _lensPropertyIdsReady = true;
         }
 
-        private void ApplyLensDmx(Color rgb, float dim01)
+        private void ApplyLensDmx(FixtureRenderState state)
         {
             if (!syncLensToDmx) return;
-            if (!syncLensColorToDmx && !syncLensDimmerToDmx) return;
+            if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx) return;
 
             // Renderer未設定なら何もしない
             if (lensRenderer == null && (extraLensRenderers == null || extraLensRenderers.Length == 0))
@@ -1384,14 +1472,20 @@ namespace ArtNet.Runtime
 
             if (_lensMpb == null) return;
 
-            float d = Mathf.Clamp01(dim01) * Mathf.Max(0f, lensDimmerScale);
+            float d = Mathf.Clamp01(state.lensDimmer01) * Mathf.Max(0f, lensDimmerScale);
 
             // 共通のMPBに値をセットし、各Rendererに適用
             _lensMpb.Clear();
             if (syncLensColorToDmx)
-                _lensMpb.SetColor(_lensColorId, rgb);
+                _lensMpb.SetColor(_lensColorId, state.color);
             if (syncLensDimmerToDmx)
                 _lensMpb.SetFloat(_lensDimmerId, d);
+            if (syncLensGoboToDmx)
+            {
+                _lensMpb.SetTexture(_lensGoboTextureId, state.goboEnabled && state.goboTexture != null ? state.goboTexture : Texture2D.whiteTexture);
+                _lensMpb.SetFloat(_lensGoboRotationId, state.goboRotationDeg);
+                _lensMpb.SetFloat(_lensGoboEnabledId, state.goboEnabled ? 1f : 0f);
+            }
 
             if (lensRenderer != null)
                 lensRenderer.SetPropertyBlock(_lensMpb);
@@ -1412,17 +1506,23 @@ namespace ArtNet.Runtime
 
             if (string.IsNullOrWhiteSpace(beamColorProperty)) beamColorProperty = "_DmxColor";
             if (string.IsNullOrWhiteSpace(beamDimmerProperty)) beamDimmerProperty = "_DmxDimmer";
+            if (string.IsNullOrWhiteSpace(beamGoboTextureProperty)) beamGoboTextureProperty = "_GoboTexture";
+            if (string.IsNullOrWhiteSpace(beamGoboRotationProperty)) beamGoboRotationProperty = "_GoboRotationDeg";
+            if (string.IsNullOrWhiteSpace(beamGoboEnabledProperty)) beamGoboEnabledProperty = "_GoboEnabled";
 
             _beamColorId = Shader.PropertyToID(beamColorProperty);
             _beamDimmerId = Shader.PropertyToID(beamDimmerProperty);
+            _beamGoboTextureId = Shader.PropertyToID(beamGoboTextureProperty);
+            _beamGoboRotationId = Shader.PropertyToID(beamGoboRotationProperty);
+            _beamGoboEnabledId = Shader.PropertyToID(beamGoboEnabledProperty);
             if (_beamMpb == null) _beamMpb = new MaterialPropertyBlock();
             _beamPropertyIdsReady = true;
         }
 
-        private void ApplyPseudoBeamDmx(Color rgb, float dim01)
+        private void ApplyPseudoBeamDmx(FixtureRenderState state)
         {
             if (!syncPseudoBeamToDmx) return;
-            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx) return;
+            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx) return;
 
             if (beamRenderer == null && (extraBeamRenderers == null || extraBeamRenderers.Length == 0))
                 return;
@@ -1430,14 +1530,20 @@ namespace ArtNet.Runtime
             EnsureBeamPropertyIds();
             if (_beamMpb == null) return;
 
-            float d = Mathf.Clamp01(dim01) * Mathf.Max(0f, beamDimmerScale);
+            float d = Mathf.Clamp01(state.lightDimmer01) * Mathf.Max(0f, beamDimmerScale);
             d = Mathf.Max(Mathf.Clamp01(beamDimmerFloor), d);
 
             _beamMpb.Clear();
             if (syncBeamColorToDmx)
-                _beamMpb.SetColor(_beamColorId, rgb);
+                _beamMpb.SetColor(_beamColorId, state.color);
             if (syncBeamDimmerToDmx)
                 _beamMpb.SetFloat(_beamDimmerId, d);
+            if (syncBeamGoboToDmx)
+            {
+                _beamMpb.SetTexture(_beamGoboTextureId, state.goboEnabled && state.goboTexture != null ? state.goboTexture : Texture2D.whiteTexture);
+                _beamMpb.SetFloat(_beamGoboRotationId, state.goboRotationDeg);
+                _beamMpb.SetFloat(_beamGoboEnabledId, state.goboEnabled ? 1f : 0f);
+            }
 
             if (beamRenderer != null)
                 beamRenderer.SetPropertyBlock(_beamMpb);
@@ -1487,6 +1593,63 @@ namespace ArtNet.Runtime
             if (absFineCh1BasedOrMinus1 <= 0) return coarse << 8;
             int fine = Read8Abs(universe512, absFineCh1BasedOrMinus1);
             return (coarse << 8) | fine;
+        }
+
+        private FixtureRenderState BuildRenderState(float lightDim01, float lensDim01, Color rgb)
+        {
+            return new FixtureRenderState
+            {
+                lightDimmer01 = lightDim01,
+                lensDimmer01 = lensDim01,
+                color = rgb,
+                goboEnabled = _goboEnabled && _goboTexture != null,
+                goboTexture = _goboTexture,
+                goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f)
+            };
+        }
+
+        private void UpdateGoboTargetsFromDmx(int goboValue, int goboRotationValue)
+        {
+            _goboEnabled = false;
+            _goboTexture = null;
+            _goboRotationOffsetDeg = 0f;
+
+            if (goboWheel != null)
+            {
+                var slot = goboWheel.ResolveSlot(goboValue);
+                if (slot != null)
+                {
+                    _goboEnabled = !slot.isOpen && slot.texture != null;
+                    _goboTexture = slot.texture;
+                    _goboRotationOffsetDeg = slot.rotationOffsetDeg;
+                }
+            }
+
+            _goboRotationSpeedDegPerSec = MapGoboRotationDmxToSpeed(goboRotationValue);
+        }
+
+        private void UpdateGoboMotion()
+        {
+            if (Mathf.Approximately(_goboRotationSpeedDegPerSec, 0f))
+                return;
+
+            _goboRotationDeg = Mathf.Repeat(_goboRotationDeg + (_goboRotationSpeedDegPerSec * Time.deltaTime), 360f);
+        }
+
+        private float MapGoboRotationDmxToSpeed(int dmxValue)
+        {
+            int clamped = Mathf.Clamp(dmxValue, 0, 255);
+            if (clamped <= 126)
+            {
+                float t = clamped / 126f;
+                return Mathf.Lerp(-maxGoboRotateDegPerSec, 0f, t);
+            }
+
+            if (clamped <= 128)
+                return 0f;
+
+            float t2 = (clamped - 129) / 126f;
+            return Mathf.Lerp(0f, maxGoboRotateDegPerSec, t2);
         }
 
 

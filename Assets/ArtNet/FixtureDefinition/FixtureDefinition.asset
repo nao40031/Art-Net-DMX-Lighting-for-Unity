@@ -43,3 +43,42 @@ MonoBehaviour:
     channels:
     - function: 0
       channel: 0
+  - modeName: 18-Channel Mode
+    channelCount: 18
+    channels:
+    - function: 4
+      channel: 1
+    - function: 5
+      channel: 2
+    - function: 6
+      channel: 3
+    - function: 7
+      channel: 4
+    - function: 15
+      channel: 5
+    - function: 18
+      channel: 6
+    - function: 1
+      channel: 7
+    - function: 2
+      channel: 8
+    - function: 3
+      channel: 9
+    - function: 14
+      channel: 10
+    - function: 20
+      channel: 11
+    - function: 10
+      channel: 12
+    - function: 17
+      channel: 13
+    - function: 11
+      channel: 14
+    - function: 8
+      channel: 15
+    - function: 12
+      channel: 16
+    - function: 0
+      channel: 17
+    - function: 19
+      channel: 18
