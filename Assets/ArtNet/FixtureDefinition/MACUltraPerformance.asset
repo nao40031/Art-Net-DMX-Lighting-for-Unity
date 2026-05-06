@@ -1,0 +1,303 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d7931bb03141c24a862d747383aae68, type: 3}
+  m_Name: MACUltraPerformance
+  m_EditorClassIdentifier: 
+  manufacturer: Martin
+  model: MAC Ultra Performance
+  revision: Basic 48ch
+  displayName: Martin MAC Ultra Performance
+  modes:
+  - modeName: Basic 48ch
+    channelCount: 48
+    channels: []
+    elements:
+    - attribute: 2
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges:
+      - name: Closed
+        dmxMin: 0
+        dmxMax: 19
+        type: 3
+        normalizedFrom: 0
+        normalizedTo: 0
+    - attribute: 1
+      instance: 1
+      role: 0
+      byteRole: 1
+      ranges: []
+    - attribute: 1
+      instance: 1
+      role: 0
+      byteRole: 2
+      ranges: []
+    - attribute: 7
+      instance: 1
+      role: 0
+      byteRole: 1
+      ranges: []
+    - attribute: 7
+      instance: 1
+      role: 0
+      byteRole: 2
+      ranges: []
+    - attribute: 8
+      instance: 1
+      role: 0
+      byteRole: 1
+      ranges: []
+    - attribute: 8
+      instance: 1
+      role: 0
+      byteRole: 2
+      ranges: []
+    - attribute: 9
+      instance: 1
+      role: 0
+      byteRole: 1
+      ranges: []
+    - attribute: 9
+      instance: 1
+      role: 0
+      byteRole: 2
+      ranges: []
+    - attribute: 10
+      instance: 1
+      role: 0
+      byteRole: 1
+      ranges: []
+    - attribute: 10
+      instance: 1
+      role: 0
+      byteRole: 2
+      ranges: []
+    - attribute: 11
+      instance: 1
+      role: 1
+      byteRole: 0
+      ranges: []
+    - attribute: 12
+      instance: 1
+      role: 1
+      byteRole: 0
+      ranges: []
+    - attribute: 12
+      instance: 1
+      role: 4
+      byteRole: 1
+      ranges:
+      - name: Stop 0deg
+        dmxMin: 0
+        dmxMax: 600
+        type: 1
+        normalizedFrom: 0
+        normalizedTo: 0
+      - name: ' Rotation CW Fast To Slow'
+        dmxMin: 601
+        dmxMax: 32130
+        type: 6
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Stop Current
+        dmxMin: 32131
+        dmxMax: 32895
+        type: 1
+        normalizedFrom: 0
+        normalizedTo: 0
+      - name: Rotation CCW Slow To Fast
+        dmxMin: 32896
+        dmxMax: 64515
+        type: 7
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Stop 90deg
+        dmxMin: 64516
+        dmxMax: 65535
+        type: 1
+        normalizedFrom: 0
+        normalizedTo: 0
+    - attribute: 12
+      instance: 1
+      role: 4
+      byteRole: 2
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 19
+      instance: 1
+      role: 2
+      byteRole: 1
+      ranges: []
+    - attribute: 19
+      instance: 1
+      role: 2
+      byteRole: 2
+      ranges: []
+    - attribute: 20
+      instance: 1
+      role: 2
+      byteRole: 1
+      ranges: []
+    - attribute: 20
+      instance: 1
+      role: 2
+      byteRole: 2
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    wheelBindings:
+    - attribute: 12
+      instance: 1
+      goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}

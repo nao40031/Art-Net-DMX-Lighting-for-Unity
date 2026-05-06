@@ -98,6 +98,18 @@ namespace ArtNet.Runtime
         [Tooltip("GoboRotation=255 のときの角速度（deg/sec）。")]
         [SerializeField, Min(0f)] private float maxGoboRotateDegPerSec = 360f;
 
+        [Tooltip("ゴボ回転をLight Cookie用Transformのロール回転へ同期します。")]
+        [SerializeField] private bool syncGoboRotationToCookieTransform = true;
+
+        [Tooltip("Light Cookieを回転させるTransform。通常はSpot Light本体のTransformを指定します。")]
+        [SerializeField] private Transform goboCookieRollTransform;
+
+        [Tooltip("Cookie Transformを回転させるローカル軸。通常はZ軸です。")]
+        [SerializeField] private Vector3 goboCookieRollAxis = Vector3.forward;
+
+        [Tooltip("Cookie Transformへ加算する固定ロール角度補正（deg）。")]
+        [SerializeField] private float goboCookieRollOffsetDeg = 0f;
+
         [Tooltip("レンズ用ゴボTextureプロパティ名。")]
         [SerializeField] private string lensGoboTextureProperty = "_GoboTexture";
 
@@ -298,9 +310,15 @@ namespace ArtNet.Runtime
         [SerializeField, Range(0, 255)] private int ch5;
 
         [Serializable]
-        private struct DmxMonitorItem
+        public struct DmxMonitorItem
         {
+            public bool useElementSchema;
             public FixtureFunction function; // 0 の場合は function未指定。UIでは relXX 表示
+            public string label;
+            public FixtureAttribute attribute;
+            public int instance;
+            public FixtureChannelRole role;
+            public FixtureByteRole byteRole;
             public int relativeCh;           // fixture内の相対ch（1=startAddress）
             public int absoluteCh;           // 1-based within universe
             [Range(0, 255)] public int value;
@@ -362,6 +380,9 @@ namespace ArtNet.Runtime
         private float _goboRotationDeg;
         private float _goboRotationOffsetDeg;
         private float _goboRotationSpeedDegPerSec;
+        private Transform _goboCookieRollBaseTransform;
+        private Quaternion _goboCookieRollBaseLocalRot;
+        private bool _hasGoboCookieRollBaseLocalRot;
 
 
         // --- Pan/Tilt continuous interpolation targets (updated by DMX, applied every frame) ---
@@ -375,13 +396,90 @@ namespace ArtNet.Runtime
         private float _tiltTargetSmoothing = 0.15f;
 
         private readonly Dictionary<FixtureFunction, int> _relativeMap = new();
+        private readonly Dictionary<ElementKey, ElementBinding> _elementMap = new();
+        private readonly Dictionary<WheelKey, GoboWheelDefinition> _goboWheelMap = new();
+        private bool _usesElementMode;
         [SerializeField] private string _activeProfileLabel;
         [SerializeField] private string _activeModeLabel;
 
+        private struct ElementKey : IEquatable<ElementKey>
+        {
+            public FixtureAttribute attribute;
+            public int instance;
+            public FixtureChannelRole role;
+
+            public ElementKey(FixtureAttribute attribute, int instance, FixtureChannelRole role)
+            {
+                this.attribute = attribute;
+                this.instance = Mathf.Max(1, instance);
+                this.role = role;
+            }
+
+            public bool Equals(ElementKey other)
+                => attribute == other.attribute && instance == other.instance && role == other.role;
+
+            public override bool Equals(object obj)
+                => obj is ElementKey other && Equals(other);
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = (int)attribute;
+                    hash = (hash * 397) ^ instance;
+                    hash = (hash * 397) ^ (int)role;
+                    return hash;
+                }
+            }
+        }
+
+        private struct WheelKey : IEquatable<WheelKey>
+        {
+            public FixtureAttribute attribute;
+            public int instance;
+
+            public WheelKey(FixtureAttribute attribute, int instance)
+            {
+                this.attribute = attribute;
+                this.instance = Mathf.Max(1, instance);
+            }
+
+            public bool Equals(WheelKey other)
+                => attribute == other.attribute && instance == other.instance;
+
+            public override bool Equals(object obj)
+                => obj is WheelKey other && Equals(other);
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return ((int)attribute * 397) ^ instance;
+                }
+            }
+        }
+
+        private struct ElementBinding
+        {
+            public int singleRel;
+            public int coarseRel;
+            public int fineRel;
+            public FixtureChannelElement singleElement;
+            public FixtureChannelElement coarseElement;
+
+            public FixtureChannelElement PrimaryElement => singleElement ?? coarseElement;
+        }
+
         [Serializable]
-        private struct ResolvedItem
+        public struct ResolvedItem
         {
             public FixtureFunction function;
+            public bool useElementSchema;
+            public string label;
+            public FixtureAttribute attribute;
+            public int instance;
+            public FixtureChannelRole role;
+            public FixtureByteRole byteRole;
             public int relativeChannel; // 1-based within fixture
             public int absoluteChannel; // 1-based within universe
         }
@@ -545,7 +643,10 @@ namespace ArtNet.Runtime
         public void ResolveMapping()
         {
             _relativeMap.Clear();
+            _elementMap.Clear();
+            _goboWheelMap.Clear();
             _resolvedItems.Clear();
+            _usesElementMode = false;
 
             if (fixture == null)
             {
@@ -567,6 +668,16 @@ namespace ArtNet.Runtime
 
             _activeModeLabel = string.IsNullOrWhiteSpace(md.modeName) ? $"Mode {mode}" : md.modeName;
 
+            if (md.UsesChannelElements())
+            {
+                BuildElementMapping(md);
+                if (_elementMap.Count > 0)
+                {
+                    _usesElementMode = true;
+                    return;
+                }
+            }
+
             if (md.channels == null) return;
 
             foreach (var fc in md.channels)
@@ -579,10 +690,77 @@ namespace ArtNet.Runtime
                 int abs = startAddress + rel - 1;
                 _resolvedItems.Add(new ResolvedItem
                 {
+                    useElementSchema = false,
                     function = fc.function,
+                    label = fc.function.ToString(),
                     relativeChannel = rel,
                     absoluteChannel = abs
                 });
+            }
+        }
+
+        private void BuildElementMapping(FixtureModeDefinition md)
+        {
+            int count = Mathf.Clamp(md.channelCount, 1, 512);
+
+            for (int i = 0; i < count; i++)
+            {
+                var element = (md.elements != null && i < md.elements.Count) ? md.elements[i] : null;
+                int rel = i + 1;
+                int instance = element != null ? Mathf.Max(1, element.instance) : 1;
+                var attribute = element != null ? element.attribute : FixtureAttribute.NoFeature;
+                var role = element != null ? element.role : FixtureChannelRole.Value;
+                var byteRole = element != null ? element.byteRole : FixtureByteRole.Single;
+
+                _resolvedItems.Add(new ResolvedItem
+                {
+                    useElementSchema = true,
+                    function = default,
+                    label = BuildElementLabel(attribute, instance, role, byteRole),
+                    attribute = attribute,
+                    instance = instance,
+                    role = role,
+                    byteRole = byteRole,
+                    relativeChannel = rel,
+                    absoluteChannel = startAddress + rel - 1
+                });
+
+                if (element == null) continue;
+                if (element.attribute == FixtureAttribute.NoFeature) continue;
+
+                var key = new ElementKey(element.attribute, instance, element.role);
+
+                if (!_elementMap.TryGetValue(key, out var binding))
+                    binding = default;
+
+                switch (element.byteRole)
+                {
+                    case FixtureByteRole.Single:
+                        binding.singleRel = rel;
+                        binding.singleElement = element;
+                        break;
+                    case FixtureByteRole.Coarse:
+                        binding.coarseRel = rel;
+                        binding.coarseElement = element;
+                        break;
+                    case FixtureByteRole.Fine:
+                        binding.fineRel = rel;
+                        break;
+                }
+
+                _elementMap[key] = binding;
+            }
+
+            if (md.wheelBindings == null) return;
+
+            for (int i = 0; i < md.wheelBindings.Count; i++)
+            {
+                var binding = md.wheelBindings[i];
+                if (binding == null) continue;
+                if (binding.goboWheel == null) continue;
+
+                var key = new WheelKey(binding.attribute, binding.instance);
+                _goboWheelMap[key] = binding.goboWheel;
             }
         }
 
@@ -599,7 +777,13 @@ namespace ArtNet.Runtime
                     var r = _resolvedItems[i];
                     monitorItems.Add(new DmxMonitorItem
                     {
+                        useElementSchema = r.useElementSchema,
                         function = r.function,
+                        label = r.label,
+                        attribute = r.attribute,
+                        instance = r.instance,
+                        role = r.role,
+                        byteRole = r.byteRole,
                         relativeCh = Mathf.Clamp(r.relativeChannel, 1, 512),
                         absoluteCh = Mathf.Clamp(r.absoluteChannel, 1, 512),
                         value = 0
@@ -629,7 +813,9 @@ namespace ArtNet.Runtime
                     int abs = startAddress + rel - 1;
                     monitorItems.Add(new DmxMonitorItem
                     {
+                        useElementSchema = false,
                         function = default,
+                        label = $"rel{rel}",
                         relativeCh = rel,
                         absoluteCh = Mathf.Clamp(abs, 1, 512),
                         value = 0
@@ -845,6 +1031,14 @@ namespace ArtNet.Runtime
 
             if (targetLight == null) Context_AutoAttachTargetLight();
 
+            if (_usesElementMode)
+            {
+                ApplyElementMode(universe512);
+                UpdateMonitorValues(universe512);
+                ApplyImmediateInEditMode();
+                return;
+            }
+
             // --- Reset ---
             if (TryGetRelativeChannel(FixtureFunction.Reset, out int resetRel))
             {
@@ -953,6 +1147,14 @@ namespace ArtNet.Runtime
 
             if (targetLight == null) Context_AutoAttachTargetLight();
 
+            if (_usesElementMode)
+            {
+                ApplyElementMode(universe512);
+                UpdateMonitorValues(universe512);
+                ApplyImmediateInEditMode();
+                return;
+            }
+
             // --- Reset ---
             if (TryGetRelativeChannel(FixtureFunction.Reset, out int resetRel))
             {
@@ -1055,6 +1257,434 @@ namespace ArtNet.Runtime
         }
 
 
+        private void ApplyElementMode(int[] universe512)
+        {
+            if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
+                TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
+            {
+                PerformReset();
+                return;
+            }
+
+            float dim01 = TryReadElement01(universe512, FixtureAttribute.Dimmer, 1, FixtureChannelRole.Value, out float dim)
+                ? dim
+                : 1f;
+
+            if (TryElementValueMatchesRange(universe512, FixtureAttribute.Strobe, 1, FixtureChannelRole.Value, FixtureRangeType.Closed, out _))
+                dim01 = 0f;
+
+            Color rgb = ReadElementColor(universe512);
+
+            int goboValue = TryReadElementRaw8(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.SelectMode, out int goboRaw)
+                ? goboRaw
+                : 0;
+
+            int goboRotationValue = 127;
+            bool hasGoboRotationSpeedOverride = false;
+            float goboRotationSpeedOverride = 0f;
+            if (TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.PositionOrRotation, out int goboRotationRaw16, out var goboRotationElement) ||
+                TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.Rotation, out goboRotationRaw16, out goboRotationElement))
+            {
+                if (TryMapGoboRotationRangeToSpeed(goboRotationElement, goboRotationRaw16, out goboRotationSpeedOverride))
+                {
+                    hasGoboRotationSpeedOverride = true;
+                }
+                else
+                {
+                    goboRotationValue = Mathf.Clamp(Mathf.RoundToInt((goboRotationRaw16 / 65535f) * 255f), 0, 255);
+                }
+            }
+
+            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelDefinition(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
+            UpdateLightTargetsFromDmx(dim01, rgb);
+
+            if (panTransform != null && TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Position, out float pan01))
+            {
+                float panDeg = (pan01 - 0.5f) * panRangeDeg;
+                if (panInvert) panDeg = -panDeg;
+                panDeg += panOffsetDeg;
+                SetPanTarget(panDeg, -1f, panTiltSmoothing);
+            }
+
+            if (tiltTransform != null && TryReadElement01(universe512, FixtureAttribute.Tilt, 1, FixtureChannelRole.Position, out float tilt01))
+            {
+                float tiltDeg = (tilt01 - 0.5f) * tiltRangeDeg;
+                if (tiltInvert) tiltDeg = -tiltDeg;
+                tiltDeg += tiltOffsetDeg;
+                SetTiltTarget(tiltDeg, -1f, panTiltSmoothing);
+            }
+        }
+
+        private void ApplyElementMode(byte[] universe512)
+        {
+            if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
+                TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
+            {
+                PerformReset();
+                return;
+            }
+
+            float dim01 = TryReadElement01(universe512, FixtureAttribute.Dimmer, 1, FixtureChannelRole.Value, out float dim)
+                ? dim
+                : 1f;
+
+            if (TryElementValueMatchesRange(universe512, FixtureAttribute.Strobe, 1, FixtureChannelRole.Value, FixtureRangeType.Closed, out _))
+                dim01 = 0f;
+
+            Color rgb = ReadElementColor(universe512);
+
+            int goboValue = TryReadElementRaw8(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.SelectMode, out int goboRaw)
+                ? goboRaw
+                : 0;
+
+            int goboRotationValue = 127;
+            bool hasGoboRotationSpeedOverride = false;
+            float goboRotationSpeedOverride = 0f;
+            if (TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.PositionOrRotation, out int goboRotationRaw16, out var goboRotationElement) ||
+                TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.Rotation, out goboRotationRaw16, out goboRotationElement))
+            {
+                if (TryMapGoboRotationRangeToSpeed(goboRotationElement, goboRotationRaw16, out goboRotationSpeedOverride))
+                {
+                    hasGoboRotationSpeedOverride = true;
+                }
+                else
+                {
+                    goboRotationValue = Mathf.Clamp(Mathf.RoundToInt((goboRotationRaw16 / 65535f) * 255f), 0, 255);
+                }
+            }
+
+            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelDefinition(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
+            UpdateLightTargetsFromDmx(dim01, rgb);
+
+            if (panTransform != null && TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Position, out float pan01))
+            {
+                float panDeg = (pan01 - 0.5f) * panRangeDeg;
+                if (panInvert) panDeg = -panDeg;
+                panDeg += panOffsetDeg;
+                SetPanTarget(panDeg, -1f, panTiltSmoothing);
+            }
+
+            if (tiltTransform != null && TryReadElement01(universe512, FixtureAttribute.Tilt, 1, FixtureChannelRole.Position, out float tilt01))
+            {
+                float tiltDeg = (tilt01 - 0.5f) * tiltRangeDeg;
+                if (tiltInvert) tiltDeg = -tiltDeg;
+                tiltDeg += tiltOffsetDeg;
+                SetTiltTarget(tiltDeg, -1f, panTiltSmoothing);
+            }
+        }
+
+        private bool TryReadElement01(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out float value01)
+        {
+            value01 = 0f;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            if (binding.singleRel > 0)
+            {
+                value01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + binding.singleRel - 1));
+                return true;
+            }
+
+            if (binding.coarseRel > 0)
+            {
+                int coarseAbs = startAddress + binding.coarseRel - 1;
+                int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
+                value01 = Read16Abs(universe512, coarseAbs, fineAbs) / 65535f;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryReadElement01(byte[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out float value01)
+        {
+            value01 = 0f;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            if (binding.singleRel > 0)
+            {
+                value01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + binding.singleRel - 1));
+                return true;
+            }
+
+            if (binding.coarseRel > 0)
+            {
+                int coarseAbs = startAddress + binding.coarseRel - 1;
+                int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
+                value01 = Read16Abs(universe512, coarseAbs, fineAbs) / 65535f;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryReadElementRaw8(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out int value)
+        {
+            value = 0;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            int rel = binding.singleRel > 0 ? binding.singleRel : binding.coarseRel;
+            if (rel <= 0) return false;
+
+            value = Read8Abs(universe512, startAddress + rel - 1);
+            return true;
+        }
+
+        private bool TryReadElementRaw8(byte[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out int value)
+        {
+            value = 0;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            int rel = binding.singleRel > 0 ? binding.singleRel : binding.coarseRel;
+            if (rel <= 0) return false;
+
+            value = Read8Abs(universe512, startAddress + rel - 1);
+            return true;
+        }
+
+        private bool TryReadElementRaw16(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out int value, out FixtureChannelElement element)
+        {
+            value = 0;
+            element = null;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            element = binding.PrimaryElement;
+
+            if (binding.coarseRel > 0)
+            {
+                int coarseAbs = startAddress + binding.coarseRel - 1;
+                int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
+                value = Read16Abs(universe512, coarseAbs, fineAbs);
+                return true;
+            }
+
+            if (binding.singleRel > 0)
+            {
+                value = Read8Abs(universe512, startAddress + binding.singleRel - 1) * 257;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryReadElementRaw16(byte[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out int value, out FixtureChannelElement element)
+        {
+            value = 0;
+            element = null;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            element = binding.PrimaryElement;
+
+            if (binding.coarseRel > 0)
+            {
+                int coarseAbs = startAddress + binding.coarseRel - 1;
+                int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
+                value = Read16Abs(universe512, coarseAbs, fineAbs);
+                return true;
+            }
+
+            if (binding.singleRel > 0)
+            {
+                value = Read8Abs(universe512, startAddress + binding.singleRel - 1) * 257;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryMapGoboRotationRangeToSpeed(FixtureChannelElement element, int rawValue, out float speedDegPerSec)
+        {
+            speedDegPerSec = 0f;
+            if (element == null || element.ranges == null)
+                return false;
+
+            FixtureChannelRange bestRange = null;
+            int bestWidth = int.MaxValue;
+
+            for (int i = 0; i < element.ranges.Count; i++)
+            {
+                var range = element.ranges[i];
+                if (range == null) continue;
+                if (!range.Contains(rawValue)) continue;
+                if (!IsGoboRotationRangeType(range.type)) continue;
+
+                int width = Mathf.Abs(range.dmxMax - range.dmxMin);
+                if (bestRange == null || width < bestWidth)
+                {
+                    bestRange = range;
+                    bestWidth = width;
+                }
+            }
+
+            if (bestRange == null)
+                return false;
+
+            switch (bestRange.type)
+            {
+                case FixtureRangeType.RotationCW:
+                    speedDegPerSec = -MapGoboRotationRangeMagnitude(bestRange, rawValue, true);
+                    return true;
+                case FixtureRangeType.RotationCCW:
+                    speedDegPerSec = MapGoboRotationRangeMagnitude(bestRange, rawValue, false);
+                    return true;
+                case FixtureRangeType.NoFunction:
+                case FixtureRangeType.Open:
+                case FixtureRangeType.Closed:
+                case FixtureRangeType.Indexed:
+                    speedDegPerSec = 0f;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsGoboRotationRangeType(FixtureRangeType type)
+        {
+            return type == FixtureRangeType.RotationCW ||
+                   type == FixtureRangeType.RotationCCW ||
+                   type == FixtureRangeType.NoFunction ||
+                   type == FixtureRangeType.Open ||
+                   type == FixtureRangeType.Closed ||
+                   type == FixtureRangeType.Indexed;
+        }
+
+        private float MapGoboRotationRangeMagnitude(FixtureChannelRange range, int rawValue, bool fastToSlow)
+        {
+            int min = Mathf.Min(range.dmxMin, range.dmxMax);
+            int max = Mathf.Max(range.dmxMin, range.dmxMax);
+            if (max <= min)
+                return 0f;
+
+            float t = Mathf.InverseLerp(min, max, rawValue);
+            return fastToSlow
+                ? Mathf.Lerp(maxGoboRotateDegPerSec, 0f, t)
+                : Mathf.Lerp(0f, maxGoboRotateDegPerSec, t);
+        }
+
+        private bool TryElementValueMatchesRange(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, FixtureRangeType type, out int rawValue)
+        {
+            rawValue = 0;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            var element = binding.PrimaryElement;
+            if (element == null) return false;
+            if (!TryReadElementRaw8(universe512, attribute, instance, role, out rawValue))
+                return false;
+
+            return ElementHasRangeType(element, rawValue, type);
+        }
+
+        private bool TryElementValueMatchesRange(byte[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, FixtureRangeType type, out int rawValue)
+        {
+            rawValue = 0;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            var element = binding.PrimaryElement;
+            if (element == null) return false;
+            if (!TryReadElementRaw8(universe512, attribute, instance, role, out rawValue))
+                return false;
+
+            return ElementHasRangeType(element, rawValue, type);
+        }
+
+        private static bool ElementHasRangeType(FixtureChannelElement element, int rawValue, FixtureRangeType type)
+        {
+            if (element.ranges == null) return false;
+
+            for (int i = 0; i < element.ranges.Count; i++)
+            {
+                var range = element.ranges[i];
+                if (range == null) continue;
+                if (range.type != type) continue;
+                if (range.Contains(rawValue)) return true;
+            }
+
+            return false;
+        }
+
+        private Color ReadElementColor(int[] universe512)
+        {
+            bool hasC = TryReadElement01(universe512, FixtureAttribute.Cyan, 1, FixtureChannelRole.Value, out float c);
+            bool hasM = TryReadElement01(universe512, FixtureAttribute.Magenta, 1, FixtureChannelRole.Value, out float m);
+            bool hasY = TryReadElement01(universe512, FixtureAttribute.Yellow, 1, FixtureChannelRole.Value, out float y);
+
+            Color rgb;
+            if (hasC || hasM || hasY)
+            {
+                rgb = new Color(1f - (hasC ? c : 0f), 1f - (hasM ? m : 0f), 1f - (hasY ? y : 0f), 1f);
+            }
+            else
+            {
+                bool hasR = TryReadElement01(universe512, FixtureAttribute.Red, 1, FixtureChannelRole.Value, out float r);
+                bool hasG = TryReadElement01(universe512, FixtureAttribute.Green, 1, FixtureChannelRole.Value, out float g);
+                bool hasB = TryReadElement01(universe512, FixtureAttribute.Blue, 1, FixtureChannelRole.Value, out float b);
+                rgb = (hasR || hasG || hasB) ? new Color(hasR ? r : 0f, hasG ? g : 0f, hasB ? b : 0f, 1f) : Color.white;
+            }
+
+            if (TryReadElement01(universe512, FixtureAttribute.White, 1, FixtureChannelRole.Value, out float w))
+                rgb += Color.white * w;
+
+            if (TryReadElement01(universe512, FixtureAttribute.CTC, 1, FixtureChannelRole.Value, out float ctc01))
+                rgb = ApplyCtcApproximation(rgb, ctc01);
+
+            return ClampColor(rgb);
+        }
+
+        private Color ReadElementColor(byte[] universe512)
+        {
+            bool hasC = TryReadElement01(universe512, FixtureAttribute.Cyan, 1, FixtureChannelRole.Value, out float c);
+            bool hasM = TryReadElement01(universe512, FixtureAttribute.Magenta, 1, FixtureChannelRole.Value, out float m);
+            bool hasY = TryReadElement01(universe512, FixtureAttribute.Yellow, 1, FixtureChannelRole.Value, out float y);
+
+            Color rgb;
+            if (hasC || hasM || hasY)
+            {
+                rgb = new Color(1f - (hasC ? c : 0f), 1f - (hasM ? m : 0f), 1f - (hasY ? y : 0f), 1f);
+            }
+            else
+            {
+                bool hasR = TryReadElement01(universe512, FixtureAttribute.Red, 1, FixtureChannelRole.Value, out float r);
+                bool hasG = TryReadElement01(universe512, FixtureAttribute.Green, 1, FixtureChannelRole.Value, out float g);
+                bool hasB = TryReadElement01(universe512, FixtureAttribute.Blue, 1, FixtureChannelRole.Value, out float b);
+                rgb = (hasR || hasG || hasB) ? new Color(hasR ? r : 0f, hasG ? g : 0f, hasB ? b : 0f, 1f) : Color.white;
+            }
+
+            if (TryReadElement01(universe512, FixtureAttribute.White, 1, FixtureChannelRole.Value, out float w))
+                rgb += Color.white * w;
+
+            if (TryReadElement01(universe512, FixtureAttribute.CTC, 1, FixtureChannelRole.Value, out float ctc01))
+                rgb = ApplyCtcApproximation(rgb, ctc01);
+
+            return ClampColor(rgb);
+        }
+
+        private static Color ApplyCtcApproximation(Color color, float ctc01)
+        {
+            Color warmTint = new Color(1f, 0.78f, 0.55f, 1f);
+            Color tint = Color.Lerp(Color.white, warmTint, Mathf.Clamp01(ctc01));
+            return new Color(color.r * tint.r, color.g * tint.g, color.b * tint.b, 1f);
+        }
+
+        private static Color ClampColor(Color color)
+        {
+            return new Color(Mathf.Clamp01(color.r), Mathf.Clamp01(color.g), Mathf.Clamp01(color.b), 1f);
+        }
+
+        private GoboWheelDefinition ResolveGoboWheelDefinition(int instance)
+        {
+            if (_goboWheelMap.TryGetValue(new WheelKey(FixtureAttribute.GoboWheel, instance), out var wheel) && wheel != null)
+                return wheel;
+
+            return goboWheel;
+        }
+
         private void UpdateMonitorValues(int[] universe512)
         {
             if (!monitorEnabled) return;
@@ -1138,7 +1768,9 @@ namespace ArtNet.Runtime
                     var it = monitorItems[i];
 
                     // function未指定なら relXX で表示
-                    string label = (Convert.ToInt32(it.function) == 0)
+                    string label = !string.IsNullOrWhiteSpace(it.label)
+                        ? it.label
+                        : (Convert.ToInt32(it.function) == 0)
                         ? $"rel{it.relativeCh}"
                         : it.function.ToString();
 
@@ -1154,6 +1786,11 @@ namespace ArtNet.Runtime
             }
 
             return sb.ToString();
+        }
+
+        private static string BuildElementLabel(FixtureAttribute attribute, int instance, FixtureChannelRole role, FixtureByteRole byteRole)
+        {
+            return $"{attribute}{Mathf.Max(1, instance)}.{role}.{byteRole}";
         }
 
         public void ResetPanTiltToBase()
@@ -1608,15 +2245,16 @@ namespace ArtNet.Runtime
             };
         }
 
-        private void UpdateGoboTargetsFromDmx(int goboValue, int goboRotationValue)
+        private void UpdateGoboTargetsFromDmx(int goboValue, int goboRotationValue, GoboWheelDefinition wheelDefinition = null, bool overrideGoboRotationSpeed = false, float goboRotationSpeedOverride = 0f)
         {
             _goboEnabled = false;
             _goboTexture = null;
             _goboRotationOffsetDeg = 0f;
 
-            if (goboWheel != null)
+            var wheel = wheelDefinition != null ? wheelDefinition : goboWheel;
+            if (wheel != null)
             {
-                var slot = goboWheel.ResolveSlot(goboValue);
+                var slot = wheel.ResolveSlot(goboValue);
                 if (slot != null)
                 {
                     _goboEnabled = !slot.isOpen && slot.texture != null;
@@ -1625,15 +2263,39 @@ namespace ArtNet.Runtime
                 }
             }
 
-            _goboRotationSpeedDegPerSec = MapGoboRotationDmxToSpeed(goboRotationValue);
+            _goboRotationSpeedDegPerSec = overrideGoboRotationSpeed ? goboRotationSpeedOverride : MapGoboRotationDmxToSpeed(goboRotationValue);
         }
 
         private void UpdateGoboMotion()
         {
-            if (Mathf.Approximately(_goboRotationSpeedDegPerSec, 0f))
+            if (!Mathf.Approximately(_goboRotationSpeedDegPerSec, 0f))
+                _goboRotationDeg = Mathf.Repeat(_goboRotationDeg + (_goboRotationSpeedDegPerSec * Time.deltaTime), 360f);
+
+            ApplyGoboCookieRollTransform();
+        }
+
+        private void ApplyGoboCookieRollTransform()
+        {
+            if (!syncGoboRotationToCookieTransform)
                 return;
 
-            _goboRotationDeg = Mathf.Repeat(_goboRotationDeg + (_goboRotationSpeedDegPerSec * Time.deltaTime), 360f);
+            if (goboCookieRollTransform == null)
+            {
+                _goboCookieRollBaseTransform = null;
+                _hasGoboCookieRollBaseLocalRot = false;
+                return;
+            }
+
+            if (!_hasGoboCookieRollBaseLocalRot || _goboCookieRollBaseTransform != goboCookieRollTransform)
+            {
+                _goboCookieRollBaseTransform = goboCookieRollTransform;
+                _goboCookieRollBaseLocalRot = goboCookieRollTransform.localRotation;
+                _hasGoboCookieRollBaseLocalRot = true;
+            }
+
+            Vector3 axis = goboCookieRollAxis.sqrMagnitude > 0.0001f ? goboCookieRollAxis.normalized : Vector3.forward;
+            float rollDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg + goboCookieRollOffsetDeg, 360f);
+            goboCookieRollTransform.localRotation = _goboCookieRollBaseLocalRot * Quaternion.AngleAxis(rollDeg, axis);
         }
 
         private float MapGoboRotationDmxToSpeed(int dmxValue)

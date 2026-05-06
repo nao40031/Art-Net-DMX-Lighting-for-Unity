@@ -16,8 +16,8 @@ MonoBehaviour:
   - name: Gobo1
     dmxMin: 8
     dmxMax: 15
-    texture: {fileID: 0}
-    isOpen: 1
+    texture: {fileID: 2800000, guid: 1f1e57676e5798c46baac0be616dfa67, type: 3}
+    isOpen: 0
     rotationOffsetDeg: 0
   - name: Gobo2
     dmxMin: 16
@@ -46,7 +46,7 @@ MonoBehaviour:
   - name: Gobo5
     dmxMin: 48
     dmxMax: 55
-    texture: {fileID: 2800000, guid: 6ddc4128e4c390644bcb62bd807d289b, type: 3}
+    texture: {fileID: 2800000, guid: f002e115e665e70409c17e3cad59bb4d, type: 3}
     isOpen: 0
     rotationOffsetDeg: 0
   - name: Gobo7

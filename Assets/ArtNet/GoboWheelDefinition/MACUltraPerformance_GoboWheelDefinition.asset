@@ -1,0 +1,97 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 466f185267f601341a0f5b77bc5cd89f, type: 3}
+  m_Name: MACUltraPerformance_GoboWheelDefinition
+  m_EditorClassIdentifier: 
+  slots:
+  - name: Open
+    dmxMin: 0
+    dmxMax: 9
+    texture: {fileID: 0}
+    isOpen: 1
+    rotationOffsetDeg: 0
+    additionalRanges: []
+  - name: Gobo 1
+    dmxMin: 10
+    dmxMax: 14
+    texture: {fileID: 2800000, guid: ba77b39b8d19c6347a0ebf94ab48edf2, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+    additionalRanges:
+    - name: Gobo 1 Rot
+      dmxMin: 35
+      dmxMax: 39
+      type: 1
+    - name: Gobo 1 Shake
+      dmxMin: 60
+      dmxMax: 89
+      type: 2
+  - name: Gobo 2
+    dmxMin: 15
+    dmxMax: 19
+    texture: {fileID: 2800000, guid: 34a95ff47f3d25545a0a963470ff7b38, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+    additionalRanges:
+    - name: Gobo 2 Rot
+      dmxMin: 40
+      dmxMax: 44
+      type: 1
+    - name: Gobo 2 Shake
+      dmxMin: 90
+      dmxMax: 119
+      type: 2
+  - name: Gobo 3
+    dmxMin: 20
+    dmxMax: 24
+    texture: {fileID: 2800000, guid: 1f1e57676e5798c46baac0be616dfa67, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+    additionalRanges:
+    - name: Gobo 3 Rot
+      dmxMin: 45
+      dmxMax: 49
+      type: 1
+    - name: Gobo 3 Shake
+      dmxMin: 120
+      dmxMax: 149
+      type: 2
+  - name: Gobo 4
+    dmxMin: 25
+    dmxMax: 29
+    texture: {fileID: 2800000, guid: 3158adefaccca084c99da9668b930c17, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+    additionalRanges:
+    - name: Gobo 4 Rot
+      dmxMin: 50
+      dmxMax: 54
+      type: 1
+    - name: Gobo 4 Shake
+      dmxMin: 150
+      dmxMax: 179
+      type: 2
+  - name: Gobo 5
+    dmxMin: 30
+    dmxMax: 34
+    texture: {fileID: 2800000, guid: a771e320bbbf82041b9281bef673e0ef, type: 3}
+    isOpen: 0
+    rotationOffsetDeg: 0
+    additionalRanges:
+    - name: Gobo 5 Rot
+      dmxMin: 55
+      dmxMax: 59
+      type: 1
+    - name: Gobo 5 Shake
+      dmxMin: 180
+      dmxMax: 209
+      type: 2

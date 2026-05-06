@@ -11,6 +11,35 @@ using UnityEngine;
 
 namespace ArtNet.Runtime
 {
+    public enum GoboRangeType
+    {
+        Select,
+        Rotation,
+        Shake,
+        WheelScroll,
+        NoFunction,
+        Open
+    }
+
+    [Serializable]
+    public class GoboSlotRange
+    {
+        public string name;
+
+        [Range(0, 255)]
+        public int dmxMin = 0;
+
+        [Range(0, 255)]
+        public int dmxMax = 0;
+
+        public GoboRangeType type = GoboRangeType.Select;
+
+        public bool Contains(int dmxValue)
+        {
+            return dmxValue >= dmxMin && dmxValue <= dmxMax;
+        }
+    }
+
     [Serializable]
     public class GoboSlot
     {
@@ -25,10 +54,24 @@ namespace ArtNet.Runtime
         public Texture2D texture;
         public bool isOpen = false;
         public float rotationOffsetDeg = 0f;
+        public List<GoboSlotRange> additionalRanges = new();
 
         public bool Contains(int dmxValue)
         {
-            return dmxValue >= dmxMin && dmxValue <= dmxMax;
+            if (dmxValue >= dmxMin && dmxValue <= dmxMax)
+                return true;
+
+            if (additionalRanges == null)
+                return false;
+
+            for (int i = 0; i < additionalRanges.Count; i++)
+            {
+                var range = additionalRanges[i];
+                if (range != null && range.Contains(dmxValue))
+                    return true;
+            }
+
+            return false;
         }
     }
 

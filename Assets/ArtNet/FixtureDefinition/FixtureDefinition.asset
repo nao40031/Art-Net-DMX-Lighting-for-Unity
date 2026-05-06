@@ -38,12 +38,66 @@ MonoBehaviour:
       channel: 8
     - function: 16
       channel: 9
+    elements:
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    wheelBindings: []
   - modeName: Generic Dimmer
     channelCount: 1
     channels:
     - function: 0
       channel: 0
-  - modeName: 18-Channel Mode
+    elements:
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    wheelBindings: []
+  - modeName: 18-Channel Mode(Old)
     channelCount: 18
     channels:
     - function: 4
@@ -82,3 +136,95 @@ MonoBehaviour:
       channel: 17
     - function: 19
       channel: 18
+    elements:
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    - attribute: 0
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges: []
+    wheelBindings: []
