@@ -130,6 +130,25 @@ namespace ArtNet.Runtime
         Sync = 17
     }
 
+    public enum NormalizedMappingContext
+    {
+        Generic = 0,
+        Zoom = 1,
+        Focus = 2,
+        Iris = 3,
+        Frost = 4,
+        RotationSpeed = 5,
+        IndexPosition = 6
+    }
+
+    public enum NormalizedMappingPreset
+    {
+        Normal = 0,
+        Inverted = 1,
+        Custom = 2,
+        NotUsed = 3
+    }
+
     [Serializable]
     public class FixtureChannelRange
     {
@@ -142,13 +161,59 @@ namespace ArtNet.Runtime
         public int dmxMax = 255;
 
         public FixtureRangeType type = FixtureRangeType.None;
+        public NormalizedMappingContext mappingContext = NormalizedMappingContext.Generic;
+        public NormalizedMappingPreset mappingPreset = NormalizedMappingPreset.Normal;
         public float normalizedFrom = 0f;
         public float normalizedTo = 1f;
 
         public bool Contains(int dmxValue)
         {
             int clamped = Mathf.Clamp(dmxValue, 0, 65535);
-            return clamped >= dmxMin && clamped <= dmxMax;
+            int min = Mathf.Min(dmxMin, dmxMax);
+            int max = Mathf.Max(dmxMin, dmxMax);
+            return clamped >= min && clamped <= max;
+        }
+
+        public bool HasExplicitMapping(int defaultDmxMax)
+        {
+            if (mappingPreset == NormalizedMappingPreset.NotUsed)
+                return false;
+
+            if (mappingContext != NormalizedMappingContext.Generic)
+                return true;
+
+            if (mappingPreset != NormalizedMappingPreset.Normal)
+                return true;
+
+            if (dmxMin != 0 || dmxMax != defaultDmxMax)
+                return true;
+
+            return false;
+        }
+
+        public float Normalize(int dmxValue)
+        {
+            if (mappingPreset == NormalizedMappingPreset.NotUsed)
+                return 0f;
+
+            int min = Mathf.Min(dmxMin, dmxMax);
+            int max = Mathf.Max(dmxMin, dmxMax);
+            if (max <= min)
+                return ResolvePresetValue(0f);
+
+            float t = Mathf.InverseLerp(min, max, Mathf.Clamp(dmxValue, min, max));
+            return ResolvePresetValue(t);
+        }
+
+        private float ResolvePresetValue(float t)
+        {
+            return mappingPreset switch
+            {
+                NormalizedMappingPreset.Inverted => 1f - t,
+                NormalizedMappingPreset.Custom => Mathf.Lerp(normalizedFrom, normalizedTo, t),
+                NormalizedMappingPreset.NotUsed => 0f,
+                _ => t
+            };
         }
     }
 

@@ -158,6 +158,26 @@ namespace ArtNet.Runtime
         [SerializeField, Range(0f, 1f)] private float beamDimmerFloor = 0f;
 
         // ------------------------------------------------------------
+        // Zoom
+        // ------------------------------------------------------------
+
+        [Header("Zoom")]
+        [Tooltip("DMXのZoom値をLightのOuter Spot Angleへ同期します。")]
+        [SerializeField] private bool syncZoomToLight = true;
+
+        [Tooltip("Zoom最小時のOuter Spot Angle。")]
+        [SerializeField, Range(0.1f, 179f)] private float minOuterSpotAngle = 5f;
+
+        [Tooltip("Zoom最大時のOuter Spot Angle。")]
+        [SerializeField, Range(0.1f, 179f)] private float maxOuterSpotAngle = 50f;
+
+        [Tooltip("DMX Zoom値の向きを反転します。")]
+        [SerializeField] private bool invertZoom = false;
+
+        [Tooltip("Outer Spot Angleに対するInner Spotの割合。HDRPではinnerSpotPercentとして使用します。")]
+        [SerializeField, Range(0f, 100f)] private float zoomInnerSpotPercent = 80f;
+
+        // ------------------------------------------------------------
         // Light Response (LED / Halogen)
         // ------------------------------------------------------------
 
@@ -380,6 +400,9 @@ namespace ArtNet.Runtime
         private float _goboRotationDeg;
         private float _goboRotationOffsetDeg;
         private float _goboRotationSpeedDegPerSec;
+        private bool _zoomEnabled;
+        private float _zoomOuterSpotAngleDeg;
+        private float _zoomInnerSpotPercent;
         private Transform _goboCookieRollBaseTransform;
         private Quaternion _goboCookieRollBaseLocalRot;
         private bool _hasGoboCookieRollBaseLocalRot;
@@ -1275,6 +1298,8 @@ namespace ArtNet.Runtime
 
             Color rgb = ReadElementColor(universe512);
 
+            UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
+
             int goboValue = TryReadElementRaw8(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.SelectMode, out int goboRaw)
                 ? goboRaw
                 : 0;
@@ -1333,6 +1358,8 @@ namespace ArtNet.Runtime
 
             Color rgb = ReadElementColor(universe512);
 
+            UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
+
             int goboValue = TryReadElementRaw8(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.SelectMode, out int goboRaw)
                 ? goboRaw
                 : 0;
@@ -1375,13 +1402,26 @@ namespace ArtNet.Runtime
 
         private bool TryReadElement01(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out float value01)
         {
+            return TryReadElement01(universe512, attribute, instance, role, out value01, out _);
+        }
+
+        private bool TryReadElement01(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out float value01, out bool usedRangeMapping)
+        {
             value01 = 0f;
+            usedRangeMapping = false;
             if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
                 return false;
 
             if (binding.singleRel > 0)
             {
-                value01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + binding.singleRel - 1));
+                int raw8 = Read8Abs(universe512, startAddress + binding.singleRel - 1);
+                if (TryNormalizeElementRange(binding.PrimaryElement, raw8, 255, out value01))
+                {
+                    usedRangeMapping = true;
+                    return true;
+                }
+
+                value01 = DmxValueUtils.ByteTo01(raw8);
                 return true;
             }
 
@@ -1389,7 +1429,14 @@ namespace ArtNet.Runtime
             {
                 int coarseAbs = startAddress + binding.coarseRel - 1;
                 int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
-                value01 = Read16Abs(universe512, coarseAbs, fineAbs) / 65535f;
+                int raw16 = Read16Abs(universe512, coarseAbs, fineAbs);
+                if (TryNormalizeElementRange(binding.PrimaryElement, raw16, 65535, out value01))
+                {
+                    usedRangeMapping = true;
+                    return true;
+                }
+
+                value01 = raw16 / 65535f;
                 return true;
             }
 
@@ -1398,13 +1445,26 @@ namespace ArtNet.Runtime
 
         private bool TryReadElement01(byte[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out float value01)
         {
+            return TryReadElement01(universe512, attribute, instance, role, out value01, out _);
+        }
+
+        private bool TryReadElement01(byte[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out float value01, out bool usedRangeMapping)
+        {
             value01 = 0f;
+            usedRangeMapping = false;
             if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
                 return false;
 
             if (binding.singleRel > 0)
             {
-                value01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + binding.singleRel - 1));
+                int raw8 = Read8Abs(universe512, startAddress + binding.singleRel - 1);
+                if (TryNormalizeElementRange(binding.PrimaryElement, raw8, 255, out value01))
+                {
+                    usedRangeMapping = true;
+                    return true;
+                }
+
+                value01 = DmxValueUtils.ByteTo01(raw8);
                 return true;
             }
 
@@ -1412,11 +1472,49 @@ namespace ArtNet.Runtime
             {
                 int coarseAbs = startAddress + binding.coarseRel - 1;
                 int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
-                value01 = Read16Abs(universe512, coarseAbs, fineAbs) / 65535f;
+                int raw16 = Read16Abs(universe512, coarseAbs, fineAbs);
+                if (TryNormalizeElementRange(binding.PrimaryElement, raw16, 65535, out value01))
+                {
+                    usedRangeMapping = true;
+                    return true;
+                }
+
+                value01 = raw16 / 65535f;
                 return true;
             }
 
             return false;
+        }
+
+        private static bool TryNormalizeElementRange(FixtureChannelElement element, int rawValue, int defaultDmxMax, out float value01)
+        {
+            value01 = 0f;
+            if (element == null || element.ranges == null)
+                return false;
+
+            FixtureChannelRange bestRange = null;
+            int bestWidth = int.MaxValue;
+
+            for (int i = 0; i < element.ranges.Count; i++)
+            {
+                var range = element.ranges[i];
+                if (range == null) continue;
+                if (!range.Contains(rawValue)) continue;
+                if (!range.HasExplicitMapping(defaultDmxMax)) continue;
+
+                int width = Mathf.Abs(range.dmxMax - range.dmxMin);
+                if (bestRange == null || width < bestWidth)
+                {
+                    bestRange = range;
+                    bestWidth = width;
+                }
+            }
+
+            if (bestRange == null)
+                return false;
+
+            value01 = Mathf.Clamp01(bestRange.Normalize(rawValue));
+            return true;
         }
 
         private bool TryReadElementRaw8(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out int value)
@@ -1555,6 +1653,9 @@ namespace ArtNet.Runtime
 
         private float MapGoboRotationRangeMagnitude(FixtureChannelRange range, int rawValue, bool fastToSlow)
         {
+            if (range.HasExplicitMapping(65535))
+                return Mathf.Clamp01(range.Normalize(rawValue)) * maxGoboRotateDegPerSec;
+
             int min = Mathf.Min(range.dmxMin, range.dmxMax);
             int max = Mathf.Max(range.dmxMin, range.dmxMax);
             if (max <= min)
@@ -2241,8 +2342,30 @@ namespace ArtNet.Runtime
                 color = rgb,
                 goboEnabled = _goboEnabled && _goboTexture != null,
                 goboTexture = _goboTexture,
-                goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f)
+                goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f),
+                zoomEnabled = _zoomEnabled,
+                outerSpotAngleDeg = _zoomOuterSpotAngleDeg,
+                innerSpotPercent = _zoomInnerSpotPercent
             };
+        }
+
+        private void UpdateZoomTargetsFromDmx(bool hasZoom, float zoom01, bool usesRangeMapping)
+        {
+            if (!syncZoomToLight || !hasZoom)
+            {
+                _zoomEnabled = false;
+                return;
+            }
+
+            float z = Mathf.Clamp01(zoom01);
+            if (invertZoom && !usesRangeMapping) z = 1f - z;
+
+            float min = Mathf.Clamp(minOuterSpotAngle, 0.1f, 179f);
+            float max = Mathf.Clamp(maxOuterSpotAngle, 0.1f, 179f);
+
+            _zoomEnabled = true;
+            _zoomOuterSpotAngleDeg = Mathf.Lerp(min, max, z);
+            _zoomInnerSpotPercent = Mathf.Clamp(zoomInnerSpotPercent, 0f, 100f);
         }
 
         private void UpdateGoboTargetsFromDmx(int goboValue, int goboRotationValue, GoboWheelDefinition wheelDefinition = null, bool overrideGoboRotationSpeed = false, float goboRotationSpeedOverride = 0f)

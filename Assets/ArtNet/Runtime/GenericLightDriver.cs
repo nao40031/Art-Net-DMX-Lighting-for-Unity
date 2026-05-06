@@ -37,6 +37,14 @@ namespace ArtNet.Runtime
             _light.intensity = d * maxIntensity;
             _light.color = state.color;
             _light.cookie = state.goboEnabled ? state.goboTexture : null;
+
+            if (state.zoomEnabled)
+            {
+                float outer = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+                float inner01 = Mathf.Clamp01(state.innerSpotPercent / 100f);
+                _light.spotAngle = outer;
+                _light.innerSpotAngle = outer * inner01;
+            }
         }
 
         private float ApplyCurve(float x)

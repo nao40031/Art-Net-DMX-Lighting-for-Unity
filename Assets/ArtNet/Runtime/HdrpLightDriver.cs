@@ -59,18 +59,35 @@ namespace ArtNet.Runtime
                 {
                     _hd.SetIntensity(intensity, ToLightUnit(unit));
                     _hd.SetCookie(cookie);
+                    if (state.zoomEnabled)
+                    {
+                        _hd.SetSpotAngle(Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f));
+                        _hd.innerSpotPercent = Mathf.Clamp(state.innerSpotPercent, 0f, 100f);
+                    }
                 }
                 catch
                 {
                     _light.intensity = intensity;
                     _light.cookie = state.goboEnabled ? state.goboTexture : null;
+                    ApplyGenericZoom(state);
                 }
             }
             else
             {
                 _light.intensity = intensity;
                 _light.cookie = state.goboEnabled ? state.goboTexture : null;
+                ApplyGenericZoom(state);
             }
+        }
+
+        private void ApplyGenericZoom(FixtureRenderState state)
+        {
+            if (!state.zoomEnabled || _light == null) return;
+
+            float outer = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+            float inner01 = Mathf.Clamp01(state.innerSpotPercent / 100f);
+            _light.spotAngle = outer;
+            _light.innerSpotAngle = outer * inner01;
         }
 
         private static UnityEngine.Rendering.LightUnit ToLightUnit(HdrpUnit u)
