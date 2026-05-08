@@ -178,6 +178,81 @@ namespace ArtNet.Runtime
         [SerializeField, Range(0f, 100f)] private float zoomInnerSpotPercent = 80f;
 
         // ------------------------------------------------------------
+        // Prism
+        // ------------------------------------------------------------
+
+        public enum PrismRenderMode
+        {
+            None = 0,
+            CookieComposite = 1,
+            AuxiliaryLights = 2,
+            CookieCompositeAndAuxiliaryLights = 3
+        }
+
+        public enum AuxiliaryCookieRotationMode
+        {
+            CompositeTextureRoll = 0,
+            TransformRoll = 1,
+            Auto = 2
+        }
+
+        public enum PrismDrawMode
+        {
+            ProjectionOnly = 0,
+            FullAuxiliaryLights = 1,
+            ProjectionAndShaderBeam = 2
+        }
+
+        [Header("Prism")]
+        [Tooltip("DMX値とプリズムスロットを対応付ける定義。")]
+        [SerializeField] private PrismDefinition prismDefinition;
+
+        [Tooltip("プリズム機能を有効にします。オフの場合、Prism DefinitionとDMX値が設定されていてもプリズム描画は行いません。")]
+        [SerializeField] private bool enablePrism = true;
+
+        [Tooltip("プリズムの描画モード。Projection Onlyは床・壁のCookie投影中心、Full Auxiliary Lightsは高品質、Projection + Shader Beamは将来のShaderビーム分割用です。")]
+        [SerializeField] private PrismDrawMode prismDrawMode = PrismDrawMode.ProjectionOnly;
+
+        [Tooltip("旧プリズム描画方式。既存Prefabの互換性維持用です。")]
+        [SerializeField, HideInInspector] private PrismRenderMode prismRenderMode = PrismRenderMode.CookieComposite;
+
+        [Tooltip("旧Projection Only互換用。現在のProjection OnlyではPrimary Lightを抑制し、補助ライト側で投影します。")]
+        [SerializeField, HideInInspector, Range(0f, 1f)] private float projectionOnlyPrimaryIntensityScale = 0.65f;
+
+        [Tooltip("Projection Only時に補助HDRPライトのVolumetric Dimmerを0にします。")]
+        [SerializeField] private bool disableAuxiliaryVolumetricInProjectionOnly = true;
+
+        [Tooltip("AuxiliaryLightsでのGobo Rotation方式。AutoはHDRPならTransform Roll、それ以外はComposite Texture Rollです。")]
+        [SerializeField] private AuxiliaryCookieRotationMode auxiliaryCookieRotationMode = AuxiliaryCookieRotationMode.CompositeTextureRoll;
+
+        [Tooltip("Prism Rotation=最大時の角速度（deg/sec）。")]
+        [SerializeField, Min(0f)] private float maxPrismRotateDegPerSec = 360f;
+
+        [Tooltip("CookieComposite用のRenderTextureサイズ。")]
+        [SerializeField, Min(16)] private int prismCompositeCookieSize = 512;
+
+        [Tooltip("角度変化がこの値未満ならCookieを再合成しません。0で毎回更新。")]
+        [SerializeField, Min(0f)] private float prismCompositeRotationStepDeg = 1f;
+
+        [Tooltip("CookieCompositeで扱う最大Facet数。")]
+        [SerializeField, Range(1, 16)] private int maxPrismCompositeFacets = 8;
+
+        [Tooltip("AuxiliaryLightsで扱う最大Facet数。")]
+        [SerializeField, Range(1, 16)] private int maxPrismAuxiliaryFacets = 8;
+
+        [Tooltip("PrismSlot.spreadをAuxiliary Lightの角度へ変換する倍率。")]
+        [SerializeField, Min(0f)] private float auxiliarySpreadMultiplierDeg = 10f;
+
+        [Tooltip("Auxiliary Lightの明るさに掛ける追加倍率。")]
+        [SerializeField, Min(0f)] private float auxiliaryIntensityScale = 1f;
+
+        [Tooltip("Auxiliary LightのShadowを有効化します。初期OFF推奨。")]
+        [SerializeField] private bool auxiliaryLightShadows = false;
+
+        [Tooltip("Cookie合成Shader。未設定の場合はResources/Shader.Findから解決します。")]
+        [SerializeField] private Shader prismCookieShader;
+
+        // ------------------------------------------------------------
         // Light Response (LED / Halogen)
         // ------------------------------------------------------------
 
@@ -403,10 +478,43 @@ namespace ArtNet.Runtime
         private bool _zoomEnabled;
         private float _zoomOuterSpotAngleDeg;
         private float _zoomInnerSpotPercent;
+        private bool _prismEnabled;
+        private int _prismFacetCount = 1;
+        private float _prismSpread;
+        private float _prismFacetScale = 1f;
+        private float _prismRotationDeg;
+        private float _prismRotationOffsetDeg;
+        private float _prismRotationSpeedDegPerSec;
+        private float _prismIntensityScale = 1f;
+        private RenderTexture _prismCompositeCookie;
+        private RenderTexture _prismRotatedGoboCookie;
+        private Material _prismCookieMaterial;
+        private Texture _lastPrismCompositeSource;
+        private Texture _lastPrismRotatedSource;
+        private float _lastPrismCompositeGoboRotation = float.NaN;
+        private float _lastPrismCompositePrismRotation = float.NaN;
+        private float _lastPrismRotatedGoboRotation = float.NaN;
+        private int _lastPrismCompositeFacetCount = -1;
+        private float _lastPrismCompositeSpread = float.NaN;
+        private float _lastPrismCompositeFacetScale = float.NaN;
+        private float _lastPrismCompositeIntensityScale = float.NaN;
+        private int _lastPrismCookieSize = -1;
+        private int _lastPrismRotatedCookieSize = -1;
+        private readonly List<PrismAuxiliaryLight> _prismAuxiliaryLights = new();
+        private Transform _prismAuxRoot;
         private Transform _goboCookieRollBaseTransform;
         private Quaternion _goboCookieRollBaseLocalRot;
         private bool _hasGoboCookieRollBaseLocalRot;
 
+        private class PrismAuxiliaryLight
+        {
+            public Transform directionPivot;
+            public Transform cookieRollPivot;
+            public Light light;
+#if HAS_HDRP
+            public HDAdditionalLightData hd;
+#endif
+        }
 
         // --- Pan/Tilt continuous interpolation targets (updated by DMX, applied every frame) ---
         private bool _hasPanTarget;
@@ -614,10 +722,21 @@ namespace ArtNet.Runtime
             ResolveAll();
         }
 
+        private void OnDisable()
+        {
+            DisablePrismAuxiliaryLights();
+        }
+
+        private void OnDestroy()
+        {
+            ReleasePrismResources();
+        }
+
         private void Update()
         {
             UpdatePanTiltMotion();
             UpdateGoboMotion();
+            UpdatePrismMotion();
             UpdateLightResponse();
 
             if (!monitorEnabled) return;
@@ -1111,6 +1230,10 @@ namespace ArtNet.Runtime
                 goboRotationValue = Read8Abs(universe512, startAddress + goboRotationRel - 1);
 
             UpdateGoboTargetsFromDmx(goboValue, goboRotationValue);
+            int prismValue = 0;
+            if (TryGetRelativeChannel(FixtureFunction.Prism, out int prismRel))
+                prismValue = Read8Abs(universe512, startAddress + prismRel - 1);
+            UpdatePrismTargetsFromDmx(prismValue, false, 0f, false, 0f);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（ある機種のみ適用） ---
@@ -1227,6 +1350,10 @@ namespace ArtNet.Runtime
                 goboRotationValue = Read8Abs(universe512, startAddress + goboRotationRel - 1);
 
             UpdateGoboTargetsFromDmx(goboValue, goboRotationValue);
+            int prismValue = 0;
+            if (TryGetRelativeChannel(FixtureFunction.Prism, out int prismRel))
+                prismValue = Read8Abs(universe512, startAddress + prismRel - 1);
+            UpdatePrismTargetsFromDmx(prismValue, false, 0f, false, 0f);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（ある機種のみ適用） ---
@@ -1307,20 +1434,21 @@ namespace ArtNet.Runtime
             int goboRotationValue = 127;
             bool hasGoboRotationSpeedOverride = false;
             float goboRotationSpeedOverride = 0f;
-            if (TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.PositionOrRotation, out int goboRotationRaw16, out var goboRotationElement) ||
-                TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.Rotation, out goboRotationRaw16, out goboRotationElement))
+            if (TryReadElementRawForRange(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.PositionOrRotation, out int goboRotationRaw, out int goboRotationRawMax, out var goboRotationElement) ||
+                TryReadElementRawForRange(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.Rotation, out goboRotationRaw, out goboRotationRawMax, out goboRotationElement))
             {
-                if (TryMapGoboRotationRangeToSpeed(goboRotationElement, goboRotationRaw16, out goboRotationSpeedOverride))
+                if (TryMapGoboRotationRangeToSpeed(goboRotationElement, goboRotationRaw, goboRotationRawMax, out goboRotationSpeedOverride))
                 {
                     hasGoboRotationSpeedOverride = true;
                 }
                 else
                 {
-                    goboRotationValue = Mathf.Clamp(Mathf.RoundToInt((goboRotationRaw16 / 65535f) * 255f), 0, 255);
+                    goboRotationValue = Mathf.Clamp(Mathf.RoundToInt((goboRotationRaw / Mathf.Max(1f, goboRotationRawMax)) * 255f), 0, 255);
                 }
             }
 
             UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelDefinition(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
+            UpdatePrismTargetsFromElementDmx(universe512);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             if (panTransform != null && TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Position, out float pan01))
@@ -1367,20 +1495,21 @@ namespace ArtNet.Runtime
             int goboRotationValue = 127;
             bool hasGoboRotationSpeedOverride = false;
             float goboRotationSpeedOverride = 0f;
-            if (TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.PositionOrRotation, out int goboRotationRaw16, out var goboRotationElement) ||
-                TryReadElementRaw16(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.Rotation, out goboRotationRaw16, out goboRotationElement))
+            if (TryReadElementRawForRange(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.PositionOrRotation, out int goboRotationRaw, out int goboRotationRawMax, out var goboRotationElement) ||
+                TryReadElementRawForRange(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.Rotation, out goboRotationRaw, out goboRotationRawMax, out goboRotationElement))
             {
-                if (TryMapGoboRotationRangeToSpeed(goboRotationElement, goboRotationRaw16, out goboRotationSpeedOverride))
+                if (TryMapGoboRotationRangeToSpeed(goboRotationElement, goboRotationRaw, goboRotationRawMax, out goboRotationSpeedOverride))
                 {
                     hasGoboRotationSpeedOverride = true;
                 }
                 else
                 {
-                    goboRotationValue = Mathf.Clamp(Mathf.RoundToInt((goboRotationRaw16 / 65535f) * 255f), 0, 255);
+                    goboRotationValue = Mathf.Clamp(Mathf.RoundToInt((goboRotationRaw / Mathf.Max(1f, goboRotationRawMax)) * 255f), 0, 255);
                 }
             }
 
             UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelDefinition(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
+            UpdatePrismTargetsFromElementDmx(universe512);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             if (panTransform != null && TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Position, out float pan01))
@@ -1595,7 +1724,65 @@ namespace ArtNet.Runtime
             return false;
         }
 
-        private bool TryMapGoboRotationRangeToSpeed(FixtureChannelElement element, int rawValue, out float speedDegPerSec)
+        private bool TryReadElementRawForRange(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out int value, out int maxValue, out FixtureChannelElement element)
+        {
+            value = 0;
+            maxValue = 255;
+            element = null;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            element = binding.PrimaryElement;
+
+            if (binding.coarseRel > 0)
+            {
+                int coarseAbs = startAddress + binding.coarseRel - 1;
+                int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
+                value = Read16Abs(universe512, coarseAbs, fineAbs);
+                maxValue = 65535;
+                return true;
+            }
+
+            if (binding.singleRel > 0)
+            {
+                value = Read8Abs(universe512, startAddress + binding.singleRel - 1);
+                maxValue = 255;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryReadElementRawForRange(byte[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, out int value, out int maxValue, out FixtureChannelElement element)
+        {
+            value = 0;
+            maxValue = 255;
+            element = null;
+            if (!_elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding))
+                return false;
+
+            element = binding.PrimaryElement;
+
+            if (binding.coarseRel > 0)
+            {
+                int coarseAbs = startAddress + binding.coarseRel - 1;
+                int fineAbs = binding.fineRel > 0 ? startAddress + binding.fineRel - 1 : -1;
+                value = Read16Abs(universe512, coarseAbs, fineAbs);
+                maxValue = 65535;
+                return true;
+            }
+
+            if (binding.singleRel > 0)
+            {
+                value = Read8Abs(universe512, startAddress + binding.singleRel - 1);
+                maxValue = 255;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryMapGoboRotationRangeToSpeed(FixtureChannelElement element, int rawValue, int rawMax, out float speedDegPerSec)
         {
             speedDegPerSec = 0f;
             if (element == null || element.ranges == null)
@@ -1625,10 +1812,10 @@ namespace ArtNet.Runtime
             switch (bestRange.type)
             {
                 case FixtureRangeType.RotationCW:
-                    speedDegPerSec = -MapGoboRotationRangeMagnitude(bestRange, rawValue, true);
+                    speedDegPerSec = -MapGoboRotationRangeMagnitude(bestRange, rawValue, rawMax, true);
                     return true;
                 case FixtureRangeType.RotationCCW:
-                    speedDegPerSec = MapGoboRotationRangeMagnitude(bestRange, rawValue, false);
+                    speedDegPerSec = MapGoboRotationRangeMagnitude(bestRange, rawValue, rawMax, false);
                     return true;
                 case FixtureRangeType.NoFunction:
                 case FixtureRangeType.Open:
@@ -1651,9 +1838,9 @@ namespace ArtNet.Runtime
                    type == FixtureRangeType.Indexed;
         }
 
-        private float MapGoboRotationRangeMagnitude(FixtureChannelRange range, int rawValue, bool fastToSlow)
+        private float MapGoboRotationRangeMagnitude(FixtureChannelRange range, int rawValue, int rawMax, bool fastToSlow)
         {
-            if (range.HasExplicitMapping(65535))
+            if (range.HasExplicitMapping(rawMax))
                 return Mathf.Clamp01(range.Normalize(rawValue)) * maxGoboRotateDegPerSec;
 
             int min = Mathf.Min(range.dmxMin, range.dmxMax);
@@ -1665,6 +1852,96 @@ namespace ArtNet.Runtime
             return fastToSlow
                 ? Mathf.Lerp(maxGoboRotateDegPerSec, 0f, t)
                 : Mathf.Lerp(0f, maxGoboRotateDegPerSec, t);
+        }
+
+        private bool TryMapPrismRotationRange(FixtureChannelElement element, int rawValue, int rawMax, out float speedDegPerSec, out bool indexed, out float indexDeg)
+        {
+            speedDegPerSec = 0f;
+            indexed = false;
+            indexDeg = 0f;
+            if (element == null || element.ranges == null)
+                return false;
+
+            FixtureChannelRange bestRange = null;
+            int bestWidth = int.MaxValue;
+
+            for (int i = 0; i < element.ranges.Count; i++)
+            {
+                var range = element.ranges[i];
+                if (range == null) continue;
+                if (!range.Contains(rawValue)) continue;
+                if (!IsPrismRotationRangeType(range.type)) continue;
+
+                int width = Mathf.Abs(range.dmxMax - range.dmxMin);
+                if (bestRange == null || width < bestWidth)
+                {
+                    bestRange = range;
+                    bestWidth = width;
+                }
+            }
+
+            if (bestRange == null)
+                return false;
+
+            switch (bestRange.type)
+            {
+                case FixtureRangeType.RotationCW:
+                    speedDegPerSec = -MapPrismRotationRangeMagnitude(bestRange, rawValue, rawMax, true);
+                    return true;
+                case FixtureRangeType.RotationCCW:
+                    speedDegPerSec = MapPrismRotationRangeMagnitude(bestRange, rawValue, rawMax, false);
+                    return true;
+                case FixtureRangeType.Indexed:
+                    indexed = true;
+                    indexDeg = MapPrismIndexRangeDeg(bestRange, rawValue, rawMax);
+                    return true;
+                case FixtureRangeType.NoFunction:
+                case FixtureRangeType.Open:
+                case FixtureRangeType.Closed:
+                    speedDegPerSec = 0f;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsPrismRotationRangeType(FixtureRangeType type)
+        {
+            return type == FixtureRangeType.RotationCW ||
+                   type == FixtureRangeType.RotationCCW ||
+                   type == FixtureRangeType.NoFunction ||
+                   type == FixtureRangeType.Open ||
+                   type == FixtureRangeType.Closed ||
+                   type == FixtureRangeType.Indexed;
+        }
+
+        private float MapPrismRotationRangeMagnitude(FixtureChannelRange range, int rawValue, int rawMax, bool fastToSlow)
+        {
+            if (range.HasExplicitMapping(rawMax))
+                return Mathf.Clamp01(range.Normalize(rawValue)) * maxPrismRotateDegPerSec;
+
+            int min = Mathf.Min(range.dmxMin, range.dmxMax);
+            int max = Mathf.Max(range.dmxMin, range.dmxMax);
+            if (max <= min)
+                return 0f;
+
+            float t = Mathf.InverseLerp(min, max, rawValue);
+            return fastToSlow
+                ? Mathf.Lerp(maxPrismRotateDegPerSec, 0f, t)
+                : Mathf.Lerp(0f, maxPrismRotateDegPerSec, t);
+        }
+
+        private static float MapPrismIndexRangeDeg(FixtureChannelRange range, int rawValue, int rawMax)
+        {
+            if (range.HasExplicitMapping(rawMax))
+                return Mathf.Clamp01(range.Normalize(rawValue)) * 360f;
+
+            int min = Mathf.Min(range.dmxMin, range.dmxMax);
+            int max = Mathf.Max(range.dmxMin, range.dmxMax);
+            if (max <= min)
+                return 0f;
+
+            return Mathf.InverseLerp(min, max, rawValue) * 360f;
         }
 
         private bool TryElementValueMatchesRange(int[] universe512, FixtureAttribute attribute, int instance, FixtureChannelRole role, FixtureRangeType type, out int rawValue)
@@ -1997,6 +2274,15 @@ namespace ArtNet.Runtime
             _goboRotationDeg = 0f;
             _goboRotationOffsetDeg = 0f;
             _goboRotationSpeedDegPerSec = 0f;
+            _prismEnabled = false;
+            _prismFacetCount = 1;
+            _prismSpread = 0f;
+            _prismFacetScale = 1f;
+            _prismRotationDeg = 0f;
+            _prismRotationOffsetDeg = 0f;
+            _prismRotationSpeedDegPerSec = 0f;
+            _prismIntensityScale = 1f;
+            DisablePrismAuxiliaryLights();
 
             ApplyLightAndLens(0f, 0f, Color.white);
         }
@@ -2127,7 +2413,16 @@ namespace ArtNet.Runtime
         private void ApplyLightAndLens(float lightDim01, float lensDim01, Color rgb)
         {
             var state = BuildRenderState(lightDim01, lensDim01, rgb);
+            ApplyPrismAuxiliaryLights(state);
+
             var driverState = state;
+            bool suppressPrimaryLight = ShouldSuppressPrimaryLightForAuxiliaryOnly();
+            if (suppressPrimaryLight)
+            {
+                driverState.lightDimmer01 = 0f;
+                driverState.goboEnabled = false;
+                driverState.goboTexture = null;
+            }
             if (!syncLightCookieToGobo)
             {
                 driverState.goboEnabled = false;
@@ -2145,7 +2440,15 @@ namespace ArtNet.Runtime
             }
 
             ApplyLensDmx(state);
-            ApplyPseudoBeamDmx(state);
+            var beamState = state;
+            if (suppressPrimaryLight)
+            {
+                beamState.lightDimmer01 = 0f;
+                beamState.lensDimmer01 = 0f;
+                beamState.goboEnabled = false;
+                beamState.goboTexture = null;
+            }
+            ApplyPseudoBeamDmx(beamState);
         }
 
         private static float MoveDimmer(float current, float target, float riseTime, float fallTime)
@@ -2335,17 +2638,38 @@ namespace ArtNet.Runtime
 
         private FixtureRenderState BuildRenderState(float lightDim01, float lensDim01, Color rgb)
         {
+            float goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f);
+            bool goboEnabled = _goboEnabled && _goboTexture != null;
+            Texture goboTextureForRender = _goboTexture;
+
+            if (ShouldUsePrismCookieComposite())
+            {
+                Texture source = goboEnabled ? _goboTexture : Texture2D.whiteTexture;
+                Texture composite = GetPrismCompositeCookie(source, goboRotationDeg, GetDisplayPrismRotationDeg());
+                if (composite != null)
+                {
+                    goboEnabled = true;
+                    goboTextureForRender = composite;
+                    goboRotationDeg = 0f;
+                }
+            }
+
             return new FixtureRenderState
             {
                 lightDimmer01 = lightDim01,
                 lensDimmer01 = lensDim01,
                 color = rgb,
-                goboEnabled = _goboEnabled && _goboTexture != null,
-                goboTexture = _goboTexture,
-                goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f),
+                goboEnabled = goboEnabled && goboTextureForRender != null,
+                goboTexture = goboTextureForRender,
+                goboRotationDeg = goboRotationDeg,
                 zoomEnabled = _zoomEnabled,
                 outerSpotAngleDeg = _zoomOuterSpotAngleDeg,
-                innerSpotPercent = _zoomInnerSpotPercent
+                innerSpotPercent = _zoomInnerSpotPercent,
+                prismEnabled = IsPrismDrawingEnabled(),
+                prismFacetCount = _prismFacetCount,
+                prismSpread = _prismSpread,
+                prismRotationDeg = GetDisplayPrismRotationDeg(),
+                prismIntensityScale = _prismIntensityScale
             };
         }
 
@@ -2366,6 +2690,88 @@ namespace ArtNet.Runtime
             _zoomEnabled = true;
             _zoomOuterSpotAngleDeg = Mathf.Lerp(min, max, z);
             _zoomInnerSpotPercent = Mathf.Clamp(zoomInnerSpotPercent, 0f, 100f);
+        }
+
+        private void UpdatePrismTargetsFromElementDmx(int[] universe512)
+        {
+            int prismValue = TryReadElementRaw8(universe512, FixtureAttribute.Prism, 1, FixtureChannelRole.SelectMode, out int prismRaw)
+                ? prismRaw
+                : 0;
+
+            bool hasRotationOverride = false;
+            bool hasIndexOverride = false;
+            float rotationSpeedOverride = 0f;
+            float indexDegOverride = 0f;
+
+            if (TryReadElementRawForRange(universe512, FixtureAttribute.Prism, 1, FixtureChannelRole.PositionOrRotation, out int prismRotationRaw, out int prismRotationRawMax, out var prismRotationElement) ||
+                TryReadElementRawForRange(universe512, FixtureAttribute.Prism, 1, FixtureChannelRole.Rotation, out prismRotationRaw, out prismRotationRawMax, out prismRotationElement))
+            {
+                if (TryMapPrismRotationRange(prismRotationElement, prismRotationRaw, prismRotationRawMax, out rotationSpeedOverride, out hasIndexOverride, out indexDegOverride))
+                    hasRotationOverride = true;
+            }
+
+            UpdatePrismTargetsFromDmx(prismValue, hasRotationOverride, rotationSpeedOverride, hasIndexOverride, indexDegOverride);
+        }
+
+        private void UpdatePrismTargetsFromElementDmx(byte[] universe512)
+        {
+            int prismValue = TryReadElementRaw8(universe512, FixtureAttribute.Prism, 1, FixtureChannelRole.SelectMode, out int prismRaw)
+                ? prismRaw
+                : 0;
+
+            bool hasRotationOverride = false;
+            bool hasIndexOverride = false;
+            float rotationSpeedOverride = 0f;
+            float indexDegOverride = 0f;
+
+            if (TryReadElementRawForRange(universe512, FixtureAttribute.Prism, 1, FixtureChannelRole.PositionOrRotation, out int prismRotationRaw, out int prismRotationRawMax, out var prismRotationElement) ||
+                TryReadElementRawForRange(universe512, FixtureAttribute.Prism, 1, FixtureChannelRole.Rotation, out prismRotationRaw, out prismRotationRawMax, out prismRotationElement))
+            {
+                if (TryMapPrismRotationRange(prismRotationElement, prismRotationRaw, prismRotationRawMax, out rotationSpeedOverride, out hasIndexOverride, out indexDegOverride))
+                    hasRotationOverride = true;
+            }
+
+            UpdatePrismTargetsFromDmx(prismValue, hasRotationOverride, rotationSpeedOverride, hasIndexOverride, indexDegOverride);
+        }
+
+        private void UpdatePrismTargetsFromDmx(int prismValue, bool overridePrismRotationSpeed, float prismRotationSpeedOverride, bool overridePrismIndex, float prismIndexDeg)
+        {
+            _prismEnabled = false;
+            _prismFacetCount = 1;
+            _prismSpread = 0f;
+            _prismFacetScale = 1f;
+            _prismRotationOffsetDeg = 0f;
+            _prismIntensityScale = 1f;
+
+            if (prismDefinition != null)
+            {
+                var slot = prismDefinition.ResolveSlot(prismValue);
+                if (slot != null)
+                {
+                    _prismEnabled = !slot.isOpen && slot.facetCount > 1;
+                    int maxConfiguredFacets = Mathf.Max(1, Mathf.Max(maxPrismCompositeFacets, maxPrismAuxiliaryFacets));
+                    _prismFacetCount = Mathf.Clamp(slot.facetCount, 1, maxConfiguredFacets);
+                    _prismSpread = Mathf.Max(0f, slot.spread);
+                    _prismFacetScale = Mathf.Max(0.0001f, slot.facetScale);
+                    _prismRotationOffsetDeg = slot.rotationOffsetDeg;
+                    _prismIntensityScale = Mathf.Max(0f, slot.intensityScale);
+                }
+            }
+
+            if (overridePrismIndex)
+            {
+                _prismRotationDeg = Mathf.Repeat(prismIndexDeg, 360f);
+                _prismRotationSpeedDegPerSec = 0f;
+                return;
+            }
+
+            _prismRotationSpeedDegPerSec = overridePrismRotationSpeed ? prismRotationSpeedOverride : 0f;
+        }
+
+        private void UpdatePrismMotion()
+        {
+            if (!Mathf.Approximately(_prismRotationSpeedDegPerSec, 0f))
+                _prismRotationDeg = Mathf.Repeat(_prismRotationDeg + (_prismRotationSpeedDegPerSec * Time.deltaTime), 360f);
         }
 
         private void UpdateGoboTargetsFromDmx(int goboValue, int goboRotationValue, GoboWheelDefinition wheelDefinition = null, bool overrideGoboRotationSpeed = false, float goboRotationSpeedOverride = 0f)
@@ -2399,6 +2805,12 @@ namespace ArtNet.Runtime
 
         private void ApplyGoboCookieRollTransform()
         {
+            if (ShouldPrismOwnGoboCookieRotation())
+            {
+                RestoreGoboCookieRollTransform();
+                return;
+            }
+
             if (!syncGoboRotationToCookieTransform)
                 return;
 
@@ -2435,6 +2847,474 @@ namespace ArtNet.Runtime
 
             float t2 = (clamped - 129) / 126f;
             return Mathf.Lerp(0f, maxGoboRotateDegPerSec, t2);
+        }
+
+        private bool ShouldUsePrismCookieComposite()
+        {
+            return false;
+        }
+
+        private bool ShouldUsePrismAuxiliaryLights()
+        {
+            return IsPrismDrawingEnabled();
+        }
+
+        private bool ShouldSuppressPrimaryLightForAuxiliaryOnly()
+        {
+            return IsPrismDrawingEnabled();
+        }
+
+        private bool ShouldPrismOwnGoboCookieRotation()
+        {
+            return IsPrismDrawingEnabled();
+        }
+
+        private bool IsPrismDrawingEnabled()
+        {
+            return enablePrism && _prismEnabled;
+        }
+
+        private bool IsProjectionOnlyPrismMode()
+        {
+            return IsPrismDrawingEnabled() &&
+                   (prismDrawMode == PrismDrawMode.ProjectionOnly ||
+                    prismDrawMode == PrismDrawMode.ProjectionAndShaderBeam);
+        }
+
+        private float GetDisplayPrismRotationDeg()
+        {
+            return Mathf.Repeat(-(_prismRotationDeg + _prismRotationOffsetDeg), 360f);
+        }
+
+        private void RestoreGoboCookieRollTransform()
+        {
+            if (goboCookieRollTransform == null)
+                return;
+
+            if (_hasGoboCookieRollBaseLocalRot && _goboCookieRollBaseTransform == goboCookieRollTransform)
+                goboCookieRollTransform.localRotation = _goboCookieRollBaseLocalRot;
+        }
+
+        private Texture GetPrismCompositeCookie(Texture source, float goboRotationDeg, float prismRotationDeg)
+        {
+            if (!_prismEnabled || source == null)
+                return source;
+
+            int size = Mathf.Clamp(prismCompositeCookieSize, 16, 4096);
+            int facetCount = Mathf.Clamp(_prismFacetCount, 1, Mathf.Max(1, maxPrismCompositeFacets));
+            float spread = Mathf.Clamp01(_prismSpread);
+            float facetScale = Mathf.Max(0.0001f, _prismFacetScale);
+            float intensity = Mathf.Max(0f, _prismIntensityScale);
+
+            _prismCompositeCookie = EnsurePrismRenderTexture(_prismCompositeCookie, size, "ArtNet Prism Composite Cookie");
+
+            if (!NeedsPrismCompositeUpdate(source, size, facetCount, spread, facetScale, intensity, goboRotationDeg, prismRotationDeg))
+                return _prismCompositeCookie;
+
+            if (!RenderPrismCookie(source, _prismCompositeCookie, facetCount, spread, facetScale, goboRotationDeg, prismRotationDeg, intensity))
+                return source;
+
+            _lastPrismCompositeSource = source;
+            _lastPrismCookieSize = size;
+            _lastPrismCompositeFacetCount = facetCount;
+            _lastPrismCompositeSpread = spread;
+            _lastPrismCompositeFacetScale = facetScale;
+            _lastPrismCompositeIntensityScale = intensity;
+            _lastPrismCompositeGoboRotation = goboRotationDeg;
+            _lastPrismCompositePrismRotation = prismRotationDeg;
+
+            return _prismCompositeCookie;
+        }
+
+        private Texture GetRotatedGoboCookie(Texture source, float goboRotationDeg)
+        {
+            if (source == null)
+                return null;
+
+            int size = Mathf.Clamp(prismCompositeCookieSize, 16, 4096);
+            if (_lastPrismRotatedSource != null && _lastPrismRotatedSource != source)
+            {
+                if (_prismRotatedGoboCookie != null)
+                {
+                    _prismRotatedGoboCookie.Release();
+                    if (Application.isPlaying)
+                        Destroy(_prismRotatedGoboCookie);
+                    else
+                        DestroyImmediate(_prismRotatedGoboCookie);
+                    _prismRotatedGoboCookie = null;
+                }
+
+                _lastPrismRotatedGoboRotation = float.NaN;
+                _lastPrismRotatedCookieSize = -1;
+            }
+
+            _prismRotatedGoboCookie = EnsurePrismRenderTexture(_prismRotatedGoboCookie, size, "ArtNet Prism Rotated Gobo Cookie");
+
+            if (_lastPrismRotatedSource == source &&
+                _prismRotatedGoboCookie != null &&
+                _lastPrismRotatedCookieSize == size &&
+                !AngleChangedEnough(_lastPrismRotatedGoboRotation, goboRotationDeg))
+            {
+                return _prismRotatedGoboCookie;
+            }
+
+            if (!RenderPrismCookie(source, _prismRotatedGoboCookie, 1, 0f, 1f, goboRotationDeg, 0f, 1f))
+                return source;
+
+            _lastPrismRotatedSource = source;
+            _lastPrismRotatedGoboRotation = goboRotationDeg;
+            _lastPrismRotatedCookieSize = size;
+
+            return _prismRotatedGoboCookie;
+        }
+
+        private bool NeedsPrismCompositeUpdate(Texture source, int size, int facetCount, float spread, float facetScale, float intensity, float goboRotationDeg, float prismRotationDeg)
+        {
+            if (_prismCompositeCookie == null)
+                return true;
+
+            if (_lastPrismCompositeSource != source ||
+                _lastPrismCookieSize != size ||
+                _lastPrismCompositeFacetCount != facetCount ||
+                !Mathf.Approximately(_lastPrismCompositeSpread, spread) ||
+                !Mathf.Approximately(_lastPrismCompositeFacetScale, facetScale) ||
+                !Mathf.Approximately(_lastPrismCompositeIntensityScale, intensity))
+            {
+                return true;
+            }
+
+            return AngleChangedEnough(_lastPrismCompositeGoboRotation, goboRotationDeg) ||
+                   AngleChangedEnough(_lastPrismCompositePrismRotation, prismRotationDeg);
+        }
+
+        private bool AngleChangedEnough(float previousDeg, float currentDeg)
+        {
+            if (float.IsNaN(previousDeg))
+                return true;
+
+            float step = Mathf.Max(0f, prismCompositeRotationStepDeg);
+            if (step <= 0f)
+                return true;
+
+            return Mathf.Abs(Mathf.DeltaAngle(previousDeg, currentDeg)) >= step;
+        }
+
+        private RenderTexture EnsurePrismRenderTexture(RenderTexture current, int size, string textureName)
+        {
+            if (current != null && current.width == size && current.height == size)
+                return current;
+
+            if (current != null)
+                ReleaseRenderTexture(current);
+
+            var rt = new RenderTexture(size, size, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear)
+            {
+                name = textureName,
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp,
+                useMipMap = false,
+                autoGenerateMips = false
+            };
+            rt.Create();
+            return rt;
+        }
+
+        private bool RenderPrismCookie(Texture source, RenderTexture target, int facetCount, float spread, float facetScale, float goboRotationDeg, float prismRotationDeg, float intensityScale)
+        {
+            if (source == null || target == null)
+                return false;
+
+            if (!EnsurePrismCookieMaterial())
+                return false;
+
+            _prismCookieMaterial.SetTexture("_GoboTex", source);
+            _prismCookieMaterial.SetFloat("_FacetCount", Mathf.Clamp(facetCount, 1, 8));
+            _prismCookieMaterial.SetFloat("_Spread", Mathf.Max(0f, spread));
+            _prismCookieMaterial.SetFloat("_FacetScale", Mathf.Max(0.0001f, facetScale));
+            _prismCookieMaterial.SetFloat("_GoboRotationRad", goboRotationDeg * Mathf.Deg2Rad);
+            _prismCookieMaterial.SetFloat("_PrismRotationRad", prismRotationDeg * Mathf.Deg2Rad);
+            _prismCookieMaterial.SetFloat("_IntensityScale", Mathf.Max(0f, intensityScale));
+            Graphics.Blit(source, target, _prismCookieMaterial);
+            return true;
+        }
+
+        private bool EnsurePrismCookieMaterial()
+        {
+            if (_prismCookieMaterial != null)
+                return true;
+
+            Shader shader = prismCookieShader;
+            if (shader == null)
+                shader = Resources.Load<Shader>("ArtNet/PrismCookieComposite");
+            if (shader == null)
+                shader = Shader.Find("Hidden/ArtNet/PrismCookieComposite");
+            if (shader == null)
+                return false;
+
+            _prismCookieMaterial = new Material(shader)
+            {
+                hideFlags = HideFlags.DontSave
+            };
+            return true;
+        }
+
+        private void ApplyPrismAuxiliaryLights(FixtureRenderState state)
+        {
+            if (!ShouldUsePrismAuxiliaryLights())
+            {
+                DisablePrismAuxiliaryLights();
+                return;
+            }
+
+            int count = Mathf.Clamp(_prismFacetCount, 1, Mathf.Max(1, maxPrismAuxiliaryFacets));
+            EnsurePrismAuxiliaryLights(count);
+
+            Transform sourceTransform = targetLight != null ? targetLight.transform : transform;
+            if (_prismAuxRoot != null && sourceTransform != null)
+            {
+                _prismAuxRoot.position = sourceTransform.position;
+                _prismAuxRoot.rotation = sourceTransform.rotation;
+            }
+
+            float prismRotationDeg = GetDisplayPrismRotationDeg();
+            float goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f);
+            float spreadDeg = Mathf.Max(0f, _prismSpread * auxiliarySpreadMultiplierDeg);
+            var rotationMode = ResolveAuxiliaryCookieRotationMode();
+            Texture sourceCookie = _goboEnabled && _goboTexture != null ? _goboTexture : Texture2D.whiteTexture;
+            Texture cookie = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
+                ? sourceCookie
+                : GetRotatedGoboCookie(sourceCookie, goboRotationDeg);
+
+            for (int i = 0; i < _prismAuxiliaryLights.Count; i++)
+            {
+                var aux = _prismAuxiliaryLights[i];
+                bool active = i < count;
+                if (aux?.directionPivot != null)
+                    aux.directionPivot.gameObject.SetActive(active);
+
+                if (!active || aux == null || aux.light == null)
+                    continue;
+
+                float angle = ((360f * i) / count) + prismRotationDeg;
+                float angleRad = angle * Mathf.Deg2Rad;
+                float xDeg = Mathf.Sin(angleRad) * spreadDeg;
+                float yDeg = Mathf.Cos(angleRad) * spreadDeg;
+
+                aux.directionPivot.localRotation = Quaternion.Euler(xDeg, yDeg, 0f);
+                aux.cookieRollPivot.localRotation = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
+                    ? Quaternion.AngleAxis(goboRotationDeg + goboCookieRollOffsetDeg, Vector3.forward)
+                    : Quaternion.identity;
+
+                ApplyPrismAuxiliaryLightState(aux, state, cookie, count);
+            }
+        }
+
+        private AuxiliaryCookieRotationMode ResolveAuxiliaryCookieRotationMode()
+        {
+            if (auxiliaryCookieRotationMode != AuxiliaryCookieRotationMode.Auto)
+                return auxiliaryCookieRotationMode;
+
+#if HAS_HDRP
+            if (PrimaryLightHasHdrpData())
+                return AuxiliaryCookieRotationMode.TransformRoll;
+#endif
+            return AuxiliaryCookieRotationMode.CompositeTextureRoll;
+        }
+
+#if HAS_HDRP
+        private bool PrimaryLightHasHdrpData()
+        {
+            return targetLight != null && targetLight.GetComponent<HDAdditionalLightData>() != null;
+        }
+
+        private static void TrySetHdrpVolumetricDimmer(HDAdditionalLightData hd, float value)
+        {
+            if (hd == null)
+                return;
+
+            const System.Reflection.BindingFlags flags =
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.NonPublic;
+
+            var property = typeof(HDAdditionalLightData).GetProperty("volumetricDimmer", flags);
+            if (property != null && property.CanWrite && property.PropertyType == typeof(float))
+            {
+                property.SetValue(hd, value);
+                return;
+            }
+
+            var field = typeof(HDAdditionalLightData).GetField("volumetricDimmer", flags);
+            if (field != null && field.FieldType == typeof(float))
+                field.SetValue(hd, value);
+        }
+
+#endif
+
+        private void EnsurePrismAuxiliaryLights(int count)
+        {
+            count = Mathf.Clamp(count, 1, Mathf.Max(1, maxPrismAuxiliaryFacets));
+
+            if (_prismAuxRoot == null)
+            {
+                var root = new GameObject("PrismAuxRoot");
+                root.hideFlags = HideFlags.DontSave;
+                _prismAuxRoot = root.transform;
+                _prismAuxRoot.SetParent(transform, false);
+            }
+
+            while (_prismAuxiliaryLights.Count < count)
+                _prismAuxiliaryLights.Add(CreatePrismAuxiliaryLight(_prismAuxiliaryLights.Count));
+        }
+
+        private PrismAuxiliaryLight CreatePrismAuxiliaryLight(int index)
+        {
+            var directionGo = new GameObject($"FacetDirectionPivot_{index}");
+            directionGo.hideFlags = HideFlags.DontSave;
+            directionGo.transform.SetParent(_prismAuxRoot, false);
+
+            var rollGo = new GameObject($"CookieRollPivot_{index}");
+            rollGo.hideFlags = HideFlags.DontSave;
+            rollGo.transform.SetParent(directionGo.transform, false);
+
+            var lightGo = new GameObject($"FacetLight_{index}");
+            lightGo.hideFlags = HideFlags.DontSave;
+            lightGo.transform.SetParent(rollGo.transform, false);
+
+            var light = lightGo.AddComponent<Light>();
+            light.type = LightType.Spot;
+            light.shadows = auxiliaryLightShadows ? LightShadows.Soft : LightShadows.None;
+
+#if HAS_HDRP
+            HDAdditionalLightData hd = null;
+            if (targetLight != null && targetLight.GetComponent<HDAdditionalLightData>() != null)
+                hd = lightGo.AddComponent<HDAdditionalLightData>();
+#endif
+
+            return new PrismAuxiliaryLight
+            {
+                directionPivot = directionGo.transform,
+                cookieRollPivot = rollGo.transform,
+                light = light,
+#if HAS_HDRP
+                hd = hd
+#endif
+            };
+        }
+
+        private void ApplyPrismAuxiliaryLightState(PrismAuxiliaryLight aux, FixtureRenderState state, Texture cookie, int facetCount)
+        {
+            if (aux == null || aux.light == null)
+                return;
+
+            Light light = aux.light;
+            bool hasHdrp = false;
+#if HAS_HDRP
+            hasHdrp = aux.hd != null;
+#endif
+            bool projectionOnly = IsProjectionOnlyPrismMode();
+            float maxIntensity = hasHdrp ? hdrpMaxIntensity : genericMaxIntensity;
+            float perFacetScale = auxiliaryIntensityScale * Mathf.Max(0f, _prismIntensityScale) / Mathf.Max(1, facetCount);
+            float intensity = Mathf.Clamp01(state.lightDimmer01) * maxIntensity * perFacetScale;
+
+            light.enabled = true;
+            light.type = LightType.Spot;
+            light.color = state.color;
+            light.intensity = intensity;
+            light.cookie = cookie;
+            light.shadows = (!projectionOnly && auxiliaryLightShadows) ? LightShadows.Soft : LightShadows.None;
+
+            if (targetLight != null)
+            {
+                light.range = targetLight.range;
+                light.cullingMask = targetLight.cullingMask;
+                light.renderingLayerMask = targetLight.renderingLayerMask;
+            }
+
+            if (state.zoomEnabled)
+            {
+                float outer = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+                float inner01 = Mathf.Clamp01(state.innerSpotPercent / 100f);
+                light.spotAngle = outer;
+                light.innerSpotAngle = outer * inner01;
+            }
+            else if (targetLight != null)
+            {
+                light.spotAngle = targetLight.spotAngle;
+                light.innerSpotAngle = targetLight.innerSpotAngle;
+            }
+
+#if HAS_HDRP
+            if (aux.hd != null)
+            {
+                aux.hd.SetColor(state.color);
+                aux.hd.intensity = intensity;
+                aux.hd.SetCookie(cookie != null ? cookie : Texture2D.whiteTexture);
+                TrySetHdrpVolumetricDimmer(aux.hd, projectionOnly && disableAuxiliaryVolumetricInProjectionOnly ? 0f : 1f);
+                if (state.zoomEnabled)
+                {
+                    aux.hd.SetSpotAngle(Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f));
+                    aux.hd.innerSpotPercent = Mathf.Clamp(state.innerSpotPercent, 0f, 100f);
+                }
+
+                if (targetLight != null)
+                    aux.hd.range = targetLight.range;
+            }
+#endif
+        }
+
+        private void DisablePrismAuxiliaryLights()
+        {
+            for (int i = 0; i < _prismAuxiliaryLights.Count; i++)
+            {
+                var aux = _prismAuxiliaryLights[i];
+                if (aux?.directionPivot != null)
+                    aux.directionPivot.gameObject.SetActive(false);
+                if (aux?.light != null)
+                    aux.light.enabled = false;
+            }
+        }
+
+        private void ReleasePrismResources()
+        {
+            ReleaseRenderTexture(_prismCompositeCookie);
+            ReleaseRenderTexture(_prismRotatedGoboCookie);
+            _prismCompositeCookie = null;
+            _prismRotatedGoboCookie = null;
+
+            if (_prismCookieMaterial != null)
+            {
+                DestroyUnityObject(_prismCookieMaterial);
+                _prismCookieMaterial = null;
+            }
+
+            if (_prismAuxRoot != null)
+            {
+                DestroyUnityObject(_prismAuxRoot.gameObject);
+                _prismAuxRoot = null;
+            }
+
+            _prismAuxiliaryLights.Clear();
+        }
+
+        private static void ReleaseRenderTexture(RenderTexture rt)
+        {
+            if (rt == null)
+                return;
+
+            rt.Release();
+            DestroyUnityObject(rt);
+        }
+
+        private static void DestroyUnityObject(UnityEngine.Object obj)
+        {
+            if (obj == null)
+                return;
+
+            if (Application.isPlaying)
+                Destroy(obj);
+            else
+                DestroyImmediate(obj);
         }
 
 

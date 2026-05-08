@@ -20,5 +20,10 @@ namespace ArtNet.Runtime
         public bool zoomEnabled;
         public float outerSpotAngleDeg;
         public float innerSpotPercent;
+        public bool prismEnabled;
+        public int prismFacetCount;
+        public float prismSpread;
+        public float prismRotationDeg;
+        public float prismIntensityScale;
     }
 }

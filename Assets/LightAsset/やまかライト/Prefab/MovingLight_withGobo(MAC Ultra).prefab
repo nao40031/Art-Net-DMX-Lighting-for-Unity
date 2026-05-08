@@ -419,6 +419,27 @@ MonoBehaviour:
   beamDimmerProperty: _DmxDimmer
   beamDimmerScale: 1
   beamDimmerFloor: 0
+  syncZoomToLight: 1
+  minOuterSpotAngle: 5
+  maxOuterSpotAngle: 50
+  invertZoom: 0
+  zoomInnerSpotPercent: 80
+  prismDefinition: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
+  enablePrism: 1
+  prismDrawMode: 0
+  prismRenderMode: 1
+  projectionOnlyPrimaryIntensityScale: 0.65
+  disableAuxiliaryVolumetricInProjectionOnly: 1
+  auxiliaryCookieRotationMode: 0
+  maxPrismRotateDegPerSec: 360
+  prismCompositeCookieSize: 512
+  prismCompositeRotationStepDeg: 1
+  maxPrismCompositeFacets: 8
+  maxPrismAuxiliaryFacets: 8
+  auxiliarySpreadMultiplierDeg: 10
+  auxiliaryIntensityScale: 1
+  auxiliaryLightShadows: 0
+  prismCookieShader: {fileID: 0}
   lightResponseMode: 0
   halogenSourceRiseTime: 0.06
   halogenSourceFallTime: 0.1
@@ -673,20 +694,20 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Prism1.SelectMode.Single
+    attribute: 14
     instance: 1
-    role: 0
+    role: 1
     byteRole: 0
     relativeCh: 22
     absoluteCh: 22
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Prism1.PositionOrRotation.Single
+    attribute: 14
     instance: 1
-    role: 0
+    role: 4
     byteRole: 0
     relativeCh: 23
     absoluteCh: 23
@@ -703,21 +724,21 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Zoom1.Value.Coarse
+    attribute: 17
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 1
     relativeCh: 25
     absoluteCh: 25
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Zoom1.Value.Fine
+    attribute: 17
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 2
     relativeCh: 26
     absoluteCh: 26
     value: 0
@@ -1139,19 +1160,19 @@ MonoBehaviour:
     absoluteChannel: 21
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Prism1.SelectMode.Single
+    attribute: 14
     instance: 1
-    role: 0
+    role: 1
     byteRole: 0
     relativeChannel: 22
     absoluteChannel: 22
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Prism1.PositionOrRotation.Single
+    attribute: 14
     instance: 1
-    role: 0
+    role: 4
     byteRole: 0
     relativeChannel: 23
     absoluteChannel: 23
@@ -1166,20 +1187,20 @@ MonoBehaviour:
     absoluteChannel: 24
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Zoom1.Value.Coarse
+    attribute: 17
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 1
     relativeChannel: 25
     absoluteChannel: 25
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Zoom1.Value.Fine
+    attribute: 17
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 2
     relativeChannel: 26
     absoluteChannel: 26
   - function: 0

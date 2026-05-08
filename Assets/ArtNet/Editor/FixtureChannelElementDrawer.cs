@@ -30,7 +30,8 @@ namespace ArtNet.Editor
             DrawProperty(ref line, property.FindPropertyRelative("attribute"));
             DrawProperty(ref line, property.FindPropertyRelative("instance"));
             DrawProperty(ref line, property.FindPropertyRelative("role"));
-            DrawProperty(ref line, property.FindPropertyRelative("byteRole"));
+            SerializedProperty byteRoleProperty = property.FindPropertyRelative("byteRole");
+            DrawProperty(ref line, byteRoleProperty);
 
             var ranges = property.FindPropertyRelative("ranges");
             DrawRanges(ref line, ranges, property);
@@ -115,6 +116,7 @@ namespace ArtNet.Editor
 
             EditorGUI.indentLevel++;
             DrawProperty(ref line, range.FindPropertyRelative("name"));
+            DrawRangeScaleHint(ref line, element);
             DrawProperty(ref line, range.FindPropertyRelative("dmxMin"));
             DrawProperty(ref line, range.FindPropertyRelative("dmxMax"));
             SerializedProperty typeProperty = range.FindPropertyRelative("type");
@@ -197,7 +199,7 @@ namespace ArtNet.Editor
             if (!range.isExpanded)
                 return height;
 
-            int lines = 8;
+            int lines = 9;
             var preset = (NormalizedMappingPreset)Mathf.Clamp(range.FindPropertyRelative("mappingPreset").enumValueIndex, 0, (int)NormalizedMappingPreset.NotUsed);
             if (preset == NormalizedMappingPreset.Custom)
                 lines += 1;
@@ -219,6 +221,25 @@ namespace ArtNet.Editor
             range.FindPropertyRelative("normalizedFrom").floatValue = 0f;
             range.FindPropertyRelative("normalizedTo").floatValue = 1f;
             range.isExpanded = true;
+        }
+
+        private static void DrawRangeScaleHint(ref Rect line, SerializedProperty element)
+        {
+            var byteRole = (FixtureByteRole)element.FindPropertyRelative("byteRole").enumValueIndex;
+            string hint = byteRole switch
+            {
+                FixtureByteRole.Single => "Range values use 0-255",
+                FixtureByteRole.Coarse => "Range values use 0-65535 when paired with Fine",
+                FixtureByteRole.Fine => "Usually define ranges on the Coarse channel",
+                _ => string.Empty
+            };
+
+            line.height = EditorGUIUtility.singleLineHeight;
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUI.TextField(line, "Range Value Scale", hint);
+            }
+            line.y += line.height + Gap;
         }
 
         private static NormalizedMappingContext InferContext(SerializedProperty element)

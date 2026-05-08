@@ -30,6 +30,8 @@ MonoBehaviour:
         dmxMin: 0
         dmxMax: 19
         type: 3
+        mappingContext: 0
+        mappingPreset: 0
         normalizedFrom: 0
         normalizedTo: 0
     - attribute: 1
@@ -101,32 +103,42 @@ MonoBehaviour:
         dmxMin: 0
         dmxMax: 600
         type: 1
+        mappingContext: 5
+        mappingPreset: 3
         normalizedFrom: 0
-        normalizedTo: 0
+        normalizedTo: 1
       - name: ' Rotation CW Fast To Slow'
         dmxMin: 601
         dmxMax: 32130
         type: 6
-        normalizedFrom: 0
-        normalizedTo: 1
+        mappingContext: 5
+        mappingPreset: 1
+        normalizedFrom: 1
+        normalizedTo: 0
       - name: Stop Current
         dmxMin: 32131
         dmxMax: 32895
         type: 1
+        mappingContext: 5
+        mappingPreset: 3
         normalizedFrom: 0
-        normalizedTo: 0
+        normalizedTo: 1
       - name: Rotation CCW Slow To Fast
         dmxMin: 32896
         dmxMax: 64515
         type: 7
+        mappingContext: 5
+        mappingPreset: 0
         normalizedFrom: 0
         normalizedTo: 1
       - name: Stop 90deg
         dmxMin: 64516
         dmxMax: 65535
         type: 1
+        mappingContext: 5
+        mappingPreset: 3
         normalizedFrom: 0
-        normalizedTo: 0
+        normalizedTo: 1
     - attribute: 12
       instance: 1
       role: 4
@@ -162,30 +174,78 @@ MonoBehaviour:
       role: 0
       byteRole: 0
       ranges: []
+    - attribute: 14
+      instance: 1
+      role: 1
+      byteRole: 0
+      ranges: []
+    - attribute: 14
+      instance: 1
+      role: 4
+      byteRole: 0
+      ranges:
+      - name: Stop 0deg
+        dmxMin: 0
+        dmxMax: 2
+        type: 1
+        mappingContext: 5
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Rotation CW
+        dmxMin: 3
+        dmxMax: 126
+        type: 6
+        mappingContext: 5
+        mappingPreset: 1
+        normalizedFrom: 1
+        normalizedTo: 0
+      - name: Stop Current
+        dmxMin: 127
+        dmxMax: 129
+        type: 1
+        mappingContext: 5
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Rotation CCW
+        dmxMin: 130
+        dmxMax: 253
+        type: 7
+        mappingContext: 5
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Stop 45deg
+        dmxMin: 254
+        dmxMax: 255
+        type: 1
+        mappingContext: 5
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
     - attribute: 0
       instance: 1
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 17
       instance: 1
       role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
+      byteRole: 1
+      ranges:
+      - name: Zoom
+        dmxMin: 0
+        dmxMax: 65535
+        type: 0
+        mappingContext: 1
+        mappingPreset: 1
+        normalizedFrom: 1
+        normalizedTo: 0
+    - attribute: 17
       instance: 1
       role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
+      byteRole: 2
       ranges: []
     - attribute: 0
       instance: 1
