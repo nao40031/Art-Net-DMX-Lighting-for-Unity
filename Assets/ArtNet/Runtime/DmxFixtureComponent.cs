@@ -144,6 +144,12 @@ namespace ArtNet.Runtime
 
         [SerializeField] private bool syncBeamColorToDmx = true;
         [SerializeField] private bool syncBeamDimmerToDmx = true;
+        [SerializeField] private bool syncBeamPrismToDmx = true;
+        [SerializeField] private bool syncBeamZoomToDmx = true;
+        [SerializeField] private bool syncBeamNoiseVolumeToBeam = true;
+
+        private enum BeamNoiseVolumeScrollSpace { Local, World }
+        private enum BeamNoiseVolumeScrollAxis { X, Y, Z }
 
         [Tooltip("ビームマテリアルのColorプロパティ名。例: _DmxColor / _BaseColor")]
         [SerializeField] private string beamColorProperty = "_DmxColor";
@@ -151,11 +157,132 @@ namespace ArtNet.Runtime
         [Tooltip("ビームマテリアルの強度プロパティ名。例: _DmxDimmer / _BeamIntensity")]
         [SerializeField] private string beamDimmerProperty = "_DmxDimmer";
 
+        [Tooltip("ビームマテリアルのPrism有効プロパティ名。")]
+        [SerializeField] private string beamPrismEnabledProperty = "_DmxPrismEnabled";
+
+        [Tooltip("ビームマテリアルのPrism Facet数プロパティ名。")]
+        [SerializeField] private string beamPrismFacetCountProperty = "_DmxPrismFacetCount";
+
+        [Tooltip("ビームマテリアルのPrism Spreadプロパティ名。")]
+        [SerializeField] private string beamPrismSpreadProperty = "_DmxPrismSpread";
+
+        [Tooltip("ビームマテリアルのPrism Rotationプロパティ名。")]
+        [SerializeField] private string beamPrismRotationProperty = "_DmxPrismRotation";
+
+        [Tooltip("ビームマテリアルのPrism強度プロパティ名。")]
+        [SerializeField] private string beamPrismIntensityProperty = "_DmxPrismIntensity";
+
+        [Tooltip("ビームマテリアルのBeam Lengthプロパティ名。")]
+        [SerializeField] private string beamLengthProperty = "_BeamLength";
+
+        [Tooltip("ビームマテリアルのBeam Start Radiusプロパティ名。")]
+        [SerializeField] private string beamStartRadiusProperty = "_BeamStartRadius";
+
+        [Tooltip("ビームマテリアルのBeam End Radiusプロパティ名。")]
+        [SerializeField] private string beamEndRadiusProperty = "_BeamEndRadius";
+
+        [Tooltip("MewNoiseGen等で生成した3DノイズTexture。疑似ビームのフォグ濃淡に使用します。")]
+        [SerializeField] private Texture3D beamNoiseVolume;
+
+        [Tooltip("3DノイズTextureを疑似ビームへ適用します。Texture未設定時は自動で無効扱いになります。")]
+        [SerializeField] private bool beamNoiseVolumeEnabled = false;
+
+        [Tooltip("既存の手続きノイズと3DノイズTextureのブレンド量。")]
+        [SerializeField, Range(0f, 1f)] private float beamNoiseVolumeStrength = 1f;
+
+        [Tooltip("Open以外のゴボがビームに適用されている時に3DノイズTextureの強さへ掛ける倍率。0でゴボ時のみ3Dノイズを無効化、1で通常時と同じ強さです。")]
+        [UnityEngine.Serialization.FormerlySerializedAs("beamNoiseVolumePrismScale")]
+        [SerializeField, Range(0f, 1f)] private float beamNoiseVolumeGoboScale = 1f;
+
+        [Tooltip("Open GoboでPrismが公転している時に3DノイズTextureの強さへ掛ける倍率。0で公転中のみ3Dノイズを無効化、1で通常時と同じ強さです。")]
+        [SerializeField, Range(0f, 1f)] private float beamNoiseVolumePrismRotationScale = 0f;
+
+        [Tooltip("3DノイズTextureの空間スケール。大きいほど細かい模様になります。")]
+        [SerializeField, Min(0.001f)] private float beamNoiseVolumeScale = 1f;
+
+        [Tooltip("3DノイズTextureのビーム断面方向スケール。大きいほど断面方向の模様が細かくなります。")]
+        [SerializeField, Min(0.001f)] private float beamNoiseVolumeRadialScale = 4f;
+
+        [Tooltip("3DノイズTextureのビーム長方向スケール。大きいほど長さ方向の模様が細かくなります。")]
+        [SerializeField, Min(0.001f)] private float beamNoiseVolumeLengthScale = 12f;
+
+        [Tooltip("3DノイズTextureのZ方向スクロール速度。")]
+        [SerializeField] private float beamNoiseVolumeSpeed = 0.1f;
+
+        [Tooltip("3DノイズTextureのコントラスト。")]
+        [SerializeField, Min(0.01f)] private float beamNoiseVolumeContrast = 1f;
+
+        [Tooltip("3DノイズTextureのサンプリングオフセット。灯体ごとの柄ずらしに使用します。")]
+        [SerializeField] private Vector3 beamNoiseVolumeOffset = Vector3.zero;
+
+        [Tooltip("3DノイズTextureのスクロール方向をLocal軸基準にするかWorld軸基準にするか。")]
+        [SerializeField] private BeamNoiseVolumeScrollSpace beamNoiseVolumeScrollSpace = BeamNoiseVolumeScrollSpace.Local;
+
+        [Tooltip("3DノイズTextureをスクロールさせる軸。World指定時はムービングの向きが変わってもWorld軸方向を維持します。")]
+        [SerializeField] private BeamNoiseVolumeScrollAxis beamNoiseVolumeScrollAxis = BeamNoiseVolumeScrollAxis.Z;
+
+        [Tooltip("3DノイズTextureのスクロール方向を反転します。")]
+        [SerializeField] private bool beamNoiseVolumeScrollReverse = false;
+
+        [Tooltip("ビームマテリアルの3DノイズTextureプロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeProperty = "_BeamNoiseVolume";
+
+        [Tooltip("ビームマテリアルの3Dノイズ有効プロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeEnabledProperty = "_BeamNoiseVolumeEnabled";
+
+        [Tooltip("ビームマテリアルの3Dノイズブレンド強度プロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeStrengthProperty = "_BeamNoiseVolumeStrength";
+
+        [Tooltip("ビームマテリアルの3Dノイズスケールプロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeScaleProperty = "_BeamNoiseVolumeScale";
+
+        [Tooltip("ビームマテリアルの3Dノイズ断面方向スケールプロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeRadialScaleProperty = "_BeamNoiseVolumeRadialScale";
+
+        [Tooltip("ビームマテリアルの3Dノイズ長さ方向スケールプロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeLengthScaleProperty = "_BeamNoiseVolumeLengthScale";
+
+        [Tooltip("ビームマテリアルの3Dノイズ速度プロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeSpeedProperty = "_BeamNoiseVolumeSpeed";
+
+        [Tooltip("ビームマテリアルの3Dノイズコントラストプロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeContrastProperty = "_BeamNoiseVolumeContrast";
+
+        [Tooltip("ビームマテリアルの3Dノイズオフセットプロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeOffsetProperty = "_BeamNoiseVolumeOffset";
+
+        [Tooltip("ビームマテリアルの3Dノイズスクロール方向プロパティ名。")]
+        [SerializeField] private string beamNoiseVolumeScrollDirectionProperty = "_BeamNoiseVolumeScrollDirection";
+
         [Tooltip("ビーム強度に掛ける倍率。")]
         [SerializeField, Min(0f)] private float beamDimmerScale = 1.0f;
 
         [Tooltip("ビーム強度の下限値。暗転時の残光調整用。")]
         [SerializeField, Range(0f, 1f)] private float beamDimmerFloor = 0f;
+
+        [Tooltip("Zoomから計算した疑似ビーム先端半径へ掛ける倍率。")]
+        [SerializeField, Min(0f)] private float beamZoomRadiusScale = 1f;
+
+        [Tooltip("Zoom連動時の疑似ビーム先端半径の最小値。")]
+        [SerializeField, Min(0.001f)] private float beamZoomMinEndRadius = 0.01f;
+
+        [Tooltip("Zoom連動時の疑似ビーム先端半径の最大値。")]
+        [SerializeField, Min(0.001f)] private float beamZoomMaxEndRadius = 25f;
+
+        [Tooltip("疑似ビームの外側に薄いにじみ用レイヤーを追加します。")]
+        [SerializeField] private bool enableBeamSoftShell = false;
+
+        [Tooltip("にじみ用ビームの半径倍率。")]
+        [SerializeField, Min(1f)] private float beamSoftShellRadiusScale = 1.35f;
+
+        [Tooltip("にじみ用ビームのMaterial側Beam Intensity。")]
+        [SerializeField, Min(0f)] private float beamSoftShellIntensity = 0.2f;
+
+        [Tooltip("にじみ用ビームのEdge Softness上書き値。")]
+        [SerializeField, Range(0f, 1f)] private float beamSoftShellEdgeSoftness = 0.9f;
+
+        [Tooltip("にじみ用ビームのNoise Strength上書き値。")]
+        [SerializeField, Range(0f, 1f)] private float beamSoftShellNoiseStrength = 0.25f;
 
         // ------------------------------------------------------------
         // Zoom
@@ -246,6 +373,25 @@ namespace ArtNet.Runtime
         [Tooltip("Auxiliary Lightの明るさに掛ける追加倍率。")]
         [SerializeField, Min(0f)] private float auxiliaryIntensityScale = 1f;
 
+        [Tooltip("補助SpotLightのVolumetricだけに掛ける倍率。床や壁へのCookie投影の明るさは変えず、Full Auxiliary Lightsの空間ビームだけを調整します。")]
+        [SerializeField, Range(0f, 30f)] private float auxiliaryVolumetricIntensityScale = 1f;
+
+        [Tooltip("プリズム時の明るさ分散量。0で分散なし、1でFacet数に応じて完全分散します。")]
+        [SerializeField, Range(0f, 1f)] private float prismBrightnessDistribution = 1f;
+
+        private enum PrismZoomCorrectionMode
+        {
+            Off,
+            Auto,
+            Custom
+        }
+
+        [Tooltip("プリズム分割されたゴボ同士の距離をZoomに連動して補正します。Offは補正なし、AutoはSpot Angleから自動補正、Customは下の倍率をそのまま使います。")]
+        [SerializeField] private PrismZoomCorrectionMode prismZoomCorrection = PrismZoomCorrectionMode.Off;
+
+        [Tooltip("プリズム分割されたゴボ同士の距離倍率。AutoではZoom補正後の倍率、Customでは直接の距離倍率として使用します。")]
+        [SerializeField, Range(0f, 3f)] private float prismGoboSpacingScale = 1f;
+
         [Tooltip("Auxiliary LightのShadowを有効化します。初期OFF推奨。")]
         [SerializeField] private bool auxiliaryLightShadows = false;
 
@@ -295,6 +441,27 @@ namespace ArtNet.Runtime
         private int _beamGoboTextureId;
         private int _beamGoboRotationId;
         private int _beamGoboEnabledId;
+        private int _beamPrismEnabledId;
+        private int _beamPrismFacetCountId;
+        private int _beamPrismSpreadId;
+        private int _beamPrismRotationId;
+        private int _beamPrismIntensityId;
+        private int _beamLengthId;
+        private int _beamStartRadiusId;
+        private int _beamEndRadiusId;
+        private int _beamIntensityId;
+        private int _beamEdgeSoftnessId;
+        private int _beamNoiseStrengthId;
+        private int _beamNoiseVolumeId;
+        private int _beamNoiseVolumeEnabledId;
+        private int _beamNoiseVolumeStrengthId;
+        private int _beamNoiseVolumeScaleId;
+        private int _beamNoiseVolumeRadialScaleId;
+        private int _beamNoiseVolumeLengthScaleId;
+        private int _beamNoiseVolumeSpeedId;
+        private int _beamNoiseVolumeContrastId;
+        private int _beamNoiseVolumeOffsetId;
+        private int _beamNoiseVolumeScrollDirectionId;
         private bool _beamPropertyIdsReady;
         [Header("Pan/Tilt Range (degrees)")]
         public float panRangeDeg = 540f;
@@ -489,6 +656,8 @@ namespace ArtNet.Runtime
         private RenderTexture _prismCompositeCookie;
         private RenderTexture _prismRotatedGoboCookie;
         private Material _prismCookieMaterial;
+        private static System.Reflection.MethodInfo _textureIncrementUpdateCountMethod;
+        private static bool _textureIncrementUpdateCountMethodResolved;
         private Texture _lastPrismCompositeSource;
         private Texture _lastPrismRotatedSource;
         private float _lastPrismCompositeGoboRotation = float.NaN;
@@ -501,10 +670,20 @@ namespace ArtNet.Runtime
         private int _lastPrismCookieSize = -1;
         private int _lastPrismRotatedCookieSize = -1;
         private readonly List<PrismAuxiliaryLight> _prismAuxiliaryLights = new();
+        private readonly List<PrismPseudoBeamFacet> _prismPseudoBeamFacets = new();
         private Transform _prismAuxRoot;
+        private Transform _prismPseudoBeamRoot;
+        private Transform _singlePseudoBeamSoftShell;
+        private PrismPseudoBeamCone _singlePseudoBeamSoftCone;
+        private MeshRenderer _singlePseudoBeamSoftRenderer;
         private Transform _goboCookieRollBaseTransform;
         private Quaternion _goboCookieRollBaseLocalRot;
         private bool _hasGoboCookieRollBaseLocalRot;
+
+#if HAS_HDRP
+        private bool _hasPrimaryVolumetricDimmerDefault;
+        private float _primaryVolumetricDimmerDefault = 1f;
+#endif
 
         private class PrismAuxiliaryLight
         {
@@ -514,6 +693,15 @@ namespace ArtNet.Runtime
 #if HAS_HDRP
             public HDAdditionalLightData hd;
 #endif
+        }
+
+        private class PrismPseudoBeamFacet
+        {
+            public Transform directionPivot;
+            public MeshFilter filter;
+            public MeshRenderer renderer;
+            public PrismPseudoBeamCone softCone;
+            public MeshRenderer softRenderer;
         }
 
         // --- Pan/Tilt continuous interpolation targets (updated by DMX, applied every frame) ---
@@ -2416,13 +2604,15 @@ namespace ArtNet.Runtime
             ApplyPrismAuxiliaryLights(state);
 
             var driverState = state;
-            bool suppressPrimaryLight = ShouldSuppressPrimaryLightForAuxiliaryOnly();
+            bool suppressPrimaryLight = ShouldSuppressPrimaryLightForAuxiliaryOnly() ||
+                                        (state.prismEnabled && IsProjectionAndShaderBeamMode());
             if (suppressPrimaryLight)
             {
                 driverState.lightDimmer01 = 0f;
                 driverState.goboEnabled = false;
                 driverState.goboTexture = null;
             }
+            ApplyPrimaryVolumetricForPseudoBeam(state, suppressPrimaryLight);
             if (!syncLightCookieToGobo)
             {
                 driverState.goboEnabled = false;
@@ -2441,7 +2631,7 @@ namespace ArtNet.Runtime
 
             ApplyLensDmx(state);
             var beamState = state;
-            if (suppressPrimaryLight)
+            if (suppressPrimaryLight && !IsProjectionAndShaderBeamMode())
             {
                 beamState.lightDimmer01 = 0f;
                 beamState.lensDimmer01 = 0f;
@@ -2550,28 +2740,109 @@ namespace ArtNet.Runtime
             if (string.IsNullOrWhiteSpace(beamGoboTextureProperty)) beamGoboTextureProperty = "_GoboTexture";
             if (string.IsNullOrWhiteSpace(beamGoboRotationProperty)) beamGoboRotationProperty = "_GoboRotationDeg";
             if (string.IsNullOrWhiteSpace(beamGoboEnabledProperty)) beamGoboEnabledProperty = "_GoboEnabled";
+            if (string.IsNullOrWhiteSpace(beamPrismEnabledProperty)) beamPrismEnabledProperty = "_DmxPrismEnabled";
+            if (string.IsNullOrWhiteSpace(beamPrismFacetCountProperty)) beamPrismFacetCountProperty = "_DmxPrismFacetCount";
+            if (string.IsNullOrWhiteSpace(beamPrismSpreadProperty)) beamPrismSpreadProperty = "_DmxPrismSpread";
+            if (string.IsNullOrWhiteSpace(beamPrismRotationProperty)) beamPrismRotationProperty = "_DmxPrismRotation";
+            if (string.IsNullOrWhiteSpace(beamPrismIntensityProperty)) beamPrismIntensityProperty = "_DmxPrismIntensity";
+            if (string.IsNullOrWhiteSpace(beamLengthProperty)) beamLengthProperty = "_BeamLength";
+            if (string.IsNullOrWhiteSpace(beamStartRadiusProperty)) beamStartRadiusProperty = "_BeamStartRadius";
+            if (string.IsNullOrWhiteSpace(beamEndRadiusProperty)) beamEndRadiusProperty = "_BeamEndRadius";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeProperty)) beamNoiseVolumeProperty = "_BeamNoiseVolume";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeEnabledProperty)) beamNoiseVolumeEnabledProperty = "_BeamNoiseVolumeEnabled";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeStrengthProperty)) beamNoiseVolumeStrengthProperty = "_BeamNoiseVolumeStrength";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeScaleProperty)) beamNoiseVolumeScaleProperty = "_BeamNoiseVolumeScale";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeRadialScaleProperty)) beamNoiseVolumeRadialScaleProperty = "_BeamNoiseVolumeRadialScale";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeLengthScaleProperty)) beamNoiseVolumeLengthScaleProperty = "_BeamNoiseVolumeLengthScale";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeSpeedProperty)) beamNoiseVolumeSpeedProperty = "_BeamNoiseVolumeSpeed";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeContrastProperty)) beamNoiseVolumeContrastProperty = "_BeamNoiseVolumeContrast";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeOffsetProperty)) beamNoiseVolumeOffsetProperty = "_BeamNoiseVolumeOffset";
+            if (string.IsNullOrWhiteSpace(beamNoiseVolumeScrollDirectionProperty)) beamNoiseVolumeScrollDirectionProperty = "_BeamNoiseVolumeScrollDirection";
 
             _beamColorId = Shader.PropertyToID(beamColorProperty);
             _beamDimmerId = Shader.PropertyToID(beamDimmerProperty);
             _beamGoboTextureId = Shader.PropertyToID(beamGoboTextureProperty);
             _beamGoboRotationId = Shader.PropertyToID(beamGoboRotationProperty);
             _beamGoboEnabledId = Shader.PropertyToID(beamGoboEnabledProperty);
+            _beamPrismEnabledId = Shader.PropertyToID(beamPrismEnabledProperty);
+            _beamPrismFacetCountId = Shader.PropertyToID(beamPrismFacetCountProperty);
+            _beamPrismSpreadId = Shader.PropertyToID(beamPrismSpreadProperty);
+            _beamPrismRotationId = Shader.PropertyToID(beamPrismRotationProperty);
+            _beamPrismIntensityId = Shader.PropertyToID(beamPrismIntensityProperty);
+            _beamLengthId = Shader.PropertyToID(beamLengthProperty);
+            _beamStartRadiusId = Shader.PropertyToID(beamStartRadiusProperty);
+            _beamEndRadiusId = Shader.PropertyToID(beamEndRadiusProperty);
+            _beamIntensityId = Shader.PropertyToID("_BeamIntensity");
+            _beamEdgeSoftnessId = Shader.PropertyToID("_BeamEdgeSoftness");
+            _beamNoiseStrengthId = Shader.PropertyToID("_BeamNoiseStrength");
+            _beamNoiseVolumeId = Shader.PropertyToID(beamNoiseVolumeProperty);
+            _beamNoiseVolumeEnabledId = Shader.PropertyToID(beamNoiseVolumeEnabledProperty);
+            _beamNoiseVolumeStrengthId = Shader.PropertyToID(beamNoiseVolumeStrengthProperty);
+            _beamNoiseVolumeScaleId = Shader.PropertyToID(beamNoiseVolumeScaleProperty);
+            _beamNoiseVolumeRadialScaleId = Shader.PropertyToID(beamNoiseVolumeRadialScaleProperty);
+            _beamNoiseVolumeLengthScaleId = Shader.PropertyToID(beamNoiseVolumeLengthScaleProperty);
+            _beamNoiseVolumeSpeedId = Shader.PropertyToID(beamNoiseVolumeSpeedProperty);
+            _beamNoiseVolumeContrastId = Shader.PropertyToID(beamNoiseVolumeContrastProperty);
+            _beamNoiseVolumeOffsetId = Shader.PropertyToID(beamNoiseVolumeOffsetProperty);
+            _beamNoiseVolumeScrollDirectionId = Shader.PropertyToID(beamNoiseVolumeScrollDirectionProperty);
             if (_beamMpb == null) _beamMpb = new MaterialPropertyBlock();
             _beamPropertyIdsReady = true;
         }
 
         private void ApplyPseudoBeamDmx(FixtureRenderState state)
         {
-            if (!syncPseudoBeamToDmx) return;
-            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx) return;
+            bool forcePseudoBeamForPrism = IsProjectionAndShaderBeamMode() && state.prismEnabled;
+            if (!syncPseudoBeamToDmx && !forcePseudoBeamForPrism)
+            {
+                DisablePrismPseudoBeamFacets();
+                DisableSinglePseudoBeamSoftShell();
+                SetTemplateBeamRenderersEnabled(false);
+                return;
+            }
+
+            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx && !syncBeamPrismToDmx && !syncBeamNoiseVolumeToBeam)
+            {
+                DisablePrismPseudoBeamFacets();
+                DisableSinglePseudoBeamSoftShell();
+                SetTemplateBeamRenderersEnabled(true);
+                return;
+            }
 
             if (beamRenderer == null && (extraBeamRenderers == null || extraBeamRenderers.Length == 0))
+            {
+                DisableSinglePseudoBeamSoftShell();
                 return;
+            }
 
             EnsureBeamPropertyIds();
             if (_beamMpb == null) return;
 
+            if (IsProjectionAndShaderBeamMode() && state.prismEnabled && beamRenderer is MeshRenderer)
+            {
+                DisableSinglePseudoBeamSoftShell();
+                ApplyPrismPseudoBeamFacets(state);
+                return;
+            }
+
+            DisablePrismPseudoBeamFacets();
+            SetTemplateBeamRenderersEnabled(true);
+            ApplyPseudoBeamRenderer(beamRenderer, state, 1f, false);
+            ApplySinglePseudoBeamSoftShell(state);
+
+            if (extraBeamRenderers != null)
+            {
+                for (int i = 0; i < extraBeamRenderers.Length; i++)
+                    ApplyPseudoBeamRenderer(extraBeamRenderers[i], state, 1f, false);
+            }
+        }
+
+        private void ApplyPseudoBeamRenderer(Renderer renderer, FixtureRenderState state, float dimmerMultiplier, bool forceSingleBeamMask, bool softShell = false)
+        {
+            if (renderer == null)
+                return;
+
             float d = Mathf.Clamp01(state.lightDimmer01) * Mathf.Max(0f, beamDimmerScale);
+            d *= Mathf.Max(0f, dimmerMultiplier);
             d = Mathf.Max(Mathf.Clamp01(beamDimmerFloor), d);
 
             _beamMpb.Clear();
@@ -2585,16 +2856,423 @@ namespace ArtNet.Runtime
                 _beamMpb.SetFloat(_beamGoboRotationId, state.goboRotationDeg);
                 _beamMpb.SetFloat(_beamGoboEnabledId, state.goboEnabled ? 1f : 0f);
             }
+            if (syncBeamPrismToDmx)
+            {
+                _beamMpb.SetFloat(_beamPrismEnabledId, !forceSingleBeamMask && state.prismEnabled ? 1f : 0f);
+                _beamMpb.SetFloat(_beamPrismFacetCountId, Mathf.Max(1, state.prismFacetCount));
+                _beamMpb.SetFloat(_beamPrismSpreadId, Mathf.Max(0f, state.prismSpread));
+                _beamMpb.SetFloat(_beamPrismRotationId, state.prismRotationDeg);
+                _beamMpb.SetFloat(_beamPrismIntensityId, Mathf.Max(0f, state.prismIntensityScale));
+            }
+            if (!softShell && renderer is MeshRenderer meshRenderer)
+                UpdatePseudoBeamTemplateShape(meshRenderer, state);
 
+            ApplyPseudoBeamShapeProperties(renderer);
+            ApplyPseudoBeamNoiseVolumeProperties(renderer, state);
+            if (softShell)
+            {
+                _beamMpb.SetFloat(_beamIntensityId, Mathf.Max(0f, beamSoftShellIntensity));
+                _beamMpb.SetFloat(_beamEdgeSoftnessId, Mathf.Clamp01(beamSoftShellEdgeSoftness));
+                _beamMpb.SetFloat(_beamNoiseStrengthId, Mathf.Clamp01(beamSoftShellNoiseStrength));
+            }
+
+            renderer.SetPropertyBlock(_beamMpb);
+        }
+
+        private void ApplyPseudoBeamNoiseVolumeProperties(Renderer renderer, FixtureRenderState state)
+        {
+            if (!syncBeamNoiseVolumeToBeam)
+                return;
+
+            bool enabled = beamNoiseVolumeEnabled && beamNoiseVolume != null;
+            if (beamNoiseVolume != null)
+                _beamMpb.SetTexture(_beamNoiseVolumeId, beamNoiseVolume);
+            _beamMpb.SetFloat(_beamNoiseVolumeEnabledId, enabled ? 1f : 0f);
+            float effectiveBeamNoiseVolumeStrength = beamNoiseVolumeStrength;
+            bool hasActiveBeamGobo = syncBeamGoboToDmx && state.goboEnabled && state.goboTexture != null;
+            bool prismOrbitingWithoutGobo = state.prismEnabled && !hasActiveBeamGobo && Mathf.Abs(state.prismRotationSpeedDegPerSec) > 0.001f;
+            if (hasActiveBeamGobo)
+                effectiveBeamNoiseVolumeStrength *= beamNoiseVolumeGoboScale;
+            else if (prismOrbitingWithoutGobo)
+                effectiveBeamNoiseVolumeStrength *= beamNoiseVolumePrismRotationScale;
+            _beamMpb.SetFloat(_beamNoiseVolumeStrengthId, Mathf.Clamp01(effectiveBeamNoiseVolumeStrength));
+            _beamMpb.SetFloat(_beamNoiseVolumeScaleId, Mathf.Max(0.001f, beamNoiseVolumeScale));
+            _beamMpb.SetFloat(_beamNoiseVolumeRadialScaleId, Mathf.Max(0.001f, beamNoiseVolumeRadialScale));
+            _beamMpb.SetFloat(_beamNoiseVolumeLengthScaleId, Mathf.Max(0.001f, beamNoiseVolumeLengthScale));
+            _beamMpb.SetFloat(_beamNoiseVolumeSpeedId, beamNoiseVolumeSpeed);
+            _beamMpb.SetFloat(_beamNoiseVolumeContrastId, Mathf.Max(0.01f, beamNoiseVolumeContrast));
+            _beamMpb.SetVector(_beamNoiseVolumeOffsetId, new Vector4(beamNoiseVolumeOffset.x, beamNoiseVolumeOffset.y, beamNoiseVolumeOffset.z, 0f));
+            Vector3 scrollDirection = ResolveBeamNoiseVolumeScrollDirection(renderer);
+            _beamMpb.SetVector(_beamNoiseVolumeScrollDirectionId, new Vector4(scrollDirection.x, scrollDirection.y, scrollDirection.z, 0f));
+        }
+
+        private Vector3 ResolveBeamNoiseVolumeScrollDirection(Renderer renderer)
+        {
+            Vector3 direction = beamNoiseVolumeScrollAxis switch
+            {
+                BeamNoiseVolumeScrollAxis.X => Vector3.right,
+                BeamNoiseVolumeScrollAxis.Y => Vector3.up,
+                _ => Vector3.forward
+            };
+
+            if (beamNoiseVolumeScrollReverse)
+                direction = -direction;
+
+            if (beamNoiseVolumeScrollSpace == BeamNoiseVolumeScrollSpace.World && renderer != null && renderer.transform != null)
+                direction = renderer.transform.InverseTransformDirection(direction);
+
+            if (direction.sqrMagnitude <= 0.000001f)
+                direction = Vector3.forward;
+
+            return direction.normalized;
+        }
+
+        private void ApplyPseudoBeamShapeProperties(Renderer renderer)
+        {
+            var cone = renderer != null ? renderer.GetComponent<PrismPseudoBeamCone>() : null;
+            if (cone == null && beamRenderer != null)
+                cone = beamRenderer.GetComponent<PrismPseudoBeamCone>();
+
+            float length = cone != null ? cone.Length : 1f;
+            float startRadius = cone != null ? cone.StartRadius : 0.01f;
+            float endRadius = cone != null ? cone.EndRadius : 1f;
+            _beamMpb.SetFloat(_beamLengthId, Mathf.Max(0.01f, length));
+            _beamMpb.SetFloat(_beamStartRadiusId, Mathf.Max(0f, startRadius));
+            _beamMpb.SetFloat(_beamEndRadiusId, Mathf.Max(0.001f, endRadius));
+        }
+
+        private void ApplyPrismPseudoBeamFacets(FixtureRenderState state)
+        {
+            var templateRenderer = beamRenderer as MeshRenderer;
+            if (templateRenderer == null)
+                return;
+
+            var templateFilter = templateRenderer.GetComponent<MeshFilter>();
+            if (templateFilter == null || templateFilter.sharedMesh == null)
+                return;
+
+            int count = Mathf.Clamp(state.prismFacetCount, 1, Mathf.Max(1, maxPrismAuxiliaryFacets));
+            EnsurePrismPseudoBeamFacets(templateRenderer, count);
+            SetTemplateBeamRenderersEnabled(false);
+
+            Mesh sharedMesh = UpdatePseudoBeamTemplateShape(templateRenderer, state);
+            if (sharedMesh == null)
+                sharedMesh = templateFilter.sharedMesh;
+
+            float prismRotationDeg = state.prismRotationDeg;
+            float spreadDeg = Mathf.Max(0f, state.prismSpread * auxiliarySpreadMultiplierDeg * GetPrismGoboSpacingScale(state));
+            Transform templateTransform = templateRenderer.transform;
+            Transform templateParent = templateTransform.parent;
+
+            if (_prismPseudoBeamRoot != null && _prismPseudoBeamRoot.parent != templateParent)
+                _prismPseudoBeamRoot.SetParent(templateParent, false);
+
+            if (_prismPseudoBeamRoot != null)
+            {
+                _prismPseudoBeamRoot.localPosition = Vector3.zero;
+                _prismPseudoBeamRoot.localRotation = Quaternion.identity;
+                _prismPseudoBeamRoot.localScale = Vector3.one;
+            }
+
+            for (int i = 0; i < _prismPseudoBeamFacets.Count; i++)
+            {
+                var facet = _prismPseudoBeamFacets[i];
+                bool active = i < count;
+                if (facet?.directionPivot != null)
+                    facet.directionPivot.gameObject.SetActive(active);
+
+                if (!active || facet == null || facet.renderer == null || facet.filter == null)
+                    continue;
+
+                float angle = ((360f * i) / count) + prismRotationDeg;
+                float angleRad = angle * Mathf.Deg2Rad;
+                float xDeg = Mathf.Sin(angleRad) * spreadDeg;
+                float yDeg = Mathf.Cos(angleRad) * spreadDeg;
+
+                facet.directionPivot.localPosition = templateTransform.localPosition;
+                facet.directionPivot.localRotation = templateTransform.localRotation * Quaternion.Euler(xDeg, yDeg, 0f);
+                facet.directionPivot.localScale = Vector3.one;
+
+                Transform facetTransform = facet.renderer.transform;
+                facetTransform.localPosition = Vector3.zero;
+                facetTransform.localRotation = Quaternion.identity;
+                facetTransform.localScale = templateTransform.localScale;
+
+                facet.filter.sharedMesh = sharedMesh;
+                facet.renderer.sharedMaterials = templateRenderer.sharedMaterials;
+                facet.renderer.enabled = true;
+                facet.renderer.gameObject.layer = templateRenderer.gameObject.layer;
+                facet.renderer.renderingLayerMask = templateRenderer.renderingLayerMask;
+                facet.renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                facet.renderer.receiveShadows = false;
+
+                float facetDimmerMultiplier = GetPrismBrightnessDistributionScale(count);
+                ApplyPseudoBeamRenderer(facet.renderer, state, facetDimmerMultiplier, true);
+                ApplyPrismPseudoBeamFacetSoftShell(facet, templateRenderer, state, facetDimmerMultiplier);
+            }
+        }
+
+        private Mesh UpdatePseudoBeamTemplateShape(MeshRenderer templateRenderer, FixtureRenderState state)
+        {
+            var templateFilter = templateRenderer.GetComponent<MeshFilter>();
+            var cone = templateRenderer.GetComponent<PrismPseudoBeamCone>();
+            if (cone == null || templateFilter == null)
+                return templateFilter != null ? templateFilter.sharedMesh : null;
+
+            if (!syncBeamZoomToDmx)
+                return templateFilter.sharedMesh;
+
+            float length = Mathf.Max(0.01f, cone.Length);
+            float startRadius = Mathf.Max(0f, cone.StartRadius);
+            float maxRadius = Mathf.Max(beamZoomMinEndRadius, beamZoomMaxEndRadius);
+            float outer = GetPseudoBeamOuterSpotAngle(state);
+            float endRadius = Mathf.Tan(outer * 0.5f * Mathf.Deg2Rad) * length * Mathf.Max(0f, beamZoomRadiusScale);
+            endRadius = Mathf.Clamp(endRadius, Mathf.Max(0.001f, beamZoomMinEndRadius), maxRadius);
+            cone.SetRuntimeShape(length, startRadius, endRadius);
+            return templateFilter.sharedMesh;
+        }
+
+        private float GetPseudoBeamOuterSpotAngle(FixtureRenderState state)
+        {
+            if (state.zoomEnabled)
+                return Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+
+            if (targetLight != null)
+                return Mathf.Clamp(targetLight.spotAngle, 0.1f, 179f);
+
+            return Mathf.Clamp(maxOuterSpotAngle, 0.1f, 179f);
+        }
+
+        private void ApplySinglePseudoBeamSoftShell(FixtureRenderState state)
+        {
+            var templateRenderer = beamRenderer as MeshRenderer;
+            if (!enableBeamSoftShell || templateRenderer == null)
+            {
+                DisableSinglePseudoBeamSoftShell();
+                return;
+            }
+
+            EnsureSinglePseudoBeamSoftShell(templateRenderer);
+            if (_singlePseudoBeamSoftShell == null || _singlePseudoBeamSoftRenderer == null || _singlePseudoBeamSoftCone == null)
+                return;
+
+            CopySoftShellTransformAndShape(_singlePseudoBeamSoftShell, _singlePseudoBeamSoftRenderer, _singlePseudoBeamSoftCone, templateRenderer);
+            _singlePseudoBeamSoftShell.gameObject.SetActive(true);
+            _singlePseudoBeamSoftRenderer.enabled = true;
+            ApplyPseudoBeamRenderer(_singlePseudoBeamSoftRenderer, state, 1f, false, true);
+        }
+
+        private void ApplyPrismPseudoBeamFacetSoftShell(PrismPseudoBeamFacet facet, MeshRenderer templateRenderer, FixtureRenderState state, float dimmerMultiplier)
+        {
+            if (facet == null || facet.softRenderer == null || facet.softCone == null)
+                return;
+
+            if (!enableBeamSoftShell)
+            {
+                facet.softRenderer.gameObject.SetActive(false);
+                return;
+            }
+
+            CopySoftShellTransformAndShape(facet.softRenderer.transform, facet.softRenderer, facet.softCone, templateRenderer);
+            facet.softRenderer.transform.localPosition = Vector3.zero;
+            facet.softRenderer.transform.localRotation = Quaternion.identity;
+            facet.softRenderer.transform.localScale = templateRenderer.transform.localScale;
+            facet.softRenderer.gameObject.SetActive(true);
+            facet.softRenderer.enabled = true;
+            ApplyPseudoBeamRenderer(facet.softRenderer, state, dimmerMultiplier, true, true);
+        }
+
+        private void CopySoftShellTransformAndShape(Transform softTransform, MeshRenderer softRenderer, PrismPseudoBeamCone softCone, MeshRenderer templateRenderer)
+        {
+            if (softTransform == null || softRenderer == null || softCone == null || templateRenderer == null)
+                return;
+
+            Transform templateTransform = templateRenderer.transform;
+            softTransform.localPosition = templateTransform.localPosition;
+            softTransform.localRotation = templateTransform.localRotation;
+            softTransform.localScale = templateTransform.localScale;
+            softRenderer.sharedMaterials = templateRenderer.sharedMaterials;
+            softRenderer.gameObject.layer = templateRenderer.gameObject.layer;
+            softRenderer.renderingLayerMask = templateRenderer.renderingLayerMask;
+            softRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            softRenderer.receiveShadows = false;
+
+            var templateCone = templateRenderer.GetComponent<PrismPseudoBeamCone>();
+            if (templateCone == null)
+                return;
+
+            float length = Mathf.Max(0.01f, templateCone.Length);
+            float startRadius = Mathf.Max(0f, templateCone.StartRadius);
+            float endRadius = Mathf.Max(0.001f, templateCone.EndRadius) * Mathf.Max(1f, beamSoftShellRadiusScale);
+            softCone.SetRuntimeShape(length, startRadius, endRadius);
+        }
+
+        private void EnsureSinglePseudoBeamSoftShell(MeshRenderer templateRenderer)
+        {
+            if (_singlePseudoBeamSoftShell != null)
+                return;
+
+            var softGo = new GameObject("PrismPseudoBeamSoftShell");
+            softGo.hideFlags = HideFlags.DontSave;
+            Transform parent = templateRenderer != null ? templateRenderer.transform.parent : transform;
+            softGo.transform.SetParent(parent, false);
+            _singlePseudoBeamSoftShell = softGo.transform;
+            _singlePseudoBeamSoftCone = softGo.AddComponent<PrismPseudoBeamCone>();
+            _singlePseudoBeamSoftRenderer = softGo.GetComponent<MeshRenderer>();
+            if (_singlePseudoBeamSoftRenderer != null)
+            {
+                _singlePseudoBeamSoftRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                _singlePseudoBeamSoftRenderer.receiveShadows = false;
+            }
+        }
+
+        private void DisableSinglePseudoBeamSoftShell()
+        {
+            if (_singlePseudoBeamSoftShell != null)
+                _singlePseudoBeamSoftShell.gameObject.SetActive(false);
+        }
+
+        private void ReleaseSinglePseudoBeamSoftShell()
+        {
+            if (_singlePseudoBeamSoftShell == null)
+                return;
+
+            if (Application.isPlaying)
+                Destroy(_singlePseudoBeamSoftShell.gameObject);
+            else
+                DestroyImmediate(_singlePseudoBeamSoftShell.gameObject);
+
+            _singlePseudoBeamSoftShell = null;
+            _singlePseudoBeamSoftCone = null;
+            _singlePseudoBeamSoftRenderer = null;
+        }
+
+        private void EnsurePrismPseudoBeamFacets(MeshRenderer templateRenderer, int count)
+        {
+            count = Mathf.Clamp(count, 1, Mathf.Max(1, maxPrismAuxiliaryFacets));
+
+            Transform parent = templateRenderer != null && templateRenderer.transform != null
+                ? templateRenderer.transform.parent
+                : transform;
+
+            if (_prismPseudoBeamRoot == null)
+            {
+                var root = new GameObject("PrismPseudoBeamFacetRoot");
+                root.hideFlags = HideFlags.DontSave;
+                _prismPseudoBeamRoot = root.transform;
+                _prismPseudoBeamRoot.SetParent(parent, false);
+            }
+
+            while (_prismPseudoBeamFacets.Count < count)
+                _prismPseudoBeamFacets.Add(CreatePrismPseudoBeamFacet(templateRenderer, _prismPseudoBeamFacets.Count));
+        }
+
+        private PrismPseudoBeamFacet CreatePrismPseudoBeamFacet(MeshRenderer templateRenderer, int index)
+        {
+            var directionGo = new GameObject($"PseudoBeamFacetDirectionPivot_{index}");
+            directionGo.hideFlags = HideFlags.DontSave;
+            directionGo.transform.SetParent(_prismPseudoBeamRoot, false);
+
+            var beamGo = new GameObject($"PseudoBeamFacet_{index}");
+            beamGo.hideFlags = HideFlags.DontSave;
+            beamGo.transform.SetParent(directionGo.transform, false);
+
+            var filter = beamGo.AddComponent<MeshFilter>();
+            var renderer = beamGo.AddComponent<MeshRenderer>();
+
+            if (templateRenderer != null)
+            {
+                var templateFilter = templateRenderer.GetComponent<MeshFilter>();
+                if (templateFilter != null)
+                    filter.sharedMesh = templateFilter.sharedMesh;
+                renderer.sharedMaterials = templateRenderer.sharedMaterials;
+                renderer.lightProbeUsage = templateRenderer.lightProbeUsage;
+                renderer.reflectionProbeUsage = templateRenderer.reflectionProbeUsage;
+                renderer.probeAnchor = templateRenderer.probeAnchor;
+                renderer.renderingLayerMask = templateRenderer.renderingLayerMask;
+                beamGo.layer = templateRenderer.gameObject.layer;
+            }
+
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            var softGo = new GameObject($"PseudoBeamFacetSoft_{index}");
+            softGo.hideFlags = HideFlags.DontSave;
+            softGo.transform.SetParent(directionGo.transform, false);
+            var softCone = softGo.AddComponent<PrismPseudoBeamCone>();
+            var softRenderer = softGo.GetComponent<MeshRenderer>();
+            if (softRenderer != null && templateRenderer != null)
+            {
+                softRenderer.sharedMaterials = templateRenderer.sharedMaterials;
+                softRenderer.lightProbeUsage = templateRenderer.lightProbeUsage;
+                softRenderer.reflectionProbeUsage = templateRenderer.reflectionProbeUsage;
+                softRenderer.probeAnchor = templateRenderer.probeAnchor;
+                softRenderer.renderingLayerMask = templateRenderer.renderingLayerMask;
+                softGo.layer = templateRenderer.gameObject.layer;
+                softRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                softRenderer.receiveShadows = false;
+                softGo.SetActive(false);
+            }
+
+            return new PrismPseudoBeamFacet
+            {
+                directionPivot = directionGo.transform,
+                filter = filter,
+                renderer = renderer,
+                softCone = softCone,
+                softRenderer = softRenderer
+            };
+        }
+
+        private void DisablePrismPseudoBeamFacets()
+        {
+            for (int i = 0; i < _prismPseudoBeamFacets.Count; i++)
+            {
+                var facet = _prismPseudoBeamFacets[i];
+                if (facet?.directionPivot != null)
+                    facet.directionPivot.gameObject.SetActive(false);
+            }
+        }
+
+        private void ReleasePrismPseudoBeamFacets()
+        {
+            for (int i = 0; i < _prismPseudoBeamFacets.Count; i++)
+            {
+                var facet = _prismPseudoBeamFacets[i];
+                if (facet?.directionPivot == null)
+                    continue;
+
+                if (Application.isPlaying)
+                    Destroy(facet.directionPivot.gameObject);
+                else
+                    DestroyImmediate(facet.directionPivot.gameObject);
+            }
+
+            _prismPseudoBeamFacets.Clear();
+            ReleaseSinglePseudoBeamSoftShell();
+
+            if (_prismPseudoBeamRoot != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_prismPseudoBeamRoot.gameObject);
+                else
+                    DestroyImmediate(_prismPseudoBeamRoot.gameObject);
+                _prismPseudoBeamRoot = null;
+            }
+        }
+
+        private void SetTemplateBeamRenderersEnabled(bool enabled)
+        {
             if (beamRenderer != null)
-                beamRenderer.SetPropertyBlock(_beamMpb);
+                beamRenderer.enabled = enabled;
 
             if (extraBeamRenderers != null)
             {
                 for (int i = 0; i < extraBeamRenderers.Length; i++)
                 {
                     var r = extraBeamRenderers[i];
-                    if (r != null) r.SetPropertyBlock(_beamMpb);
+                    if (r != null)
+                        r.enabled = enabled;
                 }
             }
         }
@@ -2669,6 +3347,7 @@ namespace ArtNet.Runtime
                 prismFacetCount = _prismFacetCount,
                 prismSpread = _prismSpread,
                 prismRotationDeg = GetDisplayPrismRotationDeg(),
+                prismRotationSpeedDegPerSec = _prismRotationSpeedDegPerSec,
                 prismIntensityScale = _prismIntensityScale
             };
         }
@@ -2881,6 +3560,12 @@ namespace ArtNet.Runtime
                     prismDrawMode == PrismDrawMode.ProjectionAndShaderBeam);
         }
 
+        private bool IsProjectionAndShaderBeamMode()
+        {
+            return IsPrismDrawingEnabled() &&
+                   prismDrawMode == PrismDrawMode.ProjectionAndShaderBeam;
+        }
+
         private float GetDisplayPrismRotationDeg()
         {
             return Mathf.Repeat(-(_prismRotationDeg + _prismRotationOffsetDeg), 360f);
@@ -3035,7 +3720,26 @@ namespace ArtNet.Runtime
             _prismCookieMaterial.SetFloat("_PrismRotationRad", prismRotationDeg * Mathf.Deg2Rad);
             _prismCookieMaterial.SetFloat("_IntensityScale", Mathf.Max(0f, intensityScale));
             Graphics.Blit(source, target, _prismCookieMaterial);
+            MarkTextureContentUpdated(target);
             return true;
+        }
+
+        private static void MarkTextureContentUpdated(Texture texture)
+        {
+            if (texture == null)
+                return;
+
+            if (!_textureIncrementUpdateCountMethodResolved)
+            {
+                _textureIncrementUpdateCountMethodResolved = true;
+                _textureIncrementUpdateCountMethod = typeof(Texture).GetMethod(
+                    "IncrementUpdateCount",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.NonPublic);
+            }
+
+            _textureIncrementUpdateCountMethod?.Invoke(texture, null);
         }
 
         private bool EnsurePrismCookieMaterial()
@@ -3078,7 +3782,7 @@ namespace ArtNet.Runtime
 
             float prismRotationDeg = GetDisplayPrismRotationDeg();
             float goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f);
-            float spreadDeg = Mathf.Max(0f, _prismSpread * auxiliarySpreadMultiplierDeg);
+                float spreadDeg = Mathf.Max(0f, _prismSpread * auxiliarySpreadMultiplierDeg * GetPrismGoboSpacingScale(state));
             var rotationMode = ResolveAuxiliaryCookieRotationMode();
             Texture sourceCookie = _goboEnabled && _goboTexture != null ? _goboTexture : Texture2D.whiteTexture;
             Texture cookie = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
@@ -3121,10 +3825,56 @@ namespace ArtNet.Runtime
             return AuxiliaryCookieRotationMode.CompositeTextureRoll;
         }
 
+        private void ApplyPrimaryVolumetricForPseudoBeam(FixtureRenderState state, bool suppressPrimaryLight)
+        {
+#if HAS_HDRP
+            var hd = targetLight != null ? targetLight.GetComponent<HDAdditionalLightData>() : null;
+            if (hd == null)
+                return;
+
+            if (!_hasPrimaryVolumetricDimmerDefault)
+            {
+                _primaryVolumetricDimmerDefault = TryGetHdrpVolumetricDimmer(hd, out float value) ? value : 1f;
+                _hasPrimaryVolumetricDimmerDefault = true;
+            }
+
+            bool disableVolumetricOnly = !suppressPrimaryLight && syncPseudoBeamToDmx;
+            TrySetHdrpVolumetricDimmer(hd, disableVolumetricOnly ? 0f : _primaryVolumetricDimmerDefault);
+#endif
+        }
+
 #if HAS_HDRP
         private bool PrimaryLightHasHdrpData()
         {
             return targetLight != null && targetLight.GetComponent<HDAdditionalLightData>() != null;
+        }
+
+        private static bool TryGetHdrpVolumetricDimmer(HDAdditionalLightData hd, out float value)
+        {
+            value = 1f;
+            if (hd == null)
+                return false;
+
+            const System.Reflection.BindingFlags flags =
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.NonPublic;
+
+            var property = typeof(HDAdditionalLightData).GetProperty("volumetricDimmer", flags);
+            if (property != null && property.CanRead && property.PropertyType == typeof(float))
+            {
+                value = (float)property.GetValue(hd);
+                return true;
+            }
+
+            var field = typeof(HDAdditionalLightData).GetField("volumetricDimmer", flags);
+            if (field != null && field.FieldType == typeof(float))
+            {
+                value = (float)field.GetValue(hd);
+                return true;
+            }
+
+            return false;
         }
 
         private static void TrySetHdrpVolumetricDimmer(HDAdditionalLightData hd, float value)
@@ -3202,6 +3952,40 @@ namespace ArtNet.Runtime
             };
         }
 
+        private float GetPrismBrightnessDistributionScale(int facetCount)
+        {
+            int safeFacetCount = Mathf.Max(1, facetCount);
+            float fullyDistributedScale = 1f / safeFacetCount;
+            return Mathf.Lerp(1f, fullyDistributedScale, Mathf.Clamp01(prismBrightnessDistribution));
+        }
+
+        private float GetPrismGoboSpacingScale(FixtureRenderState state)
+        {
+            float customScale = Mathf.Max(0f, prismGoboSpacingScale);
+
+            switch (prismZoomCorrection)
+            {
+                case PrismZoomCorrectionMode.Auto:
+                    if (!state.zoomEnabled)
+                        return customScale;
+
+                    float currentAngle = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+                    float minAngle = Mathf.Clamp(minOuterSpotAngle, 0.1f, 179f);
+                    float maxAngle = Mathf.Clamp(maxOuterSpotAngle, 0.1f, 179f);
+                    float referenceAngle = Mathf.Clamp((minAngle + maxAngle) * 0.5f, 0.1f, 179f);
+                    float currentFootprint = Mathf.Tan(currentAngle * 0.5f * Mathf.Deg2Rad);
+                    float referenceFootprint = Mathf.Max(0.0001f, Mathf.Tan(referenceAngle * 0.5f * Mathf.Deg2Rad));
+                    return Mathf.Max(0f, currentFootprint / referenceFootprint * customScale);
+
+                case PrismZoomCorrectionMode.Custom:
+                    return customScale;
+
+                case PrismZoomCorrectionMode.Off:
+                default:
+                    return 1f;
+            }
+        }
+
         private void ApplyPrismAuxiliaryLightState(PrismAuxiliaryLight aux, FixtureRenderState state, Texture cookie, int facetCount)
         {
             if (aux == null || aux.light == null)
@@ -3214,7 +3998,7 @@ namespace ArtNet.Runtime
 #endif
             bool projectionOnly = IsProjectionOnlyPrismMode();
             float maxIntensity = hasHdrp ? hdrpMaxIntensity : genericMaxIntensity;
-            float perFacetScale = auxiliaryIntensityScale * Mathf.Max(0f, _prismIntensityScale) / Mathf.Max(1, facetCount);
+            float perFacetScale = auxiliaryIntensityScale * Mathf.Max(0f, _prismIntensityScale) * GetPrismBrightnessDistributionScale(facetCount);
             float intensity = Mathf.Clamp01(state.lightDimmer01) * maxIntensity * perFacetScale;
 
             light.enabled = true;
@@ -3250,7 +4034,10 @@ namespace ArtNet.Runtime
                 aux.hd.SetColor(state.color);
                 aux.hd.intensity = intensity;
                 aux.hd.SetCookie(cookie != null ? cookie : Texture2D.whiteTexture);
-                TrySetHdrpVolumetricDimmer(aux.hd, projectionOnly && disableAuxiliaryVolumetricInProjectionOnly ? 0f : 1f);
+                float volumetricDimmer = projectionOnly && disableAuxiliaryVolumetricInProjectionOnly
+                    ? 0f
+                    : Mathf.Max(0f, auxiliaryVolumetricIntensityScale);
+                TrySetHdrpVolumetricDimmer(aux.hd, volumetricDimmer);
                 if (state.zoomEnabled)
                 {
                     aux.hd.SetSpotAngle(Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f));
@@ -3273,10 +4060,15 @@ namespace ArtNet.Runtime
                 if (aux?.light != null)
                     aux.light.enabled = false;
             }
+
+            DisablePrismPseudoBeamFacets();
+            DisableSinglePseudoBeamSoftShell();
+            SetTemplateBeamRenderersEnabled(true);
         }
 
         private void ReleasePrismResources()
         {
+            ReleasePrismPseudoBeamFacets();
             ReleaseRenderTexture(_prismCompositeCookie);
             ReleaseRenderTexture(_prismRotatedGoboCookie);
             _prismCompositeCookie = null;

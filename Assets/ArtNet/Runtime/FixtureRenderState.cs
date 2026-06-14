@@ -24,6 +24,7 @@ namespace ArtNet.Runtime
         public int prismFacetCount;
         public float prismSpread;
         public float prismRotationDeg;
+        public float prismRotationSpeedDegPerSec;
         public float prismIntensityScale;
     }
 }
