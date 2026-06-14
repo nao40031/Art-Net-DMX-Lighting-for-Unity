@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.mewlist.mew-noise-gen": {
+      "version": "file:com.mewlist.mew-noise-gen",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.bindings.openimageio": {
       "version": "1.0.0",
       "depth": 1,

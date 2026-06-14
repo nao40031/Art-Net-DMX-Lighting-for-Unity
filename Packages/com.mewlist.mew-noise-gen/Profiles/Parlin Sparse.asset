@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8164043aa6c4287833127d72042a549, type: 3}
+  m_Name: Parlin Sparse
+  m_EditorClassIdentifier: 
+  seed: 1319
+  frequency: 0.0251
+  interp: 0
+  noiseType: 5
+  octaves: 7
+  lacunarity: 3.6
+  gain: 0.59
+  fractalType: 0
+  cellularDistanceFunction: 1
+  cellularReturnType: 6
+  cellularNoiseLookup: {fileID: 0}
+  cellularDistanceIndex0: 1
+  cellularDistanceIndex1: 3
+  cellularJitter: 0.43
+  gradientPerturbAmp: 84.73
+  previewQuality: 1
+  resolution: 2
+  autoRedraw: 1
+  baseValue: 0.34
+  colorFormat: 2
+  shapes:
+  - Type: 1
+    Position: {x: 0.77, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 0.59, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4
+  - Type: 1
+    Position: {x: 0.5, y: 0, z: -0.07}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 0.72, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4
+  - Type: 1
+    Position: {x: 0, y: 0.5, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 1, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4
+  - Type: 1
+    Position: {x: 0.54, y: 0.23, z: 0.5}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 0.76, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4
+  - Type: 1
+    Position: {x: 0, y: 0.5, z: 0.5}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 0.63, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4
+  - Type: 1
+    Position: {x: 0.33, y: 0.3, z: -0.09}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 0.52, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4
+  - Type: 1
+    Position: {x: 0.5, y: 0, z: 0.5}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 0.52, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4
+  - Type: 1
+    Position: {x: 0.5, y: 0.5, z: 0.5}
+    Rotation: {x: 0, y: 0, z: 0}
+    Size: {x: 0.27, y: 1, z: 1}
+    FadeDistance: 0.5
+    Fade: 0.4

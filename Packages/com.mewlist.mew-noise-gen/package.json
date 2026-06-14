@@ -1,0 +1,10 @@
+{
+  "name": "com.mewlist.mew-noise-gen",
+  "displayName": "MewNoiseGen",
+  "version": "1.0.0",
+  "unity": "2018.4",
+  "description": "3D or 2D noise generator for Unity.",
+  "keywords": ["Procedural"],
+  "category": "Procedural",
+  "dependencies": { }
+}
