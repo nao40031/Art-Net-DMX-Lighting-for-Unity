@@ -4,9 +4,6 @@
 *.shader text
 *.mat merge=unityyamlmerge eol=lf
 *.anim filter=lfs diff=lfs merge=lfs -text
-# Unity Timeline/record assets
-Assets/RecordDMX/*.asset filter=lfs diff=lfs merge=lfs -text
-Assets/RecordDMX/**/*.asset filter=lfs diff=lfs merge=lfs -text
 *.unity merge=unityyamlmerge eol=lf
 *.physicsMaterial2D merge=unityyamlmerge eol=lf
 *.physicsMaterial merge=unityyamlmerge eol=lf
@@ -85,3 +82,7 @@ OcclusionCullingData.asset filter=lfs diff=lfs merge=lfs -text
 *.playable filter=lfs diff=lfs merge=lfs -text
 *.hdr filter=lfs diff=lfs merge=lfs -text
 *.baked.asset filter=lfs diff=lfs merge=lfs -text
+Assets/RecordDMX/Demo1_U0.asset filter=lfs diff=lfs merge=lfs -text
+Assets/RecordDMX/Demo1_U1.asset filter=lfs diff=lfs merge=lfs -text
+Assets/RecordDMX/Demo2_U0.asset filter=lfs diff=lfs merge=lfs -text
+Assets/RecordDMX/Demo2_U1.asset filter=lfs diff=lfs merge=lfs -text
