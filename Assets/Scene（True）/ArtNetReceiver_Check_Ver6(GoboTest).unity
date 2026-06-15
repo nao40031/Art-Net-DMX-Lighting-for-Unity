@@ -17730,12 +17730,16 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
+      propertyPath: enablePrism
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: startAddress
       value: 341
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: prismDrawMode
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: beamNoiseVolume
@@ -17755,7 +17759,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: syncPseudoBeamToDmx
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: beamNoiseVolumeScale
@@ -17768,6 +17772,10 @@ PrefabInstance:
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: beamNoiseVolumeContrast
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
+      propertyPath: beamNoiseVolumeGoboScale
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: beamNoiseVolumePrismScale
@@ -17799,7 +17807,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: auxiliaryVolumetricIntensityScale
-      value: 2.97
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: monitorItems.Array.data[0].absoluteCh
@@ -33788,7 +33796,6 @@ MonoBehaviour:
   m_Script: {fileID: 1642155417}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Entries: []
 --- !u!4 &1045504575
 Transform:
   m_ObjectHideFlags: 19
@@ -72417,7 +72424,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: fde6c8c82d772564b93af805a7f8f1e3, type: 2}
+  - {fileID: 2100000, guid: 28868f7180e1ea94bb06b427c7883700, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
