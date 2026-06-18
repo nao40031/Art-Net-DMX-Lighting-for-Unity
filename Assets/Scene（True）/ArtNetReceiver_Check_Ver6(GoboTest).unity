@@ -401,7 +401,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6cf1bee09cf04742b2ae33d3a564a67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputMode: 0
+  inputMode: 1
   receiver: {fileID: 0}
   autoDiscoverFixturesOnEnable: 1
   applyOnUpdate: 1
@@ -434,7 +434,7 @@ MonoBehaviour:
     channels: {fileID: 2030353291}
   - universe: 1
     channels: {fileID: 463734080}
-  enablePlayback: 0
+  enablePlayback: 1
   enableInEditMode: 1
   updateTiming: 1
   sampleRate: 0
@@ -446,7 +446,7 @@ MonoBehaviour:
   applyOnFirstFrame: 0
   forceAnimatorAlwaysAnimate: 1
   resetPanTiltOnExitingEditMode: 1
-  overrideRigInputMode: 0
+  overrideRigInputMode: 1
   inputModeWhileEnabled: 1
   logMissingRig: 1
 --- !u!4 &11281336 stripped
@@ -10820,7 +10820,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5435452863099544097, guid: d543a6ddd2b22da4399275f41d2f1bc4, type: 3}
       propertyPath: m_SpotAngle
-      value: 27.499657
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 8187567262573687871, guid: d543a6ddd2b22da4399275f41d2f1bc4, type: 3}
       propertyPath: mode
@@ -17645,6 +17645,10 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: -0
       objectReference: {fileID: 0}
+    - target: {fileID: 1632846662148736556, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3456986391419752059, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
@@ -17715,7 +17719,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5435452863099544097, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: m_SpotAngle
-      value: 27.499657
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 6364407986291185110, guid: b7d588c5652baea49952c4b31ebe1cb7, type: 3}
       propertyPath: startRadius
