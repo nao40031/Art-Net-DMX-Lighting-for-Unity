@@ -17,6 +17,8 @@ namespace ArtNet.Runtime
         public bool goboEnabled;
         public Texture goboTexture;
         public float goboRotationDeg;
+        public Vector2 goboOffsetUv;
+        public Vector2 beamShakeAngleDeg;
         public bool zoomEnabled;
         public float outerSpotAngleDeg;
         public float innerSpotPercent;

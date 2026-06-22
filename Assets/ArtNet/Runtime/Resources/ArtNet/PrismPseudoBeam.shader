@@ -10,6 +10,7 @@ Shader "ArtNet/Prism Pseudo Beam"
         _BeamEndRadius ("Beam End Radius", Float) = 1.5
         _GoboTexture ("Gobo Texture", 2D) = "white" {}
         _GoboRotationDeg ("Gobo Rotation Deg", Float) = 0
+        _GoboOffset ("Gobo Offset", Vector) = (0, 0, 0, 0)
         _GoboEnabled ("Gobo Enabled", Float) = 0
         _DmxPrismEnabled ("Prism Enabled", Float) = 0
         _DmxPrismFacetCount ("Prism Facet Count", Float) = 1
@@ -94,6 +95,7 @@ Shader "ArtNet/Prism Pseudo Beam"
             float _BeamEndRadius;
             float4 _GoboTexture_ST;
             float _GoboRotationDeg;
+            float4 _GoboOffset;
             float _GoboEnabled;
             float _DmxPrismEnabled;
             float _DmxPrismFacetCount;
@@ -174,7 +176,7 @@ Shader "ArtNet/Prism Pseudo Beam"
                 float2 rotated = float2(
                     centered.x * c - centered.y * s,
                     centered.x * s + centered.y * c
-                ) + 0.5;
+                ) + 0.5 + _GoboOffset.xy;
 
                 float inside = step(0.0, rotated.x) * step(rotated.x, 1.0) *
                                step(0.0, rotated.y) * step(rotated.y, 1.0);
@@ -186,10 +188,11 @@ Shader "ArtNet/Prism Pseudo Beam"
             {
                 float angle = uv.x * 6.28318530718 + radians(-_GoboRotationDeg);
                 float2 dir = float2(cos(angle), sin(angle));
-                float s1 = tex2D(_GoboTexture, 0.5 + dir * 0.12).r;
-                float s2 = tex2D(_GoboTexture, 0.5 + dir * 0.24).r;
-                float s3 = tex2D(_GoboTexture, 0.5 + dir * 0.36).r;
-                float s4 = tex2D(_GoboTexture, 0.5 + dir * 0.48).r;
+                float2 center = 0.5 + _GoboOffset.xy;
+                float s1 = tex2D(_GoboTexture, center + dir * 0.12).r;
+                float s2 = tex2D(_GoboTexture, center + dir * 0.24).r;
+                float s3 = tex2D(_GoboTexture, center + dir * 0.36).r;
+                float s4 = tex2D(_GoboTexture, center + dir * 0.48).r;
                 float gobo = max(max(s1, s2), max(s3, s4));
                 gobo = saturate((gobo - 0.5) * max(0.01, _BeamGoboContrast) + 0.5);
                 gobo = lerp(saturate(_BeamGoboMinLight), 1.0, gobo);

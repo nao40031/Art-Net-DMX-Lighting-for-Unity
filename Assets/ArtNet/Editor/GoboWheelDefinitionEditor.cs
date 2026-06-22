@@ -121,7 +121,21 @@ namespace ArtNet.EditorTools
                     EditorGUILayout.PropertyField(range.FindPropertyRelative("name"));
                     EditorGUILayout.PropertyField(range.FindPropertyRelative("dmxMin"));
                     EditorGUILayout.PropertyField(range.FindPropertyRelative("dmxMax"));
-                    EditorGUILayout.PropertyField(range.FindPropertyRelative("type"));
+
+                    SerializedProperty type = range.FindPropertyRelative("type");
+                    GoboRangeType previousType = (GoboRangeType)type.enumValueIndex;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(type);
+                    if (EditorGUI.EndChangeCheck() &&
+                        previousType != GoboRangeType.Shake &&
+                        (GoboRangeType)type.enumValueIndex == GoboRangeType.Shake)
+                    {
+                        ResetShakeProfile(range.FindPropertyRelative("shake"));
+                    }
+
+                    if ((GoboRangeType)type.enumValueIndex == GoboRangeType.Shake)
+                        DrawShakeSettings(range.FindPropertyRelative("shake"));
+
                     EditorGUI.indentLevel--;
                 }
 
@@ -158,7 +172,62 @@ namespace ArtNet.EditorTools
             range.FindPropertyRelative("dmxMin").intValue = 0;
             range.FindPropertyRelative("dmxMax").intValue = 0;
             range.FindPropertyRelative("type").enumValueIndex = (int)GoboRangeType.Select;
+            ResetShakeProfile(range.FindPropertyRelative("shake"));
             range.isExpanded = true;
+        }
+
+        private static void DrawShakeSettings(SerializedProperty shake)
+        {
+            if (shake == null)
+                return;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Shake Settings", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("enabled"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("speedMinHz"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("speedMaxHz"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("motionMode"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("positionAxis"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("affectBeam"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("applyWithPrism"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("applyWithZoom"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("allowDuringGoboRotation"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("amplitudeMinDeg"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("amplitudeMaxDeg"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("positionAmplitudeMin"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("positionAmplitudeMax"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("beamAngleAmplitudeMinDeg"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("beamAngleAmplitudeMaxDeg"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("zoomShakeScaleMin"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("zoomShakeScaleMax"));
+            EditorGUILayout.PropertyField(shake.FindPropertyRelative("amplitudeMapping"));
+            EditorGUI.indentLevel--;
+        }
+
+        private static void ResetShakeProfile(SerializedProperty shake)
+        {
+            if (shake == null)
+                return;
+
+            shake.FindPropertyRelative("enabled").boolValue = true;
+            shake.FindPropertyRelative("speedMinHz").floatValue = 0.4f;
+            shake.FindPropertyRelative("speedMaxHz").floatValue = 10f;
+            shake.FindPropertyRelative("motionMode").enumValueIndex = (int)GoboShakeMotionMode.Rotation;
+            shake.FindPropertyRelative("positionAxis").enumValueIndex = (int)GoboShakePositionAxis.Horizontal;
+            shake.FindPropertyRelative("affectBeam").boolValue = true;
+            shake.FindPropertyRelative("applyWithPrism").boolValue = true;
+            shake.FindPropertyRelative("applyWithZoom").boolValue = true;
+            shake.FindPropertyRelative("allowDuringGoboRotation").boolValue = true;
+            shake.FindPropertyRelative("amplitudeMinDeg").floatValue = 10f;
+            shake.FindPropertyRelative("amplitudeMaxDeg").floatValue = 360f;
+            shake.FindPropertyRelative("positionAmplitudeMin").floatValue = 0.015f;
+            shake.FindPropertyRelative("positionAmplitudeMax").floatValue = 0.06f;
+            shake.FindPropertyRelative("beamAngleAmplitudeMinDeg").floatValue = 0.2f;
+            shake.FindPropertyRelative("beamAngleAmplitudeMaxDeg").floatValue = 1f;
+            shake.FindPropertyRelative("zoomShakeScaleMin").floatValue = 0.5f;
+            shake.FindPropertyRelative("zoomShakeScaleMax").floatValue = 1.5f;
+            shake.FindPropertyRelative("amplitudeMapping").enumValueIndex = (int)GoboShakeAmplitudeMapping.SlowLargeFastSmall;
         }
 
         private static string GetSlotLabel(SerializedProperty slot, int index)

@@ -31,10 +31,48 @@ MonoBehaviour:
       dmxMin: 35
       dmxMax: 39
       type: 1
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
     - name: Gobo 1 Shake
       dmxMin: 60
       dmxMax: 89
       type: 2
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 1
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
   - name: Gobo 2
     dmxMin: 15
     dmxMax: 19
@@ -46,10 +84,48 @@ MonoBehaviour:
       dmxMin: 40
       dmxMax: 44
       type: 1
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
     - name: Gobo 2 Shake
       dmxMin: 90
       dmxMax: 119
       type: 2
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
   - name: Gobo 3
     dmxMin: 20
     dmxMax: 24
@@ -61,10 +137,48 @@ MonoBehaviour:
       dmxMin: 45
       dmxMax: 49
       type: 1
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
     - name: Gobo 3 Shake
       dmxMin: 120
       dmxMax: 149
       type: 2
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
   - name: Gobo 4
     dmxMin: 25
     dmxMax: 29
@@ -76,10 +190,48 @@ MonoBehaviour:
       dmxMin: 50
       dmxMax: 54
       type: 1
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
     - name: Gobo 4 Shake
       dmxMin: 150
       dmxMax: 179
       type: 2
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
   - name: Gobo 5
     dmxMin: 30
     dmxMax: 34
@@ -91,7 +243,45 @@ MonoBehaviour:
       dmxMin: 55
       dmxMax: 59
       type: 1
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0
     - name: Gobo 5 Shake
       dmxMin: 180
       dmxMax: 209
       type: 2
+      shake:
+        enabled: 1
+        speedMinHz: 0.4
+        speedMaxHz: 10
+        motionMode: 0
+        positionAxis: 0
+        affectBeam: 1
+        applyWithPrism: 1
+        applyWithZoom: 1
+        allowDuringGoboRotation: 1
+        amplitudeMinDeg: 12
+        amplitudeMaxDeg: 12
+        positionAmplitudeMin: 0.015
+        positionAmplitudeMax: 0.06
+        beamAngleAmplitudeMinDeg: 0.2
+        beamAngleAmplitudeMaxDeg: 1
+        zoomShakeScaleMin: 0.5
+        zoomShakeScaleMax: 1.5
+        amplitudeMapping: 0

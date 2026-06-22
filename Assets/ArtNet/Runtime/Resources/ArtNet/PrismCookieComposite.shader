@@ -7,6 +7,7 @@ Shader "Hidden/ArtNet/PrismCookieComposite"
         _Spread ("Spread", Float) = 0
         _FacetScale ("Facet Scale", Float) = 1
         _GoboRotationRad ("Gobo Rotation Rad", Float) = 0
+        _GoboOffset ("Gobo Offset", Vector) = (0, 0, 0, 0)
         _PrismRotationRad ("Prism Rotation Rad", Float) = 0
         _IntensityScale ("Intensity Scale", Float) = 1
     }
@@ -28,6 +29,7 @@ Shader "Hidden/ArtNet/PrismCookieComposite"
             float _Spread;
             float _FacetScale;
             float _GoboRotationRad;
+            float4 _GoboOffset;
             float _PrismRotationRad;
             float _IntensityScale;
 
@@ -55,7 +57,7 @@ Shader "Hidden/ArtNet/PrismCookieComposite"
                     float2 center = float2(cos(angle), sin(angle)) * _Spread;
                     float2 local = p - center;
                     float2 rotatedLocal = Rotate2D(local, -_GoboRotationRad);
-                    float2 sampleUv = (rotatedLocal / scale) * 0.5 + 0.5;
+                    float2 sampleUv = (rotatedLocal / scale) * 0.5 + 0.5 + _GoboOffset.xy;
 
                     float inside = step(0.0, sampleUv.x) * step(sampleUv.x, 1.0) * step(0.0, sampleUv.y) * step(sampleUv.y, 1.0);
                     fixed4 sampleColor = tex2D(_GoboTex, sampleUv) * inside;

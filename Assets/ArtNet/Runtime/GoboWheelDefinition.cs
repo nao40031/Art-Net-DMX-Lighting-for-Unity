@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ArtNet.Runtime
 {
@@ -19,6 +20,90 @@ namespace ArtNet.Runtime
         WheelScroll,
         NoFunction,
         Open
+    }
+
+    public enum GoboShakeAmplitudeMapping
+    {
+        Fixed,
+        SlowLargeFastSmall,
+        SlowSmallFastLarge
+    }
+
+    public enum GoboShakeMotionMode
+    {
+        Rotation,
+        Position,
+        RotationAndPosition
+    }
+
+    public enum GoboShakePositionAxis
+    {
+        Horizontal,
+        Vertical,
+        Both
+    }
+
+    [Serializable]
+    public class GoboShakeProfile
+    {
+        [Tooltip("Enable this Shake range.")]
+        public bool enabled = true;
+
+        [Header("Speed")]
+        [Tooltip("Shake speed at the range minimum value in Hz.")]
+        [Min(0f)]
+        public float speedMinHz = 0.4f;
+
+        [Tooltip("Shake speed at the range maximum value in Hz.")]
+        [Min(0f)]
+        public float speedMaxHz = 10f;
+
+        [Header("Motion")]
+        public GoboShakeMotionMode motionMode = GoboShakeMotionMode.Rotation;
+        public GoboShakePositionAxis positionAxis = GoboShakePositionAxis.Horizontal;
+        public bool affectBeam = true;
+        public bool applyWithPrism = true;
+        public bool applyWithZoom = true;
+        public bool allowDuringGoboRotation = true;
+
+        [Header("Rotation Amplitude")]
+        [Tooltip("Minimum rotational shake amplitude in degrees.")]
+        [Min(0f)]
+        public float amplitudeMinDeg = 10f;
+
+        [Tooltip("Maximum rotational shake amplitude in degrees. Fixed mapping uses this value.")]
+        [Min(0f)]
+        public float amplitudeMaxDeg = 360f;
+
+        [Header("Position Amplitude")]
+        [Tooltip("Minimum positional shake amplitude in gobo UV units.")]
+        [Min(0f)]
+        public float positionAmplitudeMin = 0.015f;
+
+        [Tooltip("Maximum positional shake amplitude in gobo UV units.")]
+        [Min(0f)]
+        public float positionAmplitudeMax = 0.06f;
+
+        [Header("Beam Angle Amplitude")]
+        [Tooltip("Minimum beam direction shake amplitude in degrees.")]
+        [Min(0f)]
+        public float beamAngleAmplitudeMinDeg = 0.2f;
+
+        [Tooltip("Maximum beam direction shake amplitude in degrees.")]
+        [Min(0f)]
+        public float beamAngleAmplitudeMaxDeg = 1f;
+
+        [Header("Zoom Scale")]
+        [Tooltip("Shake multiplier at the narrowest zoom side.")]
+        [Min(0f)]
+        public float zoomShakeScaleMin = 0.5f;
+
+        [Tooltip("Shake multiplier at the widest zoom side.")]
+        [Min(0f)]
+        public float zoomShakeScaleMax = 1.5f;
+
+        [Tooltip("How the DMX value inside the Shake range maps to amplitude.")]
+        public GoboShakeAmplitudeMapping amplitudeMapping = GoboShakeAmplitudeMapping.Fixed;
     }
 
     [Serializable]
@@ -33,6 +118,10 @@ namespace ArtNet.Runtime
         public int dmxMax = 0;
 
         public GoboRangeType type = GoboRangeType.Select;
+
+        [Tooltip("Shake settings used when Type is Shake.")]
+        [FormerlySerializedAs("shakeOverride")]
+        public GoboShakeProfile shake = new();
 
         public bool Contains(int dmxValue)
         {
@@ -78,20 +167,63 @@ namespace ArtNet.Runtime
     [CreateAssetMenu(menuName = "ArtNet/DMX/Gobo Wheel Definition", fileName = "GoboWheelDefinition")]
     public class GoboWheelDefinition : ScriptableObject
     {
-        [Tooltip("DMX値の範囲ごとに割り当てるゴボスロット定義。")]
+        [Tooltip("DMX value ranges mapped to gobo slots.")]
         public List<GoboSlot> slots = new();
 
         public GoboSlot ResolveSlot(int dmxValue)
         {
+            return TryResolveSlotRange(dmxValue, out var slot, out _) ? slot : null;
+        }
+
+        public bool TryResolveSlotRange(int dmxValue, out GoboSlot slot, out GoboSlotRange range)
+        {
             int clamped = Mathf.Clamp(dmxValue, 0, 255);
             for (int i = 0; i < slots.Count; i++)
             {
-                var slot = slots[i];
-                if (slot != null && slot.Contains(clamped))
-                    return slot;
+                slot = slots[i];
+                if (slot == null)
+                    continue;
+
+                if (clamped >= slot.dmxMin && clamped <= slot.dmxMax)
+                {
+                    range = null;
+                    return true;
+                }
+
+                if (slot.additionalRanges == null)
+                    continue;
+
+                for (int j = 0; j < slot.additionalRanges.Count; j++)
+                {
+                    range = slot.additionalRanges[j];
+                    if (range != null && range.Contains(clamped))
+                        return true;
+                }
             }
 
-            return null;
+            slot = null;
+            range = null;
+            return false;
+        }
+
+        public bool TryResolveShakeProfile(GoboSlotRange range, out GoboShakeProfile profile)
+        {
+            profile = null;
+            if (range == null || range.type != GoboRangeType.Shake)
+                return false;
+
+            profile = range.shake ?? new GoboShakeProfile();
+            profile.speedMinHz = Mathf.Max(0f, profile.speedMinHz);
+            profile.speedMaxHz = Mathf.Max(profile.speedMinHz, profile.speedMaxHz);
+            profile.amplitudeMinDeg = Mathf.Max(0f, profile.amplitudeMinDeg);
+            profile.amplitudeMaxDeg = Mathf.Max(0f, profile.amplitudeMaxDeg);
+            profile.positionAmplitudeMin = Mathf.Max(0f, profile.positionAmplitudeMin);
+            profile.positionAmplitudeMax = Mathf.Max(0f, profile.positionAmplitudeMax);
+            profile.beamAngleAmplitudeMinDeg = Mathf.Max(0f, profile.beamAngleAmplitudeMinDeg);
+            profile.beamAngleAmplitudeMaxDeg = Mathf.Max(0f, profile.beamAngleAmplitudeMaxDeg);
+            profile.zoomShakeScaleMin = Mathf.Max(0f, profile.zoomShakeScaleMin);
+            profile.zoomShakeScaleMax = Mathf.Max(profile.zoomShakeScaleMin, profile.zoomShakeScaleMax);
+            return profile.enabled;
         }
     }
 }

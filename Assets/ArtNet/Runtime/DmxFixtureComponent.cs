@@ -98,6 +98,9 @@ namespace ArtNet.Runtime
         [Tooltip("GoboRotation=255 のときの角速度（deg/sec）。")]
         [SerializeField, Min(0f)] private float maxGoboRotateDegPerSec = 360f;
 
+        [Tooltip("Gobo WheelのShake範囲をゴボ回転角の往復揺れとして反映します。")]
+        [SerializeField] private bool enableGoboShake = true;
+
         [Tooltip("ゴボ回転をLight Cookie用Transformのロール回転へ同期します。")]
         [SerializeField] private bool syncGoboRotationToCookieTransform = true;
 
@@ -433,6 +436,7 @@ namespace ArtNet.Runtime
         private int _lensGoboTextureId;
         private int _lensGoboRotationId;
         private int _lensGoboEnabledId;
+        private int _lensGoboOffsetId;
         private bool _lensPropertyIdsReady;
 
         private MaterialPropertyBlock _beamMpb;
@@ -441,6 +445,7 @@ namespace ArtNet.Runtime
         private int _beamGoboTextureId;
         private int _beamGoboRotationId;
         private int _beamGoboEnabledId;
+        private int _beamGoboOffsetId;
         private int _beamPrismEnabledId;
         private int _beamPrismFacetCountId;
         private int _beamPrismSpreadId;
@@ -642,6 +647,21 @@ namespace ArtNet.Runtime
         private float _goboRotationDeg;
         private float _goboRotationOffsetDeg;
         private float _goboRotationSpeedDegPerSec;
+        private bool _goboShakeEnabled;
+        private float _goboShakePhaseRad;
+        private float _goboShakeOffsetDeg;
+        private float _goboShakeAmplitudeDeg;
+        private float _goboShakePositionAmplitudeUv;
+        private float _goboShakeBeamAngleAmplitudeDeg;
+        private Vector2 _goboShakePositionOffsetUv;
+        private Vector2 _goboShakeBeamAngleOffsetDeg;
+        private float _goboShakeSpeedHz;
+        private GoboShakeMotionMode _goboShakeMotionMode = GoboShakeMotionMode.Rotation;
+        private GoboShakePositionAxis _goboShakePositionAxis = GoboShakePositionAxis.Horizontal;
+        private bool _goboShakeAffectBeam;
+        private bool _goboShakeApplyWithPrism;
+        private bool _goboShakeApplyWithZoom;
+        private bool _goboShakeAllowDuringGoboRotation = true;
         private bool _zoomEnabled;
         private float _zoomOuterSpotAngleDeg;
         private float _zoomInnerSpotPercent;
@@ -655,20 +675,26 @@ namespace ArtNet.Runtime
         private float _prismIntensityScale = 1f;
         private RenderTexture _prismCompositeCookie;
         private RenderTexture _prismRotatedGoboCookie;
+        private RenderTexture _goboOffsetCookie;
         private Material _prismCookieMaterial;
         private static System.Reflection.MethodInfo _textureIncrementUpdateCountMethod;
         private static bool _textureIncrementUpdateCountMethodResolved;
         private Texture _lastPrismCompositeSource;
         private Texture _lastPrismRotatedSource;
+        private Texture _lastGoboOffsetSource;
         private float _lastPrismCompositeGoboRotation = float.NaN;
         private float _lastPrismCompositePrismRotation = float.NaN;
         private float _lastPrismRotatedGoboRotation = float.NaN;
+        private Vector2 _lastPrismCompositeGoboOffset = new Vector2(float.NaN, float.NaN);
+        private Vector2 _lastPrismRotatedGoboOffset = new Vector2(float.NaN, float.NaN);
+        private Vector2 _lastGoboOffset = new Vector2(float.NaN, float.NaN);
         private int _lastPrismCompositeFacetCount = -1;
         private float _lastPrismCompositeSpread = float.NaN;
         private float _lastPrismCompositeFacetScale = float.NaN;
         private float _lastPrismCompositeIntensityScale = float.NaN;
         private int _lastPrismCookieSize = -1;
         private int _lastPrismRotatedCookieSize = -1;
+        private int _lastGoboOffsetCookieSize = -1;
         private readonly List<PrismAuxiliaryLight> _prismAuxiliaryLights = new();
         private readonly List<PrismPseudoBeamFacet> _prismPseudoBeamFacets = new();
         private Transform _prismAuxRoot;
@@ -2462,6 +2488,21 @@ namespace ArtNet.Runtime
             _goboRotationDeg = 0f;
             _goboRotationOffsetDeg = 0f;
             _goboRotationSpeedDegPerSec = 0f;
+            _goboShakeEnabled = false;
+            _goboShakePhaseRad = 0f;
+            _goboShakeOffsetDeg = 0f;
+            _goboShakeAmplitudeDeg = 0f;
+            _goboShakePositionAmplitudeUv = 0f;
+            _goboShakeBeamAngleAmplitudeDeg = 0f;
+            _goboShakePositionOffsetUv = Vector2.zero;
+            _goboShakeBeamAngleOffsetDeg = Vector2.zero;
+            _goboShakeSpeedHz = 0f;
+            _goboShakeMotionMode = GoboShakeMotionMode.Rotation;
+            _goboShakePositionAxis = GoboShakePositionAxis.Horizontal;
+            _goboShakeAffectBeam = false;
+            _goboShakeApplyWithPrism = false;
+            _goboShakeApplyWithZoom = false;
+            _goboShakeAllowDuringGoboRotation = true;
             _prismEnabled = false;
             _prismFacetCount = 1;
             _prismSpread = 0f;
@@ -2618,6 +2659,15 @@ namespace ArtNet.Runtime
                 driverState.goboEnabled = false;
                 driverState.goboTexture = null;
             }
+            else if (driverState.goboEnabled && driverState.goboTexture != null && driverState.goboOffsetUv.sqrMagnitude > 0.0000001f)
+            {
+                Texture offsetCookie = GetOffsetGoboCookie(driverState.goboTexture, driverState.goboOffsetUv);
+                if (offsetCookie != null)
+                {
+                    driverState.goboTexture = offsetCookie;
+                    driverState.goboOffsetUv = Vector2.zero;
+                }
+            }
 
             if (isInitialized && runtimeDrivers != null && runtimeDrivers.Count > 0)
             {
@@ -2686,6 +2736,7 @@ namespace ArtNet.Runtime
             _lensGoboTextureId = Shader.PropertyToID(lensGoboTextureProperty);
             _lensGoboRotationId = Shader.PropertyToID(lensGoboRotationProperty);
             _lensGoboEnabledId = Shader.PropertyToID(lensGoboEnabledProperty);
+            _lensGoboOffsetId = Shader.PropertyToID("_GoboOffset");
             if (_lensMpb == null) _lensMpb = new MaterialPropertyBlock();
             _lensPropertyIdsReady = true;
         }
@@ -2716,6 +2767,7 @@ namespace ArtNet.Runtime
                 _lensMpb.SetTexture(_lensGoboTextureId, state.goboEnabled && state.goboTexture != null ? state.goboTexture : Texture2D.whiteTexture);
                 _lensMpb.SetFloat(_lensGoboRotationId, state.goboRotationDeg);
                 _lensMpb.SetFloat(_lensGoboEnabledId, state.goboEnabled ? 1f : 0f);
+                _lensMpb.SetVector(_lensGoboOffsetId, new Vector4(state.goboOffsetUv.x, state.goboOffsetUv.y, 0f, 0f));
             }
 
             if (lensRenderer != null)
@@ -2764,6 +2816,7 @@ namespace ArtNet.Runtime
             _beamGoboTextureId = Shader.PropertyToID(beamGoboTextureProperty);
             _beamGoboRotationId = Shader.PropertyToID(beamGoboRotationProperty);
             _beamGoboEnabledId = Shader.PropertyToID(beamGoboEnabledProperty);
+            _beamGoboOffsetId = Shader.PropertyToID("_GoboOffset");
             _beamPrismEnabledId = Shader.PropertyToID(beamPrismEnabledProperty);
             _beamPrismFacetCountId = Shader.PropertyToID(beamPrismFacetCountProperty);
             _beamPrismSpreadId = Shader.PropertyToID(beamPrismSpreadProperty);
@@ -2855,6 +2908,7 @@ namespace ArtNet.Runtime
                 _beamMpb.SetTexture(_beamGoboTextureId, state.goboEnabled && state.goboTexture != null ? state.goboTexture : Texture2D.whiteTexture);
                 _beamMpb.SetFloat(_beamGoboRotationId, state.goboRotationDeg);
                 _beamMpb.SetFloat(_beamGoboEnabledId, state.goboEnabled ? 1f : 0f);
+                _beamMpb.SetVector(_beamGoboOffsetId, new Vector4(state.goboOffsetUv.x, state.goboOffsetUv.y, 0f, 0f));
             }
             if (syncBeamPrismToDmx)
             {
@@ -2990,7 +3044,7 @@ namespace ArtNet.Runtime
                 float yDeg = Mathf.Cos(angleRad) * spreadDeg;
 
                 facet.directionPivot.localPosition = templateTransform.localPosition;
-                facet.directionPivot.localRotation = templateTransform.localRotation * Quaternion.Euler(xDeg, yDeg, 0f);
+                facet.directionPivot.localRotation = templateTransform.localRotation * Quaternion.Euler(xDeg + state.beamShakeAngleDeg.x, yDeg + state.beamShakeAngleDeg.y, 0f);
                 facet.directionPivot.localScale = Vector3.one;
 
                 Transform facetTransform = facet.renderer.transform;
@@ -3316,22 +3370,23 @@ namespace ArtNet.Runtime
 
         private FixtureRenderState BuildRenderState(float lightDim01, float lensDim01, Color rgb)
         {
-            float goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f);
+            float goboRotationDeg = GetDisplayGoboRotationDeg();
+            Vector2 goboOffsetUv = GetDisplayGoboOffsetUv();
             bool goboEnabled = _goboEnabled && _goboTexture != null;
             Texture goboTextureForRender = _goboTexture;
 
             if (ShouldUsePrismCookieComposite())
             {
                 Texture source = goboEnabled ? _goboTexture : Texture2D.whiteTexture;
-                Texture composite = GetPrismCompositeCookie(source, goboRotationDeg, GetDisplayPrismRotationDeg());
+                Texture composite = GetPrismCompositeCookie(source, goboRotationDeg, GetDisplayPrismRotationDeg(), goboOffsetUv);
                 if (composite != null)
                 {
                     goboEnabled = true;
                     goboTextureForRender = composite;
                     goboRotationDeg = 0f;
+                    goboOffsetUv = Vector2.zero;
                 }
             }
-
             return new FixtureRenderState
             {
                 lightDimmer01 = lightDim01,
@@ -3340,6 +3395,8 @@ namespace ArtNet.Runtime
                 goboEnabled = goboEnabled && goboTextureForRender != null,
                 goboTexture = goboTextureForRender,
                 goboRotationDeg = goboRotationDeg,
+                goboOffsetUv = goboOffsetUv,
+                beamShakeAngleDeg = GetDisplayBeamShakeAngleDeg(),
                 zoomEnabled = _zoomEnabled,
                 outerSpotAngleDeg = _zoomOuterSpotAngleDeg,
                 innerSpotPercent = _zoomInnerSpotPercent,
@@ -3350,6 +3407,21 @@ namespace ArtNet.Runtime
                 prismRotationSpeedDegPerSec = _prismRotationSpeedDegPerSec,
                 prismIntensityScale = _prismIntensityScale
             };
+        }
+
+        private float GetDisplayGoboRotationDeg()
+        {
+            return Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg + _goboShakeOffsetDeg, 360f);
+        }
+
+        private Vector2 GetDisplayGoboOffsetUv()
+        {
+            return ShouldApplyCurrentGoboShake() ? _goboShakePositionOffsetUv : Vector2.zero;
+        }
+
+        private Vector2 GetDisplayBeamShakeAngleDeg()
+        {
+            return ShouldApplyCurrentGoboShake() ? _goboShakeBeamAngleOffsetDeg : Vector2.zero;
         }
 
         private void UpdateZoomTargetsFromDmx(bool hasZoom, float zoom01, bool usesRangeMapping)
@@ -3458,17 +3530,57 @@ namespace ArtNet.Runtime
             _goboEnabled = false;
             _goboTexture = null;
             _goboRotationOffsetDeg = 0f;
+            _goboShakeEnabled = false;
+            _goboShakeAmplitudeDeg = 0f;
+            _goboShakePositionAmplitudeUv = 0f;
+            _goboShakeBeamAngleAmplitudeDeg = 0f;
+            _goboShakeSpeedHz = 0f;
+            _goboShakeMotionMode = GoboShakeMotionMode.Rotation;
+            _goboShakePositionAxis = GoboShakePositionAxis.Horizontal;
+            _goboShakeAffectBeam = false;
+            _goboShakeApplyWithPrism = false;
+            _goboShakeApplyWithZoom = false;
+            _goboShakeAllowDuringGoboRotation = true;
 
             var wheel = wheelDefinition != null ? wheelDefinition : goboWheel;
             if (wheel != null)
             {
-                var slot = wheel.ResolveSlot(goboValue);
-                if (slot != null)
+                if (wheel.TryResolveSlotRange(goboValue, out var slot, out var range))
                 {
                     _goboEnabled = !slot.isOpen && slot.texture != null;
                     _goboTexture = slot.texture;
                     _goboRotationOffsetDeg = slot.rotationOffsetDeg;
+
+                    if (enableGoboShake && wheel.TryResolveShakeProfile(range, out var shakeProfile))
+                    {
+                        _goboShakeEnabled = true;
+                        float shake01 = GetGoboRangeNormalized(range, goboValue);
+                        float zoomScale = CalculateGoboShakeZoomScale(shakeProfile);
+                        _goboShakeMotionMode = shakeProfile.motionMode;
+                        _goboShakePositionAxis = shakeProfile.positionAxis;
+                        _goboShakeAffectBeam = shakeProfile.affectBeam;
+                        _goboShakeApplyWithPrism = shakeProfile.applyWithPrism;
+                        _goboShakeApplyWithZoom = shakeProfile.applyWithZoom;
+                        _goboShakeAllowDuringGoboRotation = shakeProfile.allowDuringGoboRotation;
+                        _goboShakeAmplitudeDeg = UsesRotationShake(shakeProfile.motionMode)
+                            ? MapGoboShakeRangeToAmplitude(shakeProfile.amplitudeMinDeg, shakeProfile.amplitudeMaxDeg, shakeProfile.amplitudeMapping, shake01) * zoomScale
+                            : 0f;
+                        _goboShakePositionAmplitudeUv = UsesPositionShake(shakeProfile.motionMode)
+                            ? MapGoboShakeRangeToAmplitude(shakeProfile.positionAmplitudeMin, shakeProfile.positionAmplitudeMax, shakeProfile.amplitudeMapping, shake01) * zoomScale
+                            : 0f;
+                        _goboShakeBeamAngleAmplitudeDeg = shakeProfile.affectBeam
+                            ? MapGoboShakeRangeToAmplitude(shakeProfile.beamAngleAmplitudeMinDeg, shakeProfile.beamAngleAmplitudeMaxDeg, shakeProfile.amplitudeMapping, shake01) * zoomScale
+                            : 0f;
+                        _goboShakeSpeedHz = MapGoboShakeRangeToSpeed(shakeProfile, shake01);
+                    }
                 }
+            }
+
+            if (!_goboShakeEnabled)
+            {
+                _goboShakeOffsetDeg = 0f;
+                _goboShakePositionOffsetUv = Vector2.zero;
+                _goboShakeBeamAngleOffsetDeg = Vector2.zero;
             }
 
             _goboRotationSpeedDegPerSec = overrideGoboRotationSpeed ? goboRotationSpeedOverride : MapGoboRotationDmxToSpeed(goboRotationValue);
@@ -3478,6 +3590,24 @@ namespace ArtNet.Runtime
         {
             if (!Mathf.Approximately(_goboRotationSpeedDegPerSec, 0f))
                 _goboRotationDeg = Mathf.Repeat(_goboRotationDeg + (_goboRotationSpeedDegPerSec * Time.deltaTime), 360f);
+
+            if (ShouldApplyCurrentGoboShake() &&
+                (_goboShakeAmplitudeDeg > 0f || _goboShakePositionAmplitudeUv > 0f || _goboShakeBeamAngleAmplitudeDeg > 0f) &&
+                _goboShakeSpeedHz > 0f)
+            {
+                _goboShakePhaseRad = Mathf.Repeat(_goboShakePhaseRad + (Mathf.PI * 2f * _goboShakeSpeedHz * Time.deltaTime), Mathf.PI * 2f);
+                float wave = Mathf.Sin(_goboShakePhaseRad);
+                _goboShakeOffsetDeg = wave * _goboShakeAmplitudeDeg;
+                Vector2 axis = ResolveGoboShakePositionAxis(_goboShakePositionAxis);
+                _goboShakePositionOffsetUv = axis * (wave * _goboShakePositionAmplitudeUv);
+                _goboShakeBeamAngleOffsetDeg = _goboShakeAffectBeam ? axis * (wave * _goboShakeBeamAngleAmplitudeDeg) : Vector2.zero;
+            }
+            else
+            {
+                _goboShakeOffsetDeg = 0f;
+                _goboShakePositionOffsetUv = Vector2.zero;
+                _goboShakeBeamAngleOffsetDeg = Vector2.zero;
+            }
 
             ApplyGoboCookieRollTransform();
         }
@@ -3508,7 +3638,7 @@ namespace ArtNet.Runtime
             }
 
             Vector3 axis = goboCookieRollAxis.sqrMagnitude > 0.0001f ? goboCookieRollAxis.normalized : Vector3.forward;
-            float rollDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg + goboCookieRollOffsetDeg, 360f);
+            float rollDeg = Mathf.Repeat(GetDisplayGoboRotationDeg() + goboCookieRollOffsetDeg, 360f);
             goboCookieRollTransform.localRotation = _goboCookieRollBaseLocalRot * Quaternion.AngleAxis(rollDeg, axis);
         }
 
@@ -3526,6 +3656,88 @@ namespace ArtNet.Runtime
 
             float t2 = (clamped - 129) / 126f;
             return Mathf.Lerp(0f, maxGoboRotateDegPerSec, t2);
+        }
+
+        private static float GetGoboRangeNormalized(GoboSlotRange range, int dmxValue)
+        {
+            if (range == null)
+                return 0f;
+
+            int min = Mathf.Clamp(Mathf.Min(range.dmxMin, range.dmxMax), 0, 255);
+            int max = Mathf.Clamp(Mathf.Max(range.dmxMin, range.dmxMax), 0, 255);
+            return max > min ? Mathf.InverseLerp(min, max, Mathf.Clamp(dmxValue, min, max)) : 1f;
+        }
+
+        private static float MapGoboShakeRangeToSpeed(GoboShakeProfile profile, float normalized)
+        {
+            float minSpeed = Mathf.Max(0f, profile.speedMinHz);
+            float maxSpeed = Mathf.Max(minSpeed, profile.speedMaxHz);
+            return Mathf.Lerp(minSpeed, maxSpeed, Mathf.Clamp01(normalized));
+        }
+
+        private static float MapGoboShakeRangeToAmplitude(float minValue, float maxValue, GoboShakeAmplitudeMapping mapping, float normalized)
+        {
+            float minAmplitude = Mathf.Max(0f, minValue);
+            float maxAmplitude = Mathf.Max(0f, maxValue);
+            float t = Mathf.Clamp01(normalized);
+
+            switch (mapping)
+            {
+                case GoboShakeAmplitudeMapping.SlowLargeFastSmall:
+                    return Mathf.Lerp(maxAmplitude, minAmplitude, t);
+                case GoboShakeAmplitudeMapping.SlowSmallFastLarge:
+                    return Mathf.Lerp(minAmplitude, maxAmplitude, t);
+                case GoboShakeAmplitudeMapping.Fixed:
+                default:
+                    return maxAmplitude;
+            }
+        }
+
+        private static bool UsesRotationShake(GoboShakeMotionMode mode)
+        {
+            return mode == GoboShakeMotionMode.Rotation || mode == GoboShakeMotionMode.RotationAndPosition;
+        }
+
+        private static bool UsesPositionShake(GoboShakeMotionMode mode)
+        {
+            return mode == GoboShakeMotionMode.Position || mode == GoboShakeMotionMode.RotationAndPosition;
+        }
+
+        private static Vector2 ResolveGoboShakePositionAxis(GoboShakePositionAxis axis)
+        {
+            return axis switch
+            {
+                GoboShakePositionAxis.Vertical => Vector2.up,
+                GoboShakePositionAxis.Both => new Vector2(1f, 1f).normalized,
+                _ => Vector2.right
+            };
+        }
+
+        private bool ShouldApplyCurrentGoboShake()
+        {
+            if (!_goboShakeEnabled)
+                return false;
+
+            if (!_goboShakeApplyWithPrism && IsPrismDrawingEnabled())
+                return false;
+
+            if (!_goboShakeAllowDuringGoboRotation && Mathf.Abs(_goboRotationSpeedDegPerSec) > 0.001f)
+                return false;
+
+            return true;
+        }
+
+        private float CalculateGoboShakeZoomScale(GoboShakeProfile profile)
+        {
+            if (profile == null || !profile.applyWithZoom || !_zoomEnabled)
+                return 1f;
+
+            float min = Mathf.Clamp(minOuterSpotAngle, 0.1f, 179f);
+            float max = Mathf.Clamp(maxOuterSpotAngle, 0.1f, 179f);
+            float t = max > min ? Mathf.InverseLerp(min, max, _zoomOuterSpotAngleDeg) : 0.5f;
+            float narrowScale = Mathf.Max(0f, profile.zoomShakeScaleMin);
+            float wideScale = Mathf.Max(narrowScale, profile.zoomShakeScaleMax);
+            return Mathf.Lerp(narrowScale, wideScale, t);
         }
 
         private bool ShouldUsePrismCookieComposite()
@@ -3580,7 +3792,7 @@ namespace ArtNet.Runtime
                 goboCookieRollTransform.localRotation = _goboCookieRollBaseLocalRot;
         }
 
-        private Texture GetPrismCompositeCookie(Texture source, float goboRotationDeg, float prismRotationDeg)
+        private Texture GetPrismCompositeCookie(Texture source, float goboRotationDeg, float prismRotationDeg, Vector2 goboOffsetUv)
         {
             if (!_prismEnabled || source == null)
                 return source;
@@ -3593,10 +3805,10 @@ namespace ArtNet.Runtime
 
             _prismCompositeCookie = EnsurePrismRenderTexture(_prismCompositeCookie, size, "ArtNet Prism Composite Cookie");
 
-            if (!NeedsPrismCompositeUpdate(source, size, facetCount, spread, facetScale, intensity, goboRotationDeg, prismRotationDeg))
+            if (!NeedsPrismCompositeUpdate(source, size, facetCount, spread, facetScale, intensity, goboRotationDeg, prismRotationDeg, goboOffsetUv))
                 return _prismCompositeCookie;
 
-            if (!RenderPrismCookie(source, _prismCompositeCookie, facetCount, spread, facetScale, goboRotationDeg, prismRotationDeg, intensity))
+            if (!RenderPrismCookie(source, _prismCompositeCookie, facetCount, spread, facetScale, goboRotationDeg, prismRotationDeg, intensity, goboOffsetUv))
                 return source;
 
             _lastPrismCompositeSource = source;
@@ -3607,11 +3819,12 @@ namespace ArtNet.Runtime
             _lastPrismCompositeIntensityScale = intensity;
             _lastPrismCompositeGoboRotation = goboRotationDeg;
             _lastPrismCompositePrismRotation = prismRotationDeg;
+            _lastPrismCompositeGoboOffset = goboOffsetUv;
 
             return _prismCompositeCookie;
         }
 
-        private Texture GetRotatedGoboCookie(Texture source, float goboRotationDeg)
+        private Texture GetRotatedGoboCookie(Texture source, float goboRotationDeg, Vector2 goboOffsetUv)
         {
             if (source == null)
                 return null;
@@ -3630,6 +3843,7 @@ namespace ArtNet.Runtime
                 }
 
                 _lastPrismRotatedGoboRotation = float.NaN;
+                _lastPrismRotatedGoboOffset = new Vector2(float.NaN, float.NaN);
                 _lastPrismRotatedCookieSize = -1;
             }
 
@@ -3638,22 +3852,61 @@ namespace ArtNet.Runtime
             if (_lastPrismRotatedSource == source &&
                 _prismRotatedGoboCookie != null &&
                 _lastPrismRotatedCookieSize == size &&
-                !AngleChangedEnough(_lastPrismRotatedGoboRotation, goboRotationDeg))
+                !AngleChangedEnough(_lastPrismRotatedGoboRotation, goboRotationDeg) &&
+                !OffsetChangedEnough(_lastPrismRotatedGoboOffset, goboOffsetUv))
             {
                 return _prismRotatedGoboCookie;
             }
 
-            if (!RenderPrismCookie(source, _prismRotatedGoboCookie, 1, 0f, 1f, goboRotationDeg, 0f, 1f))
+            if (!RenderPrismCookie(source, _prismRotatedGoboCookie, 1, 0f, 1f, goboRotationDeg, 0f, 1f, goboOffsetUv))
                 return source;
 
             _lastPrismRotatedSource = source;
             _lastPrismRotatedGoboRotation = goboRotationDeg;
+            _lastPrismRotatedGoboOffset = goboOffsetUv;
             _lastPrismRotatedCookieSize = size;
 
             return _prismRotatedGoboCookie;
         }
 
-        private bool NeedsPrismCompositeUpdate(Texture source, int size, int facetCount, float spread, float facetScale, float intensity, float goboRotationDeg, float prismRotationDeg)
+        private Texture GetOffsetGoboCookie(Texture source, Vector2 goboOffsetUv)
+        {
+            if (source == null)
+                return null;
+
+            if (goboOffsetUv.sqrMagnitude <= 0.0000001f)
+                return source;
+
+            int size = Mathf.Clamp(prismCompositeCookieSize, 16, 4096);
+            if (_lastGoboOffsetSource != null && _lastGoboOffsetSource != source)
+            {
+                ReleaseRenderTexture(_goboOffsetCookie);
+                _goboOffsetCookie = null;
+                _lastGoboOffset = new Vector2(float.NaN, float.NaN);
+                _lastGoboOffsetCookieSize = -1;
+            }
+
+            _goboOffsetCookie = EnsurePrismRenderTexture(_goboOffsetCookie, size, "ArtNet Gobo Offset Cookie");
+
+            if (_lastGoboOffsetSource == source &&
+                _goboOffsetCookie != null &&
+                _lastGoboOffsetCookieSize == size &&
+                !OffsetChangedEnough(_lastGoboOffset, goboOffsetUv))
+            {
+                return _goboOffsetCookie;
+            }
+
+            if (!RenderPrismCookie(source, _goboOffsetCookie, 1, 0f, 1f, 0f, 0f, 1f, goboOffsetUv))
+                return source;
+
+            _lastGoboOffsetSource = source;
+            _lastGoboOffset = goboOffsetUv;
+            _lastGoboOffsetCookieSize = size;
+
+            return _goboOffsetCookie;
+        }
+
+        private bool NeedsPrismCompositeUpdate(Texture source, int size, int facetCount, float spread, float facetScale, float intensity, float goboRotationDeg, float prismRotationDeg, Vector2 goboOffsetUv)
         {
             if (_prismCompositeCookie == null)
                 return true;
@@ -3669,7 +3922,16 @@ namespace ArtNet.Runtime
             }
 
             return AngleChangedEnough(_lastPrismCompositeGoboRotation, goboRotationDeg) ||
-                   AngleChangedEnough(_lastPrismCompositePrismRotation, prismRotationDeg);
+                   AngleChangedEnough(_lastPrismCompositePrismRotation, prismRotationDeg) ||
+                   OffsetChangedEnough(_lastPrismCompositeGoboOffset, goboOffsetUv);
+        }
+
+        private static bool OffsetChangedEnough(Vector2 previous, Vector2 current)
+        {
+            if (float.IsNaN(previous.x) || float.IsNaN(previous.y))
+                return true;
+
+            return (previous - current).sqrMagnitude >= 0.0000001f;
         }
 
         private bool AngleChangedEnough(float previousDeg, float currentDeg)
@@ -3704,7 +3966,7 @@ namespace ArtNet.Runtime
             return rt;
         }
 
-        private bool RenderPrismCookie(Texture source, RenderTexture target, int facetCount, float spread, float facetScale, float goboRotationDeg, float prismRotationDeg, float intensityScale)
+        private bool RenderPrismCookie(Texture source, RenderTexture target, int facetCount, float spread, float facetScale, float goboRotationDeg, float prismRotationDeg, float intensityScale, Vector2 goboOffsetUv)
         {
             if (source == null || target == null)
                 return false;
@@ -3719,6 +3981,7 @@ namespace ArtNet.Runtime
             _prismCookieMaterial.SetFloat("_GoboRotationRad", goboRotationDeg * Mathf.Deg2Rad);
             _prismCookieMaterial.SetFloat("_PrismRotationRad", prismRotationDeg * Mathf.Deg2Rad);
             _prismCookieMaterial.SetFloat("_IntensityScale", Mathf.Max(0f, intensityScale));
+            _prismCookieMaterial.SetVector("_GoboOffset", new Vector4(goboOffsetUv.x, goboOffsetUv.y, 0f, 0f));
             Graphics.Blit(source, target, _prismCookieMaterial);
             MarkTextureContentUpdated(target);
             return true;
@@ -3781,13 +4044,13 @@ namespace ArtNet.Runtime
             }
 
             float prismRotationDeg = GetDisplayPrismRotationDeg();
-            float goboRotationDeg = Mathf.Repeat(_goboRotationDeg + _goboRotationOffsetDeg, 360f);
+            float goboRotationDeg = GetDisplayGoboRotationDeg();
                 float spreadDeg = Mathf.Max(0f, _prismSpread * auxiliarySpreadMultiplierDeg * GetPrismGoboSpacingScale(state));
             var rotationMode = ResolveAuxiliaryCookieRotationMode();
             Texture sourceCookie = _goboEnabled && _goboTexture != null ? _goboTexture : Texture2D.whiteTexture;
             Texture cookie = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
-                ? sourceCookie
-                : GetRotatedGoboCookie(sourceCookie, goboRotationDeg);
+                ? GetOffsetGoboCookie(sourceCookie, state.goboOffsetUv)
+                : GetRotatedGoboCookie(sourceCookie, goboRotationDeg, state.goboOffsetUv);
 
             for (int i = 0; i < _prismAuxiliaryLights.Count; i++)
             {
@@ -3804,7 +4067,7 @@ namespace ArtNet.Runtime
                 float xDeg = Mathf.Sin(angleRad) * spreadDeg;
                 float yDeg = Mathf.Cos(angleRad) * spreadDeg;
 
-                aux.directionPivot.localRotation = Quaternion.Euler(xDeg, yDeg, 0f);
+                aux.directionPivot.localRotation = Quaternion.Euler(xDeg + state.beamShakeAngleDeg.x, yDeg + state.beamShakeAngleDeg.y, 0f);
                 aux.cookieRollPivot.localRotation = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
                     ? Quaternion.AngleAxis(goboRotationDeg + goboCookieRollOffsetDeg, Vector3.forward)
                     : Quaternion.identity;
@@ -4071,8 +4334,10 @@ namespace ArtNet.Runtime
             ReleasePrismPseudoBeamFacets();
             ReleaseRenderTexture(_prismCompositeCookie);
             ReleaseRenderTexture(_prismRotatedGoboCookie);
+            ReleaseRenderTexture(_goboOffsetCookie);
             _prismCompositeCookie = null;
             _prismRotatedGoboCookie = null;
+            _goboOffsetCookie = null;
 
             if (_prismCookieMaterial != null)
             {
