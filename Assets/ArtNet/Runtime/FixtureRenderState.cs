@@ -28,5 +28,6 @@ namespace ArtNet.Runtime
         public float prismRotationDeg;
         public float prismRotationSpeedDegPerSec;
         public float prismIntensityScale;
+        public float vlbPrismGoboScale;
     }
 }

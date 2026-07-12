@@ -135,156 +135,235 @@ namespace ArtNet.Runtime
         // Pseudo Beam (for Volumetrics OFF)
         // ------------------------------------------------------------
 
-        [Header("Pseudo Beam (Volumetrics OFF Alternative)")]
-        [Tooltip("有効時、ビーム用RendererへDMX同期を行います（擬似ビーム）。")]
-        [SerializeField] private bool syncPseudoBeamToDmx = false;
+        public enum BeamRenderMode
+        {
+            Normal,
+            PseudoBeamShader,
+            VolumetricLightBeam
+        }
 
-        [Tooltip("ビームメッシュの代表Renderer。")]
+        [Header("Beam Render")]
+        [Tooltip("照明ビームの描画方式。VLBのHD/SDはPrefabに付与されたコンポーネントで自動判定します。")]
+        [SerializeField] private BeamRenderMode beamRenderMode = BeamRenderMode.Normal;
+
+        [Header("VLB Overrides")]
+        [Tooltip("有効時、VolumetricLightBeamHDのIntensity Multiplierをこの値で上書きします。")]
+        [SerializeField] private bool overrideVlbHdIntensityMultiplier = true;
+
+        [SerializeField, Min(0f)] private float vlbHdIntensityMultiplier = 0.01f;
+
+        [Tooltip("有効時、VolumetricLightBeamSDのIntensity Multiplierをこの値で上書きします。")]
+        [SerializeField] private bool overrideVlbSdIntensityMultiplier = true;
+
+        [SerializeField, Min(0f)] private float vlbSdIntensityMultiplier = 0.01f;
+
+        [Tooltip("有効時、VolumetricLightBeamHDのHDRP Exposure Weightをこの値で上書きします。")]
+        [SerializeField] private bool overrideVlbHdrpExposureWeight = true;
+
+        [SerializeField, Range(0f, 1f)] private float vlbHdrpExposureWeight = 0f;
+
+        [SerializeField, HideInInspector] private bool syncPseudoBeamToDmx = false;
+        [SerializeField, HideInInspector] private bool _beamRenderModeMigrated;
+        [SerializeField, HideInInspector] private bool _vlbPipelineDefaultsInitialized;
+
+        [Header("Pseudo Beam Shader")]
+        [Tooltip("Pseudo Beam Shader用の代表Renderer。VLBモードでは使用しません。")]
+        [InspectorName("Pseudo Beam Renderer")]
         [SerializeField] private Renderer beamRenderer;
 
-        [Tooltip("ビームメッシュが複数ある場合の追加Renderer。")]
+        [Tooltip("Pseudo Beam Shader用Rendererが複数ある場合の追加Renderer。VLBモードでは使用しません。")]
+        [InspectorName("Extra Pseudo Beam Renderers")]
         [SerializeField] private Renderer[] extraBeamRenderers;
 
+        [InspectorName("Sync Pseudo Beam Color To Dmx")]
         [SerializeField] private bool syncBeamColorToDmx = true;
+        [InspectorName("Sync Pseudo Beam Dimmer To Dmx")]
         [SerializeField] private bool syncBeamDimmerToDmx = true;
+        [InspectorName("Sync Pseudo Beam Prism To Dmx")]
         [SerializeField] private bool syncBeamPrismToDmx = true;
+        [InspectorName("Sync Pseudo Beam Zoom To Dmx")]
         [SerializeField] private bool syncBeamZoomToDmx = true;
+        [InspectorName("Sync Pseudo Beam Noise Volume To Beam")]
         [SerializeField] private bool syncBeamNoiseVolumeToBeam = true;
 
         private enum BeamNoiseVolumeScrollSpace { Local, World }
         private enum BeamNoiseVolumeScrollAxis { X, Y, Z }
 
         [Tooltip("ビームマテリアルのColorプロパティ名。例: _DmxColor / _BaseColor")]
+        [InspectorName("Pseudo Beam Color Property")]
         [SerializeField] private string beamColorProperty = "_DmxColor";
 
         [Tooltip("ビームマテリアルの強度プロパティ名。例: _DmxDimmer / _BeamIntensity")]
+        [InspectorName("Pseudo Beam Dimmer Property")]
         [SerializeField] private string beamDimmerProperty = "_DmxDimmer";
 
         [Tooltip("ビームマテリアルのPrism有効プロパティ名。")]
+        [InspectorName("Pseudo Beam Prism Enabled Property")]
         [SerializeField] private string beamPrismEnabledProperty = "_DmxPrismEnabled";
 
         [Tooltip("ビームマテリアルのPrism Facet数プロパティ名。")]
+        [InspectorName("Pseudo Beam Prism Facet Count Property")]
         [SerializeField] private string beamPrismFacetCountProperty = "_DmxPrismFacetCount";
 
         [Tooltip("ビームマテリアルのPrism Spreadプロパティ名。")]
+        [InspectorName("Pseudo Beam Prism Spread Property")]
         [SerializeField] private string beamPrismSpreadProperty = "_DmxPrismSpread";
 
         [Tooltip("ビームマテリアルのPrism Rotationプロパティ名。")]
+        [InspectorName("Pseudo Beam Prism Rotation Property")]
         [SerializeField] private string beamPrismRotationProperty = "_DmxPrismRotation";
 
         [Tooltip("ビームマテリアルのPrism強度プロパティ名。")]
+        [InspectorName("Pseudo Beam Prism Intensity Property")]
         [SerializeField] private string beamPrismIntensityProperty = "_DmxPrismIntensity";
 
         [Tooltip("ビームマテリアルのBeam Lengthプロパティ名。")]
+        [InspectorName("Pseudo Beam Length Property")]
         [SerializeField] private string beamLengthProperty = "_BeamLength";
 
         [Tooltip("ビームマテリアルのBeam Start Radiusプロパティ名。")]
+        [InspectorName("Pseudo Beam Start Radius Property")]
         [SerializeField] private string beamStartRadiusProperty = "_BeamStartRadius";
 
         [Tooltip("ビームマテリアルのBeam End Radiusプロパティ名。")]
+        [InspectorName("Pseudo Beam End Radius Property")]
         [SerializeField] private string beamEndRadiusProperty = "_BeamEndRadius";
 
         [Tooltip("MewNoiseGen等で生成した3DノイズTexture。疑似ビームのフォグ濃淡に使用します。")]
+        [InspectorName("Pseudo Beam Noise Volume")]
         [SerializeField] private Texture3D beamNoiseVolume;
 
         [Tooltip("3DノイズTextureを疑似ビームへ適用します。Texture未設定時は自動で無効扱いになります。")]
+        [InspectorName("Pseudo Beam Noise Volume Enabled")]
         [SerializeField] private bool beamNoiseVolumeEnabled = false;
 
         [Tooltip("既存の手続きノイズと3DノイズTextureのブレンド量。")]
+        [InspectorName("Pseudo Beam Noise Volume Strength")]
         [SerializeField, Range(0f, 1f)] private float beamNoiseVolumeStrength = 1f;
 
         [Tooltip("Open以外のゴボがビームに適用されている時に3DノイズTextureの強さへ掛ける倍率。0でゴボ時のみ3Dノイズを無効化、1で通常時と同じ強さです。")]
         [UnityEngine.Serialization.FormerlySerializedAs("beamNoiseVolumePrismScale")]
+        [InspectorName("Pseudo Beam Noise Volume Gobo Scale")]
         [SerializeField, Range(0f, 1f)] private float beamNoiseVolumeGoboScale = 1f;
 
         [Tooltip("Open GoboでPrismが公転している時に3DノイズTextureの強さへ掛ける倍率。0で公転中のみ3Dノイズを無効化、1で通常時と同じ強さです。")]
+        [InspectorName("Pseudo Beam Noise Volume Prism Rotation Scale")]
         [SerializeField, Range(0f, 1f)] private float beamNoiseVolumePrismRotationScale = 0f;
 
         [Tooltip("3DノイズTextureの空間スケール。大きいほど細かい模様になります。")]
+        [InspectorName("Pseudo Beam Noise Volume Scale")]
         [SerializeField, Min(0.001f)] private float beamNoiseVolumeScale = 1f;
 
         [Tooltip("3DノイズTextureのビーム断面方向スケール。大きいほど断面方向の模様が細かくなります。")]
+        [InspectorName("Pseudo Beam Noise Volume Radial Scale")]
         [SerializeField, Min(0.001f)] private float beamNoiseVolumeRadialScale = 4f;
 
         [Tooltip("3DノイズTextureのビーム長方向スケール。大きいほど長さ方向の模様が細かくなります。")]
+        [InspectorName("Pseudo Beam Noise Volume Length Scale")]
         [SerializeField, Min(0.001f)] private float beamNoiseVolumeLengthScale = 12f;
 
         [Tooltip("3DノイズTextureのZ方向スクロール速度。")]
+        [InspectorName("Pseudo Beam Noise Volume Speed")]
         [SerializeField] private float beamNoiseVolumeSpeed = 0.1f;
 
         [Tooltip("3DノイズTextureのコントラスト。")]
+        [InspectorName("Pseudo Beam Noise Volume Contrast")]
         [SerializeField, Min(0.01f)] private float beamNoiseVolumeContrast = 1f;
 
         [Tooltip("3DノイズTextureのサンプリングオフセット。灯体ごとの柄ずらしに使用します。")]
+        [InspectorName("Pseudo Beam Noise Volume Offset")]
         [SerializeField] private Vector3 beamNoiseVolumeOffset = Vector3.zero;
 
         [Tooltip("3DノイズTextureのスクロール方向をLocal軸基準にするかWorld軸基準にするか。")]
+        [InspectorName("Pseudo Beam Noise Volume Scroll Space")]
         [SerializeField] private BeamNoiseVolumeScrollSpace beamNoiseVolumeScrollSpace = BeamNoiseVolumeScrollSpace.Local;
 
         [Tooltip("3DノイズTextureをスクロールさせる軸。World指定時はムービングの向きが変わってもWorld軸方向を維持します。")]
+        [InspectorName("Pseudo Beam Noise Volume Scroll Axis")]
         [SerializeField] private BeamNoiseVolumeScrollAxis beamNoiseVolumeScrollAxis = BeamNoiseVolumeScrollAxis.Z;
 
         [Tooltip("3DノイズTextureのスクロール方向を反転します。")]
+        [InspectorName("Pseudo Beam Noise Volume Scroll Reverse")]
         [SerializeField] private bool beamNoiseVolumeScrollReverse = false;
 
         [Tooltip("ビームマテリアルの3DノイズTextureプロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Property")]
         [SerializeField] private string beamNoiseVolumeProperty = "_BeamNoiseVolume";
 
         [Tooltip("ビームマテリアルの3Dノイズ有効プロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Enabled Property")]
         [SerializeField] private string beamNoiseVolumeEnabledProperty = "_BeamNoiseVolumeEnabled";
 
         [Tooltip("ビームマテリアルの3Dノイズブレンド強度プロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Strength Property")]
         [SerializeField] private string beamNoiseVolumeStrengthProperty = "_BeamNoiseVolumeStrength";
 
         [Tooltip("ビームマテリアルの3Dノイズスケールプロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Scale Property")]
         [SerializeField] private string beamNoiseVolumeScaleProperty = "_BeamNoiseVolumeScale";
 
         [Tooltip("ビームマテリアルの3Dノイズ断面方向スケールプロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Radial Scale Property")]
         [SerializeField] private string beamNoiseVolumeRadialScaleProperty = "_BeamNoiseVolumeRadialScale";
 
         [Tooltip("ビームマテリアルの3Dノイズ長さ方向スケールプロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Length Scale Property")]
         [SerializeField] private string beamNoiseVolumeLengthScaleProperty = "_BeamNoiseVolumeLengthScale";
 
         [Tooltip("ビームマテリアルの3Dノイズ速度プロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Speed Property")]
         [SerializeField] private string beamNoiseVolumeSpeedProperty = "_BeamNoiseVolumeSpeed";
 
         [Tooltip("ビームマテリアルの3Dノイズコントラストプロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Contrast Property")]
         [SerializeField] private string beamNoiseVolumeContrastProperty = "_BeamNoiseVolumeContrast";
 
         [Tooltip("ビームマテリアルの3Dノイズオフセットプロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Offset Property")]
         [SerializeField] private string beamNoiseVolumeOffsetProperty = "_BeamNoiseVolumeOffset";
 
         [Tooltip("ビームマテリアルの3Dノイズスクロール方向プロパティ名。")]
+        [InspectorName("Pseudo Beam Noise Volume Scroll Direction Property")]
         [SerializeField] private string beamNoiseVolumeScrollDirectionProperty = "_BeamNoiseVolumeScrollDirection";
 
         [Tooltip("ビーム強度に掛ける倍率。")]
+        [InspectorName("Pseudo Beam Dimmer Scale")]
         [SerializeField, Min(0f)] private float beamDimmerScale = 1.0f;
 
         [Tooltip("ビーム強度の下限値。暗転時の残光調整用。")]
+        [InspectorName("Pseudo Beam Dimmer Floor")]
         [SerializeField, Range(0f, 1f)] private float beamDimmerFloor = 0f;
 
         [Tooltip("Zoomから計算した疑似ビーム先端半径へ掛ける倍率。")]
+        [InspectorName("Pseudo Beam Zoom Radius Scale")]
         [SerializeField, Min(0f)] private float beamZoomRadiusScale = 1f;
 
         [Tooltip("Zoom連動時の疑似ビーム先端半径の最小値。")]
+        [InspectorName("Pseudo Beam Zoom Min End Radius")]
         [SerializeField, Min(0.001f)] private float beamZoomMinEndRadius = 0.01f;
 
         [Tooltip("Zoom連動時の疑似ビーム先端半径の最大値。")]
+        [InspectorName("Pseudo Beam Zoom Max End Radius")]
         [SerializeField, Min(0.001f)] private float beamZoomMaxEndRadius = 25f;
 
         [Tooltip("疑似ビームの外側に薄いにじみ用レイヤーを追加します。")]
+        [InspectorName("Enable Pseudo Beam Soft Shell")]
         [SerializeField] private bool enableBeamSoftShell = false;
 
         [Tooltip("にじみ用ビームの半径倍率。")]
+        [InspectorName("Pseudo Beam Soft Shell Radius Scale")]
         [SerializeField, Min(1f)] private float beamSoftShellRadiusScale = 1.35f;
 
         [Tooltip("にじみ用ビームのMaterial側Beam Intensity。")]
+        [InspectorName("Pseudo Beam Soft Shell Intensity")]
         [SerializeField, Min(0f)] private float beamSoftShellIntensity = 0.2f;
 
         [Tooltip("にじみ用ビームのEdge Softness上書き値。")]
+        [InspectorName("Pseudo Beam Soft Shell Edge Softness")]
         [SerializeField, Range(0f, 1f)] private float beamSoftShellEdgeSoftness = 0.9f;
 
         [Tooltip("にじみ用ビームのNoise Strength上書き値。")]
+        [InspectorName("Pseudo Beam Soft Shell Noise Strength")]
         [SerializeField, Range(0f, 1f)] private float beamSoftShellNoiseStrength = 0.25f;
 
         // ------------------------------------------------------------
@@ -394,6 +473,10 @@ namespace ArtNet.Runtime
 
         [Tooltip("プリズム分割されたゴボ同士の距離倍率。AutoではZoom補正後の倍率、Customでは直接の距離倍率として使用します。")]
         [SerializeField, Range(0f, 3f)] private float prismGoboSpacingScale = 1f;
+
+        [Tooltip("VLBのプリズム時に、各ゴボ投影の外形サイズをSpot Angleで調整します。1で通常のSpot Lightに合わせた基準サイズです。")]
+        [InspectorName("Prism Gobo Scale (VLB)")]
+        [SerializeField, Range(0.1f, 3f)] private float prismGoboScaleVlb = 1f;
 
         [Tooltip("Auxiliary LightのShadowを有効化します。初期OFF推奨。")]
         [SerializeField] private bool auxiliaryLightShadows = false;
@@ -697,6 +780,7 @@ namespace ArtNet.Runtime
         private int _lastGoboOffsetCookieSize = -1;
         private readonly List<PrismAuxiliaryLight> _prismAuxiliaryLights = new();
         private readonly List<PrismPseudoBeamFacet> _prismPseudoBeamFacets = new();
+        private VlbBeamAdapter _vlbBeamAdapter;
         private Transform _prismAuxRoot;
         private Transform _prismPseudoBeamRoot;
         private Transform _singlePseudoBeamSoftShell;
@@ -707,8 +791,7 @@ namespace ArtNet.Runtime
         private bool _hasGoboCookieRollBaseLocalRot;
 
 #if HAS_HDRP
-        private bool _hasPrimaryVolumetricDimmerDefault;
-        private float _primaryVolumetricDimmerDefault = 1f;
+        private readonly List<HdrpVolumetricDimmerDefault> _primaryVolumetricDimmerDefaults = new();
 #endif
 
         private class PrismAuxiliaryLight
@@ -716,10 +799,20 @@ namespace ArtNet.Runtime
             public Transform directionPivot;
             public Transform cookieRollPivot;
             public Light light;
+            public Component vlbHd;
+            public Component vlbCookieHd;
 #if HAS_HDRP
             public HDAdditionalLightData hd;
 #endif
         }
+
+#if HAS_HDRP
+        private class HdrpVolumetricDimmerDefault
+        {
+            public HDAdditionalLightData hd;
+            public float value;
+        }
+#endif
 
         private class PrismPseudoBeamFacet
         {
@@ -915,12 +1008,14 @@ namespace ArtNet.Runtime
 
         private void Reset()
         {
+            ApplyVlbPipelineDefaults();
             Context_AutoAttachTargetLight();
             CaptureMovementBaseIfNeeded(force: true);
         }
 
         private void OnEnable()
         {
+            MigrateLegacyBeamRenderMode();
             ResolveAll();
 
             if (Application.isPlaying)
@@ -932,18 +1027,78 @@ namespace ArtNet.Runtime
 
         private void OnValidate()
         {
+            MigrateLegacyBeamRenderMode();
+            InitializeVlbPipelineDefaultsIfNeeded();
             if (!autoResolveOnValidate) return;
             ResolveAll();
         }
 
         private void OnDisable()
         {
+            RestorePrimaryVolumetricDefaults();
             DisablePrismAuxiliaryLights();
+            DisableVlbBeam();
         }
 
         private void OnDestroy()
         {
+            RestorePrimaryVolumetricDefaults();
             ReleasePrismResources();
+        }
+
+        private void MigrateLegacyBeamRenderMode()
+        {
+            if (_beamRenderModeMigrated)
+                return;
+
+            if (syncPseudoBeamToDmx)
+                beamRenderMode = BeamRenderMode.PseudoBeamShader;
+
+            syncPseudoBeamToDmx = beamRenderMode == BeamRenderMode.PseudoBeamShader;
+            _beamRenderModeMigrated = true;
+        }
+
+        [ContextMenu("Apply VLB Pipeline Defaults")]
+        public void ApplyVlbPipelineDefaults()
+        {
+            var pipeline = DetectCurrentRenderPipeline();
+            vlbHdIntensityMultiplier = pipeline == RenderPipelineKind.HDRP ? 0.00001f : 0.01f;
+            vlbSdIntensityMultiplier = 0.01f;
+            vlbHdrpExposureWeight = 0f;
+            overrideVlbHdIntensityMultiplier = true;
+            overrideVlbSdIntensityMultiplier = true;
+            overrideVlbHdrpExposureWeight = true;
+            _vlbPipelineDefaultsInitialized = true;
+        }
+
+        private void InitializeVlbPipelineDefaultsIfNeeded()
+        {
+            if (_vlbPipelineDefaultsInitialized)
+                return;
+
+            ApplyVlbPipelineDefaults();
+        }
+
+        private enum RenderPipelineKind
+        {
+            BuiltIn,
+            URP,
+            HDRP
+        }
+
+        private static RenderPipelineKind DetectCurrentRenderPipeline()
+        {
+            var pipeline = UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline;
+            if (pipeline == null)
+                return RenderPipelineKind.BuiltIn;
+
+            string typeName = pipeline.GetType().FullName ?? pipeline.GetType().Name;
+            if (typeName.Contains("HighDefinition"))
+                return RenderPipelineKind.HDRP;
+            if (typeName.Contains("Universal"))
+                return RenderPipelineKind.URP;
+
+            return RenderPipelineKind.BuiltIn;
         }
 
         private void Update()
@@ -2646,14 +2801,18 @@ namespace ArtNet.Runtime
 
             var driverState = state;
             bool suppressPrimaryLight = ShouldSuppressPrimaryLightForAuxiliaryOnly() ||
-                                        (state.prismEnabled && IsProjectionAndShaderBeamMode());
+                                        (!IsVlbBeamRenderMode() && state.prismEnabled && IsProjectionAndShaderBeamMode());
             if (suppressPrimaryLight)
             {
                 driverState.lightDimmer01 = 0f;
                 driverState.goboEnabled = false;
                 driverState.goboTexture = null;
             }
-            ApplyPrimaryVolumetricForPseudoBeam(state, suppressPrimaryLight);
+            else if (ShouldSuppressPrimaryGoboForVlbPrism())
+            {
+                driverState.goboEnabled = false;
+                driverState.goboTexture = null;
+            }
             if (!syncLightCookieToGobo)
             {
                 driverState.goboEnabled = false;
@@ -2679,6 +2838,8 @@ namespace ArtNet.Runtime
                 ApplyDirectToLights(driverState);
             }
 
+            ApplyPrimaryVolumetricForAlternativeBeamModes(suppressPrimaryLight);
+            ApplyVlbBeamDmx(state);
             ApplyLensDmx(state);
             var beamState = state;
             if (suppressPrimaryLight && !IsProjectionAndShaderBeamMode())
@@ -2689,6 +2850,21 @@ namespace ArtNet.Runtime
                 beamState.goboTexture = null;
             }
             ApplyPseudoBeamDmx(beamState);
+        }
+
+        private bool IsPseudoBeamRenderMode()
+        {
+            return beamRenderMode == BeamRenderMode.PseudoBeamShader;
+        }
+
+        private bool IsVlbBeamRenderMode()
+        {
+            return beamRenderMode == BeamRenderMode.VolumetricLightBeam;
+        }
+
+        private bool UsesAlternativeBeamRenderMode()
+        {
+            return IsPseudoBeamRenderMode() || IsVlbBeamRenderMode();
         }
 
         private static float MoveDimmer(float current, float target, float riseTime, float fallTime)
@@ -2844,8 +3020,9 @@ namespace ArtNet.Runtime
 
         private void ApplyPseudoBeamDmx(FixtureRenderState state)
         {
-            bool forcePseudoBeamForPrism = IsProjectionAndShaderBeamMode() && state.prismEnabled;
-            if (!syncPseudoBeamToDmx && !forcePseudoBeamForPrism)
+            bool pseudoBeamMode = IsPseudoBeamRenderMode();
+            bool forcePseudoBeamForPrism = pseudoBeamMode && IsProjectionAndShaderBeamMode() && state.prismEnabled;
+            if (!pseudoBeamMode && !forcePseudoBeamForPrism)
             {
                 DisablePrismPseudoBeamFacets();
                 DisableSinglePseudoBeamSoftShell();
@@ -2887,6 +3064,43 @@ namespace ArtNet.Runtime
                 for (int i = 0; i < extraBeamRenderers.Length; i++)
                     ApplyPseudoBeamRenderer(extraBeamRenderers[i], state, 1f, false);
             }
+        }
+
+        private void ApplyVlbBeamDmx(FixtureRenderState state)
+        {
+            if (!IsVlbBeamRenderMode() || state.prismEnabled)
+            {
+                DisableVlbBeam();
+                return;
+            }
+
+            var targets = GatherTargetLights();
+            if (_vlbBeamAdapter == null)
+                _vlbBeamAdapter = new VlbBeamAdapter();
+
+            _vlbBeamAdapter.Apply(targets, state, syncLightCookieToGobo, BuildVlbOverrides(), this);
+        }
+
+        private void DisableVlbBeam()
+        {
+            var targets = GatherTargetLights();
+            if (_vlbBeamAdapter == null)
+                _vlbBeamAdapter = new VlbBeamAdapter();
+
+            _vlbBeamAdapter.Disable(targets);
+        }
+
+        private VlbBeamAdapter.Overrides BuildVlbOverrides()
+        {
+            return new VlbBeamAdapter.Overrides
+            {
+                overrideHdIntensityMultiplier = overrideVlbHdIntensityMultiplier,
+                hdIntensityMultiplier = vlbHdIntensityMultiplier,
+                overrideSdIntensityMultiplier = overrideVlbSdIntensityMultiplier,
+                sdIntensityMultiplier = vlbSdIntensityMultiplier,
+                overrideHdrpExposureWeight = overrideVlbHdrpExposureWeight,
+                hdrpExposureWeight = vlbHdrpExposureWeight
+            };
         }
 
         private void ApplyPseudoBeamRenderer(Renderer renderer, FixtureRenderState state, float dimmerMultiplier, bool forceSingleBeamMask, bool softShell = false)
@@ -3405,7 +3619,8 @@ namespace ArtNet.Runtime
                 prismSpread = _prismSpread,
                 prismRotationDeg = GetDisplayPrismRotationDeg(),
                 prismRotationSpeedDegPerSec = _prismRotationSpeedDegPerSec,
-                prismIntensityScale = _prismIntensityScale
+                prismIntensityScale = _prismIntensityScale,
+                vlbPrismGoboScale = prismGoboScaleVlb
             };
         }
 
@@ -3755,6 +3970,11 @@ namespace ArtNet.Runtime
             return IsPrismDrawingEnabled();
         }
 
+        private bool ShouldSuppressPrimaryGoboForVlbPrism()
+        {
+            return IsPrismDrawingEnabled() && IsVlbBeamRenderMode();
+        }
+
         private bool ShouldPrismOwnGoboCookieRotation()
         {
             return IsPrismDrawingEnabled();
@@ -4088,25 +4308,56 @@ namespace ArtNet.Runtime
             return AuxiliaryCookieRotationMode.CompositeTextureRoll;
         }
 
-        private void ApplyPrimaryVolumetricForPseudoBeam(FixtureRenderState state, bool suppressPrimaryLight)
+        private void ApplyPrimaryVolumetricForAlternativeBeamModes(bool suppressPrimaryLight)
         {
 #if HAS_HDRP
-            var hd = targetLight != null ? targetLight.GetComponent<HDAdditionalLightData>() : null;
-            if (hd == null)
-                return;
-
-            if (!_hasPrimaryVolumetricDimmerDefault)
+            bool disableVolumetricOnly = !suppressPrimaryLight && UsesAlternativeBeamRenderMode();
+            var targets = GatherTargetLights();
+            for (int i = 0; i < targets.Count; i++)
             {
-                _primaryVolumetricDimmerDefault = TryGetHdrpVolumetricDimmer(hd, out float value) ? value : 1f;
-                _hasPrimaryVolumetricDimmerDefault = true;
-            }
+                var light = targets[i];
+                if (light == null)
+                    continue;
 
-            bool disableVolumetricOnly = !suppressPrimaryLight && syncPseudoBeamToDmx;
-            TrySetHdrpVolumetricDimmer(hd, disableVolumetricOnly ? 0f : _primaryVolumetricDimmerDefault);
+                var hd = light.GetComponent<HDAdditionalLightData>();
+                if (hd == null)
+                    continue;
+
+                float defaultValue = CapturePrimaryVolumetricDefault(hd);
+                TrySetHdrpVolumetricDimmer(hd, disableVolumetricOnly ? 0f : defaultValue);
+            }
 #endif
         }
 
 #if HAS_HDRP
+        private float CapturePrimaryVolumetricDefault(HDAdditionalLightData hd)
+        {
+            for (int i = 0; i < _primaryVolumetricDimmerDefaults.Count; i++)
+            {
+                var entry = _primaryVolumetricDimmerDefaults[i];
+                if (entry != null && entry.hd == hd)
+                    return entry.value;
+            }
+
+            float defaultValue = TryGetHdrpVolumetricDimmer(hd, out float value) ? value : 1f;
+            _primaryVolumetricDimmerDefaults.Add(new HdrpVolumetricDimmerDefault
+            {
+                hd = hd,
+                value = defaultValue
+            });
+            return defaultValue;
+        }
+
+        private void RestorePrimaryVolumetricDefaults()
+        {
+            for (int i = 0; i < _primaryVolumetricDimmerDefaults.Count; i++)
+            {
+                var entry = _primaryVolumetricDimmerDefaults[i];
+                if (entry?.hd != null)
+                    TrySetHdrpVolumetricDimmer(entry.hd, entry.value);
+            }
+        }
+
         private bool PrimaryLightHasHdrpData()
         {
             return targetLight != null && targetLight.GetComponent<HDAdditionalLightData>() != null;
@@ -4160,6 +4411,11 @@ namespace ArtNet.Runtime
             var field = typeof(HDAdditionalLightData).GetField("volumetricDimmer", flags);
             if (field != null && field.FieldType == typeof(float))
                 field.SetValue(hd, value);
+        }
+
+#else
+        private void RestorePrimaryVolumetricDefaults()
+        {
         }
 
 #endif
@@ -4222,6 +4478,16 @@ namespace ArtNet.Runtime
             return Mathf.Lerp(1f, fullyDistributedScale, Mathf.Clamp01(prismBrightnessDistribution));
         }
 
+        private float GetVlbPrismGoboSpotAngleScale(FixtureRenderState state)
+        {
+            if (!IsVlbBeamRenderMode())
+                return 1f;
+
+            return state.vlbPrismGoboScale > 0f
+                ? Mathf.Clamp(state.vlbPrismGoboScale, 0.1f, 3f)
+                : 1f;
+        }
+
         private float GetPrismGoboSpacingScale(FixtureRenderState state)
         {
             float customScale = Mathf.Max(0f, prismGoboSpacingScale);
@@ -4280,15 +4546,20 @@ namespace ArtNet.Runtime
 
             if (state.zoomEnabled)
             {
-                float outer = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+                float spotAngleScale = GetVlbPrismGoboSpotAngleScale(state);
+                float outer = Mathf.Clamp(state.outerSpotAngleDeg * spotAngleScale, 0.1f, 179f);
                 float inner01 = Mathf.Clamp01(state.innerSpotPercent / 100f);
                 light.spotAngle = outer;
                 light.innerSpotAngle = outer * inner01;
             }
             else if (targetLight != null)
             {
-                light.spotAngle = targetLight.spotAngle;
-                light.innerSpotAngle = targetLight.innerSpotAngle;
+                float spotAngleScale = GetVlbPrismGoboSpotAngleScale(state);
+                float baseOuter = Mathf.Clamp(targetLight.spotAngle, 0.1f, 179f);
+                float inner01 = Mathf.Clamp01(targetLight.innerSpotAngle / baseOuter);
+                float outer = Mathf.Clamp(baseOuter * spotAngleScale, 0.1f, 179f);
+                light.spotAngle = outer;
+                light.innerSpotAngle = outer * inner01;
             }
 
 #if HAS_HDRP
@@ -4297,20 +4568,91 @@ namespace ArtNet.Runtime
                 aux.hd.SetColor(state.color);
                 aux.hd.intensity = intensity;
                 aux.hd.SetCookie(cookie != null ? cookie : Texture2D.whiteTexture);
-                float volumetricDimmer = projectionOnly && disableAuxiliaryVolumetricInProjectionOnly
+                float volumetricDimmer = IsVlbBeamRenderMode() || (projectionOnly && disableAuxiliaryVolumetricInProjectionOnly)
                     ? 0f
                     : Mathf.Max(0f, auxiliaryVolumetricIntensityScale);
                 TrySetHdrpVolumetricDimmer(aux.hd, volumetricDimmer);
                 if (state.zoomEnabled)
                 {
-                    aux.hd.SetSpotAngle(Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f));
+                    float spotAngleScale = GetVlbPrismGoboSpotAngleScale(state);
+                    aux.hd.SetSpotAngle(Mathf.Clamp(state.outerSpotAngleDeg * spotAngleScale, 0.1f, 179f));
                     aux.hd.innerSpotPercent = Mathf.Clamp(state.innerSpotPercent, 0f, 100f);
+                }
+                else if (targetLight != null)
+                {
+                    float spotAngleScale = GetVlbPrismGoboSpotAngleScale(state);
+                    float baseOuter = Mathf.Clamp(targetLight.spotAngle, 0.1f, 179f);
+                    float inner01 = Mathf.Clamp01(targetLight.innerSpotAngle / baseOuter);
+                    aux.hd.SetSpotAngle(Mathf.Clamp(baseOuter * spotAngleScale, 0.1f, 179f));
+                    aux.hd.innerSpotPercent = inner01 * 100f;
                 }
 
                 if (targetLight != null)
                     aux.hd.range = targetLight.range;
             }
 #endif
+
+            ApplyPrismAuxiliaryVlbState(aux, state, cookie);
+        }
+
+        private void ApplyPrismAuxiliaryVlbState(PrismAuxiliaryLight aux, FixtureRenderState state, Texture cookie)
+        {
+            if (aux == null || aux.light == null)
+                return;
+
+            if (!IsVlbBeamRenderMode())
+            {
+                DisablePrismAuxiliaryVlb(aux);
+                return;
+            }
+
+            EnsurePrismAuxiliaryVlb(aux);
+            if (aux.vlbHd == null)
+                return;
+
+            var overrides = BuildVlbOverrides();
+            var template = targetLight != null ? VlbBeamAdapter.GetHd(targetLight.gameObject) : null;
+            VlbBeamAdapter.ApplyPrismHd(aux.vlbHd, aux.light, template, overrides);
+
+            if (aux.vlbCookieHd != null)
+            {
+                bool hasCookie = syncLightCookieToGobo && state.goboEnabled && cookie != null;
+                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, state.lightDimmer01, GetTemplateVlbCookieScale());
+            }
+        }
+
+        private Vector2 GetTemplateVlbCookieScale()
+        {
+            var template = targetLight != null ? VlbBeamAdapter.GetCookieHd(targetLight.gameObject) : null;
+            if (template != null)
+                return VlbBeamAdapter.GetCookieScale(template);
+            return Vector2.one;
+        }
+
+        private void EnsurePrismAuxiliaryVlb(PrismAuxiliaryLight aux)
+        {
+            if (aux == null || aux.light == null)
+                return;
+
+            var gameObject = aux.light.gameObject;
+            if (aux.vlbHd == null)
+                aux.vlbHd = VlbBeamAdapter.GetHd(gameObject);
+            if (aux.vlbHd == null)
+                aux.vlbHd = VlbBeamAdapter.EnsureHd(gameObject);
+
+            if (aux.vlbCookieHd == null)
+                aux.vlbCookieHd = VlbBeamAdapter.GetCookieHd(gameObject);
+            if (aux.vlbCookieHd == null)
+                aux.vlbCookieHd = VlbBeamAdapter.EnsureCookieHd(gameObject);
+        }
+
+        private void DisablePrismAuxiliaryVlb(PrismAuxiliaryLight aux)
+        {
+            if (aux == null)
+                return;
+
+            VlbBeamAdapter.Disable(aux.vlbHd);
+            VlbBeamAdapter.Disable(aux.vlbCookieHd);
         }
 
         private void DisablePrismAuxiliaryLights()
@@ -4322,6 +4664,7 @@ namespace ArtNet.Runtime
                     aux.directionPivot.gameObject.SetActive(false);
                 if (aux?.light != null)
                     aux.light.enabled = false;
+                DisablePrismAuxiliaryVlb(aux);
             }
 
             DisablePrismPseudoBeamFacets();
