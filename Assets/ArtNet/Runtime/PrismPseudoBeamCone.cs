@@ -4,6 +4,7 @@ namespace ArtNet.Runtime
 {
     [ExecuteAlways]
     [DisallowMultipleComponent]
+    [AddComponentMenu("ArtNet/Pseudo Beam Cone")]
     [RequireComponent(typeof(MeshFilter))]
     [RequireComponent(typeof(MeshRenderer))]
     public sealed class PrismPseudoBeamCone : MonoBehaviour

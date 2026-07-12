@@ -1,49 +1,54 @@
-Shader "ArtNet/Prism Pseudo Beam"
+Shader "ArtNet/Pseudo Beam"
 {
     Properties
     {
-        _DmxColor ("DMX Color", Color) = (1, 1, 1, 1)
-        _DmxDimmer ("DMX Dimmer", Float) = 1
-        _BeamIntensity ("Beam Intensity", Float) = 1
-        _BeamLength ("Beam Length", Float) = 10
-        _BeamStartRadius ("Beam Start Radius", Float) = 0.05
-        _BeamEndRadius ("Beam End Radius", Float) = 1.5
-        _GoboTexture ("Gobo Texture", 2D) = "white" {}
-        _GoboRotationDeg ("Gobo Rotation Deg", Float) = 0
-        _GoboOffset ("Gobo Offset", Vector) = (0, 0, 0, 0)
-        _GoboEnabled ("Gobo Enabled", Float) = 0
-        _DmxPrismEnabled ("Prism Enabled", Float) = 0
-        _DmxPrismFacetCount ("Prism Facet Count", Float) = 1
-        _DmxPrismSpread ("Prism Spread", Float) = 1
-        _DmxPrismRotation ("Prism Rotation", Float) = 0
-        _DmxPrismIntensity ("Prism Intensity", Float) = 1
+        [Header(DMX_Input)] _DmxColor ("Color", Color) = (1, 1, 1, 1)
+        _DmxDimmer ("Dimmer", Float) = 1
+
+        [Header(Beam_Shape)] _BeamIntensity ("Intensity", Float) = 1
+        _BeamLength ("Length", Float) = 10
+        _BeamStartRadius ("Start Radius", Float) = 0.05
+        _BeamEndRadius ("End Radius", Float) = 1.5
+        _BeamLengthFade ("Length Fade", Float) = 1
+        _BeamStartFade ("Start Fade", Range(0, 1)) = 0
+        _BeamEndFade ("End Fade", Range(0, 1)) = 1
+        _BeamTipOpacity ("Tip Opacity", Range(0, 1)) = 0
+        _BeamFalloffPower ("Falloff Power", Float) = 1
+        _BeamEdgeSoftness ("Edge Softness", Range(0, 1)) = 0.35
+        _BeamEdgePower ("Edge Power", Float) = 1.5
+
+        [Header(Fog_Surface_Noise)] _BeamNoiseStrength ("Strength", Range(0, 1)) = 0
+        _BeamNoiseScale ("Scale", Float) = 6
+        _BeamNoiseSpeed ("Speed", Float) = 0.2
+        _BeamNoiseContrast ("Contrast", Float) = 1
+
+        [Header(Fog_3D_Noise_Texture)] _BeamNoiseVolume ("Texture", 3D) = "" {}
+        _BeamNoiseVolumeEnabled ("Enabled", Range(0, 1)) = 0
+        _BeamNoiseVolumeStrength ("Blend Strength", Range(0, 1)) = 1
+        _BeamNoiseVolumeScale ("Scale", Float) = 1
+        _BeamNoiseVolumeRadialScale ("Radial Scale", Float) = 4
+        _BeamNoiseVolumeLengthScale ("Length Scale", Float) = 12
+        _BeamNoiseVolumeSpeed ("Scroll Speed", Float) = 0.1
+        _BeamNoiseVolumeContrast ("Contrast", Float) = 1
+        _BeamNoiseVolumeOffset ("Offset", Vector) = (0, 0, 0, 0)
+        _BeamNoiseVolumeScrollDirection ("Scroll Direction", Vector) = (0, 0, 1, 0)
+
+        [Header(Gobo)] _GoboTexture ("Texture", 2D) = "white" {}
+        _GoboEnabled ("Enabled", Float) = 0
+        _GoboRotationDeg ("Rotation (Degrees)", Float) = 0
+        _GoboOffset ("Offset", Vector) = (0, 0, 0, 0)
+        _GoboInfluence ("Surface Influence", Range(0, 1)) = 0.35
+        _BeamGoboProjection ("Beam Projection", Range(0, 1)) = 1
+        _BeamGoboInfluence ("Beam Influence", Range(0, 1)) = 0.6
+        _BeamGoboContrast ("Beam Contrast", Float) = 1
+        _BeamGoboMinLight ("Beam Minimum Light", Range(0, 1)) = 0.2
+
+        [Header(Optional_Prism)] _DmxPrismEnabled ("Enabled", Float) = 0
+        _DmxPrismFacetCount ("Facet Count", Float) = 1
+        _DmxPrismSpread ("Spread", Float) = 1
+        _DmxPrismRotation ("Rotation (Degrees)", Float) = 0
+        _DmxPrismIntensity ("Intensity", Float) = 1
         _FacetSharpness ("Facet Sharpness", Float) = 24
-        _BeamLengthFade ("Beam Length Fade", Float) = 1
-        _BeamStartFade ("Beam Start Fade", Range(0, 1)) = 0
-        _BeamEndFade ("Beam End Fade", Range(0, 1)) = 1
-        _BeamTipOpacity ("Beam Tip Opacity", Range(0, 1)) = 0
-        _BeamFalloffPower ("Beam Falloff Power", Float) = 1
-        _BeamEdgeSoftness ("Beam Edge Softness", Range(0, 1)) = 0.35
-        _BeamEdgePower ("Beam Edge Power", Float) = 1.5
-        _BeamNoiseStrength ("Beam Noise Strength", Range(0, 1)) = 0
-        _BeamNoiseScale ("Beam Noise Scale", Float) = 6
-        _BeamNoiseSpeed ("Beam Noise Speed", Float) = 0.2
-        _BeamNoiseContrast ("Beam Noise Contrast", Float) = 1
-        _BeamNoiseVolume ("Beam Noise Volume", 3D) = "" {}
-        _BeamNoiseVolumeEnabled ("Beam Noise Volume Enabled", Range(0, 1)) = 0
-        _BeamNoiseVolumeStrength ("Beam Noise Volume Strength", Range(0, 1)) = 1
-        _BeamNoiseVolumeScale ("Beam Noise Volume Scale", Float) = 1
-        _BeamNoiseVolumeRadialScale ("Beam Noise Volume Radial Scale", Float) = 4
-        _BeamNoiseVolumeLengthScale ("Beam Noise Volume Length Scale", Float) = 12
-        _BeamNoiseVolumeSpeed ("Beam Noise Volume Speed", Float) = 0.1
-        _BeamNoiseVolumeContrast ("Beam Noise Volume Contrast", Float) = 1
-        _BeamNoiseVolumeOffset ("Beam Noise Volume Offset", Vector) = (0, 0, 0, 0)
-        _BeamNoiseVolumeScrollDirection ("Beam Noise Volume Scroll Direction", Vector) = (0, 0, 1, 0)
-        _BeamGoboProjection ("Beam Gobo Projection", Range(0, 1)) = 1
-        _BeamGoboInfluence ("Beam Gobo Influence", Range(0, 1)) = 0.6
-        _BeamGoboContrast ("Beam Gobo Contrast", Float) = 1
-        _BeamGoboMinLight ("Beam Gobo Min Light", Range(0, 1)) = 0.2
-        _GoboInfluence ("Gobo Influence", Range(0, 1)) = 0.35
     }
 
     SubShader
@@ -57,7 +62,7 @@ Shader "ArtNet/Prism Pseudo Beam"
 
         Pass
         {
-            Name "PrismPseudoBeam"
+            Name "PseudoBeam"
             Tags { "LightMode" = "SRPDefaultUnlit" }
 
             Blend One One
