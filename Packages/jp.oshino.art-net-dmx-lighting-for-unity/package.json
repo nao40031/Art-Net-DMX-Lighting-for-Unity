@@ -1,6 +1,6 @@
 {
   "name": "jp.oshino.art-net-dmx-lighting-for-unity",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Art-Net DMX Lighting for Unity",
   "description": "Art-Net/DMX fixture control, fixture definitions, and ready-to-use moving light assets for Unity.",
   "unity": "6000.0",

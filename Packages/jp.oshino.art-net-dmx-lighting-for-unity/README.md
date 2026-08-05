@@ -7,10 +7,10 @@ Art-Net/DMX を受信し、Fixture 定義に基づいて Unity のライト、Pa
 Unity の **Package Manager** で **Add package from git URL...** を選び、次を入力します。
 
 ```text
-https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.0
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.1
 ```
 
-`v0.1.0` タグの公開後に利用できます。公開前は、対象ブランチまたはコミットSHAを指定してください。
+`v0.1.1` タグの公開後に利用できます。公開前は、対象ブランチまたはコミットSHAを指定してください。
 
 ## まず試す
 
