@@ -33,10 +33,26 @@ namespace ArtNet.Runtime
             FixedUpdate
         }
 
+        public enum SourceMode
+        {
+            Manual,
+            AutoDiscoverInChildren
+        }
+
         [Header("Target")]
         public DmxRigController rig;
 
         [Header("Sources")]
+        [Tooltip("Manualは従来どおりSourcesを使用します。Auto Discover In ChildrenはUniverse Root配下のArtNetChannelsを自動登録します。")]
+        public SourceMode sourceMode = SourceMode.Manual;
+
+        [Tooltip("Auto Discover In Childrenで検索する親Transform。未設定ならこのGameObject配下を検索します。")]
+        public Transform universeRoot;
+
+        [Tooltip("有効にすると、非アクティブなUniverse Objectも再生対象にします。")]
+        public bool includeInactiveUniverseSources = false;
+
+        [Tooltip("Manualモードで使用するUniverseとArtNetChannelsの対応表です。")]
         public List<UniverseSource> sources = new();
 
         [Header("Playback")]
@@ -283,6 +299,18 @@ namespace ArtNet.Runtime
         private void RebuildStates()
         {
             _states.Clear();
+
+            if (sourceMode == SourceMode.AutoDiscoverInChildren)
+            {
+                RebuildAutoDiscoveredStates();
+                return;
+            }
+
+            RebuildManualStates();
+        }
+
+        private void RebuildManualStates()
+        {
             if (sources == null) return;
 
             for (int i = 0; i < sources.Count; i++)
@@ -290,21 +318,55 @@ namespace ArtNet.Runtime
                 var s = sources[i];
                 if (s.channels == null) continue;
 
-                if (forceAnimatorAlwaysAnimate)
+                AddState(s.universe, s.channels);
+            }
+        }
+
+        private void RebuildAutoDiscoveredStates()
+        {
+            var root = universeRoot != null ? universeRoot : transform;
+            var channels = root.GetComponentsInChildren<ArtNetChannels>(includeInactiveUniverseSources);
+            var usedUniverses = new HashSet<int>();
+
+            for (int i = 0; i < channels.Length; i++)
+            {
+                var channelSet = channels[i];
+                if (channelSet == null) continue;
+
+                if (channelSet.universe < 0)
                 {
-                    var anim = s.channels.GetComponent<Animator>();
-                    if (anim != null)
-                        anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                    Debug.LogWarning($"[DmxTimelinePlayback] Universe must be 0 or greater: '{channelSet.name}'.", channelSet);
+                    continue;
                 }
 
-                _states.Add(new SourceState
+                if (!usedUniverses.Add(channelSet.universe))
                 {
-                    universe = s.universe,
-                    channels = s.channels,
-                    buffer = new byte[512],
-                    initialized = false
-                });
+                    Debug.LogWarning($"[DmxTimelinePlayback] Duplicate Universe {channelSet.universe} ignored: '{channelSet.name}'.", channelSet);
+                    continue;
+                }
+
+                AddState(channelSet.universe, channelSet);
             }
+        }
+
+        private void AddState(int universe, ArtNetChannels channels)
+        {
+            if (channels == null) return;
+
+            if (forceAnimatorAlwaysAnimate)
+            {
+                var anim = channels.GetComponent<Animator>();
+                if (anim != null)
+                    anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            }
+
+            _states.Add(new SourceState
+            {
+                universe = universe,
+                channels = channels,
+                buffer = new byte[512],
+                initialized = false
+            });
         }
 
         private void Update()

@@ -7,10 +7,10 @@ Art-Net/DMX を受信し、Fixture 定義に基づいて Unity のライト、Pa
 Unity の **Package Manager** で **Add package from git URL...** を選び、次を入力します。
 
 ```text
-https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.2
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.3
 ```
 
-`v0.1.2` タグの公開後に利用できます。公開前は、対象ブランチまたはコミットSHAを指定してください。
+`v0.1.3` タグの公開後に利用できます。公開前は、対象ブランチまたはコミットSHAを指定してください。
 
 ## まず試す
 
@@ -21,6 +21,10 @@ https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp
 3. `ArtNet Core` が灯体を自動検出して、ライブArt-Netを適用します。
 
 `ArtNet.prefab` には、通常の受信を担当する `ArtNet Core`、DMXをAnimationClipへ記録する `ArtNet Recorder`、AnimationClipまたはTimelineを再生する `ArtNet Timeline Playback` が含まれます。初期状態は **Live / Record** プリセットです。Timeline再生を行うときは、`DmxTimelinePlayback` Inspectorの **Apply Timeline Playback** を実行してください。
+
+## Timelineで複数Universeを再生する
+
+`ArtNet Timeline Playback/Universes/Universe 0` は、Universe 0用の `ArtNetChannels` と `Animator` を持ちます。Universeを追加する場合は、`Runtime/ArtNet/Prefabs/ArtNet Universe.prefab` を `Universes` の子へ配置し、`ArtNetChannels` の **Universe** を重複しない番号へ設定してください。`DmxTimelinePlayback` は `Universes` 配下を自動検出するため、Sourcesを手動で追加する必要はありません。
 
 ## VLB版（任意）
 

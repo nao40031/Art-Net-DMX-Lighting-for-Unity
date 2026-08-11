@@ -14,6 +14,10 @@ namespace ArtNet.Runtime
     [Serializable]
     public partial class ArtNetChannels : MonoBehaviour
     {
+        [Header("Universe")]
+        [Tooltip("このチャンネルセットを再生するDMX Universe番号です。")]
+        [Min(0)] public int universe = 0;
+
         public int Ch1;
         public int Ch2;
         public int Ch3;
