@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5
+
+- Documents the `release`-branch Git URL for Package Manager updates and the tagged URL for version-pinned installs.
+
 ## 0.1.4
 
 - Replaces automatic Timeline source discovery with the explicit **Auto Discover in Children** Inspector action.

@@ -1,16 +1,34 @@
 # Art-Net DMX Lighting for Unity
 
+## 導入と更新
+
+Package Managerから更新する通常の導入では、次のGit URLを入力します。
+
+```text
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#release
+```
+
+一度このURLで導入すれば、以後はPackage Managerの **Update** ボタンで `release` に公開された最新版を取得できます。
+
+特定バージョンに固定する場合は、代わりにタグ付きURLを使います。タグは自動で進まないため、更新時はURL内のタグを新しい版へ変更してください。
+
+```text
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.5
+```
+
+すでに `#v0.1.3` または `#v0.1.4` を導入している場合は、一度だけ **Add package from git URL...** で上記の `#release` URLへ切り替えてください。以後のリリースは **Update** から導入できます。
+
 Art-Net/DMX を受信し、Fixture 定義に基づいて Unity のライト、Pan/Tilt、カラー、ゴボを制御するパッケージです。
 
-## 導入
+## 固定版の導入
 
 Unity の **Package Manager** で **Add package from git URL...** を選び、次を入力します。
 
 ```text
-https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.4
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.5
 ```
 
-`v0.1.4` タグの公開後に利用できます。公開前は、対象ブランチまたはコミットSHAを指定してください。
+特定バージョンで固定して利用する場合に使います。更新時は、必要なバージョンのタグへURLを差し替えてください。
 
 ## まず試す
 
