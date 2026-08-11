@@ -20,17 +20,35 @@ namespace ArtNet.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            DrawDefaultInspector();
+
+            var script = serializedObject.FindProperty("m_Script");
+            var rig = serializedObject.FindProperty("rig");
+            var universeRoot = serializedObject.FindProperty("universeRoot");
+            var sources = serializedObject.FindProperty("sources");
+
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.PropertyField(script);
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Target", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(rig);
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Sources", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(universeRoot);
+            EditorGUILayout.PropertyField(sources, includeChildren: true);
             serializedObject.ApplyModifiedProperties();
 
-            EditorGUILayout.Space(8f);
-            EditorGUILayout.LabelField("Universe Source Discovery", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "Scans active ArtNetChannels components under Universe Root and replaces Sources only when every Universe number is valid and unique.",
                 MessageType.Info);
 
             if (GUILayout.Button("Auto Discover in Children"))
                 DiscoverSourcesInChildren();
+
+            serializedObject.Update();
+            DrawPropertiesExcluding(serializedObject, "m_Script", "rig", "universeRoot", "sources");
+            serializedObject.ApplyModifiedProperties();
 
             EditorGUILayout.Space(8f);
             EditorGUILayout.LabelField("Quick Mode Presets", EditorStyles.boldLabel);

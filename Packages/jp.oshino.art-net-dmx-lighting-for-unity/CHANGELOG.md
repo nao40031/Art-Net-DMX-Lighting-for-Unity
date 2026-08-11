@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6
+
+- Places the **Auto Discover in Children** button directly below the Timeline Playback `Sources` list.
+
 ## 0.1.5
 
 - Documents the `release`-branch Git URL for Package Manager updates and the tagged URL for version-pinned installs.
