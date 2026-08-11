@@ -225,10 +225,10 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   rig: {fileID: 101003}
-  sourceMode: 1
   universeRoot: {fileID: 104001}
-  includeInactiveUniverseSources: 0
-  sources: []
+  sources:
+  - universe: 0
+    channels: {fileID: 105002}
   enablePlayback: 0
   enableInEditMode: 1
   updateTiming: 0

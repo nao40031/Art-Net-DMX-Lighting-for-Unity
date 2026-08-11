@@ -6,7 +6,9 @@
  */
 
 using ArtNet.Runtime;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace ArtNet.Editor
@@ -20,6 +22,15 @@ namespace ArtNet.Editor
             serializedObject.Update();
             DrawDefaultInspector();
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space(8f);
+            EditorGUILayout.LabelField("Universe Source Discovery", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Scans active ArtNetChannels components under Universe Root and replaces Sources only when every Universe number is valid and unique.",
+                MessageType.Info);
+
+            if (GUILayout.Button("Auto Discover in Children"))
+                DiscoverSourcesInChildren();
 
             EditorGUILayout.Space(8f);
             EditorGUILayout.LabelField("Quick Mode Presets", EditorStyles.boldLabel);
@@ -36,6 +47,42 @@ namespace ArtNet.Editor
                 if (GUILayout.Button("Apply Timeline Playback"))
                     ApplyTimelinePlaybackPreset();
             }
+        }
+
+        private void DiscoverSourcesInChildren()
+        {
+            const string undoName = "Auto Discover Timeline Universe Sources";
+            var messages = new List<string>();
+            bool allSucceeded = true;
+
+            foreach (var obj in targets)
+            {
+                var playback = obj as DmxTimelinePlayback;
+                if (playback == null) continue;
+
+                Undo.RecordObject(playback, undoName);
+                var result = playback.DiscoverSourcesInChildren();
+                allSucceeded &= result.succeeded;
+
+                if (result.succeeded)
+                {
+                    if (PrefabUtility.IsPartOfPrefabInstance(playback))
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(playback);
+
+                    EditorUtility.SetDirty(playback);
+                    var scene = playback.gameObject.scene;
+                    if (scene.IsValid() && scene.isLoaded && !Application.isPlaying)
+                        EditorSceneManager.MarkSceneDirty(scene);
+                }
+
+                messages.Add($"{playback.gameObject.name}\n{result.BuildMessage()}");
+            }
+
+            serializedObject.Update();
+            EditorUtility.DisplayDialog(
+                allSucceeded ? "ArtNet Universe Sources Registered" : "ArtNet Universe Source Discovery",
+                string.Join("\n\n", messages),
+                "OK");
         }
 
         private void ApplyLiveRecordPreset()

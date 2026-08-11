@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -33,26 +34,81 @@ namespace ArtNet.Runtime
             FixedUpdate
         }
 
-        public enum SourceMode
+        public sealed class DuplicateUniverse
         {
-            Manual,
-            AutoDiscoverInChildren
+            public int universe;
+            public readonly List<ArtNetChannels> channels = new();
+        }
+
+        public sealed class SourceDiscoveryResult
+        {
+            public bool succeeded;
+            public bool missingUniverseRoot;
+            public bool noChannelsFound;
+            public readonly List<ArtNetChannels> invalidUniverseChannels = new();
+            public readonly List<DuplicateUniverse> duplicateUniverses = new();
+            public readonly List<UniverseSource> registeredSources = new();
+
+            public string BuildMessage()
+            {
+                var builder = new StringBuilder(512);
+
+                if (succeeded)
+                {
+                    builder.AppendLine($"Registered {registeredSources.Count} Universe source(s).");
+                    for (int i = 0; i < registeredSources.Count; i++)
+                    {
+                        var source = registeredSources[i];
+                        var name = source.channels != null ? source.channels.gameObject.name : "(Missing)";
+                        builder.AppendLine($"- Universe {source.universe} -> {name}");
+                    }
+                    return builder.ToString().TrimEnd();
+                }
+
+                builder.AppendLine("Source registration was cancelled.");
+                builder.AppendLine("No changes were made to Sources.");
+
+                if (missingUniverseRoot)
+                    builder.AppendLine("\nUniverse Root is not assigned.");
+
+                if (noChannelsFound)
+                    builder.AppendLine("\nNo active ArtNetChannels components were found under Universe Root.");
+
+                if (invalidUniverseChannels.Count > 0)
+                {
+                    builder.AppendLine("\nInvalid Universe numbers found:");
+                    for (int i = 0; i < invalidUniverseChannels.Count; i++)
+                    {
+                        var channelSet = invalidUniverseChannels[i];
+                        builder.AppendLine($"- {channelSet.gameObject.name}: Universe {channelSet.universe}");
+                    }
+                }
+
+                if (duplicateUniverses.Count > 0)
+                {
+                    builder.AppendLine("\nDuplicate Universe numbers found:");
+                    for (int i = 0; i < duplicateUniverses.Count; i++)
+                    {
+                        var duplicate = duplicateUniverses[i];
+                        builder.AppendLine($"\nUniverse {duplicate.universe}");
+                        for (int j = 0; j < duplicate.channels.Count; j++)
+                            builder.AppendLine($"- {duplicate.channels[j].gameObject.name}");
+                    }
+                }
+
+                builder.AppendLine("\nFix the Universe settings, then run discovery again.");
+                return builder.ToString().TrimEnd();
+            }
         }
 
         [Header("Target")]
         public DmxRigController rig;
 
         [Header("Sources")]
-        [Tooltip("Manualは従来どおりSourcesを使用します。Auto Discover In ChildrenはUniverse Root配下のArtNetChannelsを自動登録します。")]
-        public SourceMode sourceMode = SourceMode.Manual;
-
-        [Tooltip("Auto Discover In Childrenで検索する親Transform。未設定ならこのGameObject配下を検索します。")]
+        [Tooltip("Auto Discover in Childrenボタンで検索する親Transformです。")]
         public Transform universeRoot;
 
-        [Tooltip("有効にすると、非アクティブなUniverse Objectも再生対象にします。")]
-        public bool includeInactiveUniverseSources = false;
-
-        [Tooltip("Manualモードで使用するUniverseとArtNetChannelsの対応表です。")]
+        [Tooltip("Timeline Playbackで使用するUniverseとArtNetChannelsの対応表です。")]
         public List<UniverseSource> sources = new();
 
         [Header("Playback")]
@@ -299,18 +355,6 @@ namespace ArtNet.Runtime
         private void RebuildStates()
         {
             _states.Clear();
-
-            if (sourceMode == SourceMode.AutoDiscoverInChildren)
-            {
-                RebuildAutoDiscoveredStates();
-                return;
-            }
-
-            RebuildManualStates();
-        }
-
-        private void RebuildManualStates()
-        {
             if (sources == null) return;
 
             for (int i = 0; i < sources.Count; i++)
@@ -322,11 +366,31 @@ namespace ArtNet.Runtime
             }
         }
 
-        private void RebuildAutoDiscoveredStates()
+        /// <summary>
+        /// Universe Root配下の有効なArtNetChannelsを検証し、問題がなければSourcesを全置換する。
+        /// 重複または無効なUniverse番号があれば、既存Sourcesは変更しない。
+        /// </summary>
+        public SourceDiscoveryResult DiscoverSourcesInChildren()
         {
-            var root = universeRoot != null ? universeRoot : transform;
-            var channels = root.GetComponentsInChildren<ArtNetChannels>(includeInactiveUniverseSources);
-            var usedUniverses = new HashSet<int>();
+            var result = new SourceDiscoveryResult();
+            if (universeRoot == null)
+            {
+                result.missingUniverseRoot = true;
+                Debug.LogError($"[DmxTimelinePlayback] {result.BuildMessage()}", this);
+                return result;
+            }
+
+            var channels = universeRoot.GetComponentsInChildren<ArtNetChannels>(includeInactive: false);
+            if (channels == null || channels.Length == 0)
+            {
+                result.noChannelsFound = true;
+                Debug.LogError($"[DmxTimelinePlayback] {result.BuildMessage()}", this);
+                return result;
+            }
+
+            var candidates = new List<UniverseSource>(channels.Length);
+            var firstByUniverse = new Dictionary<int, ArtNetChannels>();
+            var duplicatesByUniverse = new Dictionary<int, DuplicateUniverse>();
 
             for (int i = 0; i < channels.Length; i++)
             {
@@ -335,18 +399,48 @@ namespace ArtNet.Runtime
 
                 if (channelSet.universe < 0)
                 {
-                    Debug.LogWarning($"[DmxTimelinePlayback] Universe must be 0 or greater: '{channelSet.name}'.", channelSet);
+                    result.invalidUniverseChannels.Add(channelSet);
                     continue;
                 }
 
-                if (!usedUniverses.Add(channelSet.universe))
+                if (firstByUniverse.TryGetValue(channelSet.universe, out var firstChannelSet))
                 {
-                    Debug.LogWarning($"[DmxTimelinePlayback] Duplicate Universe {channelSet.universe} ignored: '{channelSet.name}'.", channelSet);
+                    if (!duplicatesByUniverse.TryGetValue(channelSet.universe, out var duplicate))
+                    {
+                        duplicate = new DuplicateUniverse { universe = channelSet.universe };
+                        duplicate.channels.Add(firstChannelSet);
+                        duplicatesByUniverse.Add(channelSet.universe, duplicate);
+                        result.duplicateUniverses.Add(duplicate);
+                    }
+
+                    duplicate.channels.Add(channelSet);
                     continue;
                 }
 
-                AddState(channelSet.universe, channelSet);
+                firstByUniverse.Add(channelSet.universe, channelSet);
+                candidates.Add(new UniverseSource
+                {
+                    universe = channelSet.universe,
+                    channels = channelSet
+                });
             }
+
+            if (result.invalidUniverseChannels.Count > 0 || result.duplicateUniverses.Count > 0)
+            {
+                Debug.LogError($"[DmxTimelinePlayback] {result.BuildMessage()}", this);
+                return result;
+            }
+
+            if (sources == null)
+                sources = new List<UniverseSource>(candidates.Count);
+            else
+                sources.Clear();
+
+            sources.AddRange(candidates);
+            result.registeredSources.AddRange(candidates);
+            result.succeeded = true;
+            RebuildStates();
+            return result;
         }
 
         private void AddState(int universe, ArtNetChannels channels)

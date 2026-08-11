@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Replaces automatic Timeline source discovery with the explicit **Auto Discover in Children** Inspector action.
+- Validates all candidate Universe numbers before replacing Sources and reports duplicate object names in an Editor dialog.
+
 ## 0.1.3
 
 - Adds auto-discovery of Timeline Playback universe sources and an `ArtNet Universe` prefab for multi-universe playback.
