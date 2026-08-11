@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7
+
+- Moves the normal Git installation URL from the public-project `release` branch to the dedicated `upm/release` branch.
+
 ## 0.1.6
 
 - Places the **Auto Discover in Children** button directly below the Timeline Playback `Sources` list.
