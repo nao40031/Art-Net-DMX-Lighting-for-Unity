@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8
+
+- Register the optional VLB prefab as a Package Manager sample.
+- Document the Package Manager import workflow for the optional VLB sample.
+
 ## 0.1.7
 
 - Moves the normal Git installation URL from the public-project `release` branch to the dedicated `upm/release` branch.
