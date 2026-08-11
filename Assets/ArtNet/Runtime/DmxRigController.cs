@@ -18,11 +18,11 @@ using UnityEditor.SceneManagement;
 namespace ArtNet.Runtime
 {
     /// <summary>
-    /// ArtNetReceiver 繧定ｳｼ隱ｭ縺励ゞniverse繝舌ャ繝輔ぃ譖ｴ譁ｰ縺ｨ Fixture 縺ｸ縺ｮ繝ｫ繝ｼ繝・ぅ繝ｳ繧ｰ繧呈球蠖薙☆繧九・
-    /// Fixture縺ｮ險ｭ螳・驕ｩ逕ｨ縺ｯ DmxFixtureComponent 蛛ｴ縺ｫ蟇・○繧九・
+    /// ArtNetReceiver を購読し、Universeバッファ更新と Fixture へのルーティングを担当する。
+    /// Fixtureの設定・適用は DmxFixtureComponent 側に寄せる。
     ///
-    /// 霑ｽ蜉・唏ierarchy鬆・・閾ｪ蜍墓治逡ｪ・・ddressingRoot驟堺ｸ九ｒ荳翫°繧蛾・↓霎ｿ繧具ｼ・
-    /// 霑ｽ蜉・哘dit繝｢繝ｼ繝峨〒謗｡逡ｪ蛟､繧偵す繝ｼ繝ｳ縺ｸ菫晏ｭ假ｼ医・繧､繧ｯ・峨☆繧区ｩ溯・
+    /// 追加：Hierarchy順の自動採番。addressingRoot配下を上から順に辿る。
+    /// 追加：Editモードで採番値をシーンへ保存（Bake）する機能。
     /// </summary>
     [DisallowMultipleComponent]
     public class DmxRigController : MonoBehaviour
@@ -161,7 +161,7 @@ namespace ArtNet.Runtime
 
             if (!applyOnUpdate) return;
 
-            // Dirty譁ｹ蠑擾ｼ壹％縺ｮ繝輔Ξ繝ｼ繝縺ｧ譖ｴ譁ｰ縺後≠縺｣縺欟niverse縺縺鷹←逕ｨ縺吶ｋ・・Universe莉･荳翫〒蜉ｹ譫懷､ｧ・・
+            // このフレームで更新があったUniverseだけを適用する。
             _dirtyScratch.Clear();
             lock (_lock)
             {
@@ -183,13 +183,13 @@ namespace ArtNet.Runtime
 
         public void Register(DmxFixtureComponent fixture)
         {
-            // 莉ｻ諢擾ｼ壻ｻ翫・Discover蛛ｴ縺ｧ蜿朱寔縺吶ｋ縺溘ａ縲ヽegister縺ｯ蠢・医〒縺ｯ縺ｪ縺・
-            // ・・mxFixtureComponent蛛ｴ縺・Register/Unregister 繧呈戟縺｣縺ｦ縺・ｋ莠呈鋤縺ｮ縺溘ａ谿九☆・・
+            // 暫定：Discover時に再収集するため、Registerは現時点では何もしない。
+            // 将来的にDmxFixtureComponent側からRegister/Unregisterを呼び出す運用を想定している。
         }
 
         public void Unregister(DmxFixtureComponent fixture)
         {
-            // 莉ｻ諢・
+            // 暫定。
         }
 
         // ------------------------------------------------------------
@@ -261,7 +261,7 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            // 閾ｪ蜍墓治逡ｪ・亥ｿ・ｦ√↑繧会ｼ・
+            // 必要に応じて自動採番する。
             if (autoAssignStartAddressOnEnable)
             {
 #if UNITY_EDITOR
@@ -272,7 +272,7 @@ namespace ArtNet.Runtime
 #endif
             }
 
-            // Universe蛻･縺ｫ縺ｾ縺ｨ繧√ｋ
+            // Universe単位にまとめる。
             _fixturesByUniverse.Clear();
             int registered = 0;
 
@@ -281,10 +281,10 @@ namespace ArtNet.Runtime
                 var f = fixtures[i];
                 if (f == null) continue;
 
-                // 蛻晄悄蛹厄ｼ・ixture蛛ｴ縺ｧMapping縺ｪ縺ｩ繧定ｧ｣豎ｺ・・
+                // 各Fixture側でMappingなどを解決する。
                 f.Initialize(_detectedHdrp);
 
-                // 繝ｫ繝ｼ繝・ぅ繝ｳ繧ｰ逋ｻ骭ｲ
+                // ルーティングを登録する。
                 if (!_fixturesByUniverse.TryGetValue(f.universe, out var list))
                 {
                     list = new List<DmxFixtureComponent>(32);
@@ -406,7 +406,7 @@ namespace ArtNet.Runtime
             }
             else
             {
-                // addressingRoot譛ｪ謖・ｮ壽凾縺ｯ蜈ｨ莉ｶ・磯・ｺ丈ｿ晁ｨｼ縺ｯ蠑ｱ縺・ｼ・
+                // addressingRoot未指定時は、対象Fixtureをすべて使用する。
                 targets = new List<DmxFixtureComponent>(fixtures.Length);
                 for (int i = 0; i < fixtures.Length; i++)
                 {
@@ -434,7 +434,7 @@ namespace ArtNet.Runtime
 
                 int chCount = Mathf.Clamp(GetChannelCountSafe(f), 1, 512);
 
-                // 512雜・∴繝√ぉ繝・け
+                // 512チャンネルを超えるか確認する。
                 if (curAddr + chCount - 1 > 512)
                 {
                     if (autoIncrementUniverse)

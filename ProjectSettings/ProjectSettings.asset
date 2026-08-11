@@ -825,7 +825,8 @@ PlayerSettings:
   webGLWebAssemblyBigInt: 0
   webGLCloseOnQuit: 0
   webWasm2023: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Standalone: VLB_HDRP;USE_VLB
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
