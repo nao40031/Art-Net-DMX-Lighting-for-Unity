@@ -13,7 +13,7 @@ https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp
 特定バージョンに固定する場合は、代わりにタグ付きURLを使います。タグは自動で進まないため、更新時はURL内のタグを新しい版へ変更してください。
 
 ```text
-https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.8
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.9
 ```
 
 すでにタグ付きURLを導入している場合は、一度だけ **Add package from git URL...** で上記の `#upm/release` URLへ切り替えてください。以後のリリースは **Update** から導入できます。
@@ -25,7 +25,7 @@ Art-Net/DMX を受信し、Fixture 定義に基づいて Unity のライト、Pa
 Unity の **Package Manager** で **Add package from git URL...** を選び、次を入力します。
 
 ```text
-https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.8
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#v0.1.9
 ```
 
 特定バージョンで固定して利用する場合に使います。更新時は、必要なバージョンのタグへURLを差し替えてください。
@@ -46,15 +46,13 @@ https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp
 
 ## VLB版（任意）
 
-VLB版Prefabは `Samples~/VLB` に分離されています。VLBはこのパッケージの依存関係・同梱物ではないため、先にVolumetric Light Beam（VLB）を正規の配布元から導入してください。
+VLB版Prefabはパッケージ本体に同梱されています。Volumetric Light Beam（VLB）を正規の配布元から導入した後、Projectウィンドウで次のPrefabをシーンへ配置してください。
 
-VLBを導入した後、次の手順でPrefabをImportします。
+```text
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/やまかライト/Prefab/VLB/MovingLight_withGobo(MAC Ultra)_VLB.prefab
+```
 
-1. Unityで **Window > Package Manager** を開き、**In Project** から **Art-Net DMX Lighting for Unity** を選択します。
-2. 詳細欄の **Samples** で **VLB** の **Import** を押します。
-3. `Assets/Samples/Art-Net DMX Lighting for Unity/0.1.8/VLB/` にコピーされた `MovingLight_withGobo(MAC Ultra)_VLB.prefab` をシーンへ配置します。
-
-VLBを導入せずにImportするとMissing Scriptが表示される可能性があります。その場合はVLBを導入後、Samplesの **Reimport** を実行してください。VLBなしでも通常版PrefabとArt-Net/DMX機能は利用できます。
+VLBはこのパッケージの依存関係・同梱物ではありません。VLBを導入せずにVLB版Prefabを配置するとMissing Scriptが表示される可能性があります。VLBなしでも、`Prefab/Normal` の通常版PrefabとArt-Net/DMX機能は利用できます。
 
 ## 前提
 

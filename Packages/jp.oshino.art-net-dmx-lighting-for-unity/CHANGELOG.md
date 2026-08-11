@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9
+
+- Bundle the optional VLB prefab under `Runtime/LightAsset/やまかライト/Prefab/VLB` instead of distributing it as a Package Manager sample.
+
 ## 0.1.8
 
 - Register the optional VLB prefab as a Package Manager sample.
