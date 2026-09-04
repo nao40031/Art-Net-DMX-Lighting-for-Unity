@@ -1,8 +1,16 @@
 # Changelog
 
+## 0.2.1
+
+- Rename the light asset root from `Runtime/LightAsset/やまかライト` to `Runtime/LightAsset/yamakara Light_やまかライト`.
+
+## 0.2.0
+
+- Rename `Runtime/LightAsset/やまかライト/Prefab/Normal` to `Prefab/HDRP` to identify the render-pipeline-specific prefab set.
+
 ## 0.1.9
 
-- Bundle the optional VLB prefab under `Runtime/LightAsset/やまかライト/Prefab/VLB` instead of distributing it as a Package Manager sample.
+- Bundle the optional VLB prefab under `Runtime/LightAsset/やまかライト/Prefab/HDRP/VLB` instead of distributing it as a Package Manager sample.
 
 ## 0.1.8
 

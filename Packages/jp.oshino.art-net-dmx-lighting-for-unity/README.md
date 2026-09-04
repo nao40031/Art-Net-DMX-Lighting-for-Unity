@@ -32,7 +32,7 @@ https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp
 
 ## まず試す
 
-`Runtime/LightAsset/やまかライト/Prefab/Normal` 内のPrefabは、VLBなしで使用する標準版です。シーンに配置して `DmxFixtureComponent` のFixture・Universe・Start Addressを設定してください。
+`Runtime/LightAsset/yamakara Light_やまかライト/Prefab/HDRP` 内のPrefabは、VLBなしで使用するHDRP版です。シーンに配置して `DmxFixtureComponent` のFixture・Universe・Start Addressを設定してください。
 
 1. `Runtime/ArtNet/Prefabs/ArtNet.prefab` をHierarchyへドラッグ＆ドロップします。
 2. 標準Prefabを配置し、`DmxFixtureComponent` のDMX設定を確認します。
@@ -49,10 +49,12 @@ https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp
 VLB版Prefabはパッケージ本体に同梱されています。Volumetric Light Beam（VLB）を正規の配布元から導入した後、Projectウィンドウで次のPrefabをシーンへ配置してください。
 
 ```text
-Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/やまかライト/Prefab/VLB/MovingLight_withGobo(MAC Ultra)_VLB.prefab
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/HDRP/VLB/MovingLight_withGobo(MAC Ultra)_VLB_HDRP.prefab
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/パーライト/ライト付きPrefab/HDRP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_HDRP.prefab
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/パーライト/ライト付きPrefab/URP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_URP.prefab
 ```
 
-VLBはこのパッケージの依存関係・同梱物ではありません。VLBを導入せずにVLB版Prefabを配置するとMissing Scriptが表示される可能性があります。VLBなしでも、`Prefab/Normal` の通常版PrefabとArt-Net/DMX機能は利用できます。
+VLBはこのパッケージの依存関係・同梱物ではありません。VLBを導入せずにVLB版Prefabを配置するとMissing Scriptが表示される可能性があります。VLBなしでも、`Prefab/HDRP` のHDRP版PrefabとArt-Net/DMX機能は利用できます。
 
 ## 前提
 

@@ -1,0 +1,1217 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7960800072310362778
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2415676272866749}
+  - component: {fileID: 5435452863099544097}
+  - component: {fileID: 5615845126080219335}
+  m_Layer: 0
+  m_Name: Spot Light
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2415676272866749
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1437629804526317943}
+  m_Father: {fileID: 8876304756517623177}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!108 &5435452863099544097
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  m_Enabled: 1
+  serializedVersion: 11
+  m_Type: 0
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 10898.832
+  m_Range: 12.87
+  m_SpotAngle: 31.000013
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 2
+  m_AreaSize: {x: 0.5, y: 0.5}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 8670
+  m_UseColorTemperature: 1
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShadowRadius: 0.025
+  m_ShadowAngle: 0
+  m_LightUnit: 0
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
+--- !u!114 &5615845126080219335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31bcab4d8bfd39442bb872a3771943e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxIntensity: 10
+  dimmerCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!1 &6239036712389456012
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1437629804526317943}
+  - component: {fileID: 672309184560912738}
+  - component: {fileID: 2857419630284571906}
+  - component: {fileID: 4671928036147925038}
+  m_Layer: 0
+  m_Name: 'PseudoBeam '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1437629804526317943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6239036712389456012}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.067}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2415676272866749}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &672309184560912738
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6239036712389456012}
+  m_Mesh: {fileID: 0}
+--- !u!23 &2857419630284571906
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6239036712389456012}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a38ab1dc7e8043a89c962c3d48a65072, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4671928036147925038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6239036712389456012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b69a7c420d4a4f60a42d9fd93d9ee1f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  length: 10
+  startRadius: 0.02
+  endRadius: 2.04
+  segments: 32
+  capStart: 0
+  capEnd: 0
+  generateOnAwake: 1
+  rebuildInEditMode: 1
+  assignMaterialOnRebuild: 1
+  material: {fileID: 2100000, guid: a38ab1dc7e8043a89c962c3d48a65072, type: 2}
+--- !u!1001 &3488826918228270366
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -6.155
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 9.073
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -4.35
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8640195093023003935, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c16797c950334e3e9e462d0029e71206, type: 2}
+    - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c16797c950334e3e9e462d0029e71206, type: 2}
+    - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_Name
+      value: MovingLight_withGobo(L3Spot)_URP
+      objectReference: {fileID: 0}
+    - target: {fileID: 3138592158095932230, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c16797c950334e3e9e462d0029e71206, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2415676272866749}
+    - targetCorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1437629804526317943}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8187567262573687871}
+  m_SourcePrefab: {fileID: 100100000, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+--- !u!4 &1013826615945173212 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4502219153963124162, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+  m_PrefabInstance: {fileID: 3488826918228270366}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &2523771333444109262 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+  m_PrefabInstance: {fileID: 3488826918228270366}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3456986391419752059 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -6948100577301752987, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+  m_PrefabInstance: {fileID: 3488826918228270366}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4371768497065959503 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+  m_PrefabInstance: {fileID: 3488826918228270366}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8187567262573687871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4371768497065959503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66e1bc8cca24d3b4ca0ba7e2343eaeab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  universe: 0
+  startAddress: 1
+  fixture: {fileID: 11400000, guid: ea6c113c24080a647ab302d3a397c294, type: 2}
+  mode: 2
+  targetLight: {fileID: 5435452863099544097}
+  targetLights: []
+  panTransform: {fileID: 1013826615945173212}
+  tiltTransform: {fileID: 3456986391419752059}
+  lensRenderer: {fileID: 0}
+  extraLensRenderers:
+  - {fileID: 2523771333444109262}
+  syncLensToDmx: 1
+  syncLensColorToDmx: 1
+  syncLensDimmerToDmx: 1
+  lensColorProperty: _DmxColor
+  lensDimmerProperty: _DmxDimmer
+  lensDimmerScale: 1
+  goboWheel: {fileID: 11400000, guid: 0dff2603d1a09174ea1238d2587ac1e5, type: 2}
+  syncLightCookieToGobo: 1
+  syncLensGoboToDmx: 1
+  syncBeamGoboToDmx: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 2415676272866749}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
+  lensGoboTextureProperty: _GoboTexture
+  lensGoboRotationProperty: _GoboRotationDeg
+  lensGoboEnabledProperty: _GoboEnabled
+  beamGoboTextureProperty: _GoboTexture
+  beamGoboRotationProperty: _GoboRotationDeg
+  beamGoboEnabledProperty: _GoboEnabled
+  beamRenderMode: 1
+  overrideVlbHdIntensityMultiplier: 1
+  vlbHdIntensityMultiplier: 0.00001
+  overrideVlbSdIntensityMultiplier: 1
+  vlbSdIntensityMultiplier: 0.01
+  overrideVlbHdrpExposureWeight: 1
+  vlbHdrpExposureWeight: 0
+  syncPseudoBeamToDmx: 1
+  _beamRenderModeMigrated: 1
+  _vlbPipelineDefaultsInitialized: 1
+  beamRenderer: {fileID: 2857419630284571906}
+  extraBeamRenderers: []
+  syncBeamColorToDmx: 1
+  syncBeamDimmerToDmx: 1
+  syncBeamPrismToDmx: 1
+  syncBeamZoomToDmx: 1
+  syncBeamNoiseVolumeToBeam: 1
+  beamColorProperty: _DmxColor
+  beamDimmerProperty: _DmxDimmer
+  beamPrismEnabledProperty: _DmxPrismEnabled
+  beamPrismFacetCountProperty: _DmxPrismFacetCount
+  beamPrismSpreadProperty: _DmxPrismSpread
+  beamPrismRotationProperty: _DmxPrismRotation
+  beamPrismIntensityProperty: _DmxPrismIntensity
+  beamLengthProperty: _BeamLength
+  beamStartRadiusProperty: _BeamStartRadius
+  beamEndRadiusProperty: _BeamEndRadius
+  beamNoiseVolume: {fileID: 0}
+  beamNoiseVolumeEnabled: 0
+  beamNoiseVolumeStrength: 1
+  beamNoiseVolumeGoboScale: 1
+  beamNoiseVolumePrismRotationScale: 0
+  beamNoiseVolumeScale: 1
+  beamNoiseVolumeRadialScale: 4
+  beamNoiseVolumeLengthScale: 12
+  beamNoiseVolumeSpeed: 0.1
+  beamNoiseVolumeContrast: 1
+  beamNoiseVolumeOffset: {x: 0, y: 0, z: 0}
+  beamNoiseVolumeScrollSpace: 0
+  beamNoiseVolumeScrollAxis: 2
+  beamNoiseVolumeScrollReverse: 0
+  beamNoiseVolumeProperty: _BeamNoiseVolume
+  beamNoiseVolumeEnabledProperty: _BeamNoiseVolumeEnabled
+  beamNoiseVolumeStrengthProperty: _BeamNoiseVolumeStrength
+  beamNoiseVolumeScaleProperty: _BeamNoiseVolumeScale
+  beamNoiseVolumeRadialScaleProperty: _BeamNoiseVolumeRadialScale
+  beamNoiseVolumeLengthScaleProperty: _BeamNoiseVolumeLengthScale
+  beamNoiseVolumeSpeedProperty: _BeamNoiseVolumeSpeed
+  beamNoiseVolumeContrastProperty: _BeamNoiseVolumeContrast
+  beamNoiseVolumeOffsetProperty: _BeamNoiseVolumeOffset
+  beamNoiseVolumeScrollDirectionProperty: _BeamNoiseVolumeScrollDirection
+  beamDimmerScale: 1
+  beamDimmerFloor: 0
+  beamZoomRadiusScale: 1
+  beamZoomMinEndRadius: 0.01
+  beamZoomMaxEndRadius: 25
+  enableBeamSoftShell: 0
+  beamSoftShellRadiusScale: 1.35
+  beamSoftShellIntensity: 0.2
+  beamSoftShellEdgeSoftness: 0.9
+  beamSoftShellNoiseStrength: 0.25
+  syncZoomToLight: 1
+  minOuterSpotAngle: 5
+  maxOuterSpotAngle: 50
+  invertZoom: 0
+  zoomInnerSpotPercent: 80
+  prismDefinition: {fileID: 0}
+  enablePrism: 1
+  prismDrawMode: 0
+  prismRenderMode: 1
+  projectionOnlyPrimaryIntensityScale: 0.65
+  disableAuxiliaryVolumetricInProjectionOnly: 1
+  auxiliaryCookieRotationMode: 0
+  maxPrismRotateDegPerSec: 360
+  prismCompositeCookieSize: 512
+  prismCompositeRotationStepDeg: 1
+  maxPrismCompositeFacets: 8
+  maxPrismAuxiliaryFacets: 8
+  auxiliarySpreadMultiplierDeg: 10
+  auxiliaryIntensityScale: 1
+  auxiliaryVolumetricIntensityScale: 1
+  prismBrightnessDistribution: 1
+  prismZoomCorrection: 0
+  prismGoboSpacingScale: 1
+  prismGoboScaleVlb: 1
+  auxiliaryLightShadows: 0
+  prismCookieShader: {fileID: 0}
+  lightResponseMode: 0
+  halogenSourceRiseTime: 0.06
+  halogenSourceFallTime: 0.1
+  halogenBeamOnDelay: 0.04
+  halogenBeamOffDelay: 0.04
+  halogenBeamRiseTime: 0.06
+  halogenBeamFallTime: 0.08
+  panRangeDeg: 540
+  tiltRangeDeg: 270
+  pipelineMode: 0
+  driverOverride: {fileID: 0}
+  autoAddDriverIfMissing: 1
+  genericMaxIntensity: 10
+  hdrpMaxIntensity: 9870
+  overrideDriverMaxIntensity: 1
+  panAxis: 2
+  tiltAxis: 0
+  panInvert: 0
+  tiltInvert: 0
+  panOffsetDeg: 0
+  tiltOffsetDeg: 0
+  panTiltSmoothing: 12
+  enableContinuousPanTiltUpdate: 1
+  applyImmediateInEditMode: 1
+  panTiltSpeedMinDegPerSec: 100
+  panTiltSpeedMaxDegPerSec: 720
+  resetTriggerThreshold: 255
+  autoResolveOnValidate: 1
+  monitorEnabled: 1
+  monitorCh1: 1
+  monitorCh2: 2
+  monitorCh3: 3
+  monitorCh4: 4
+  monitorCh5: 5
+  monitorIncludeResolvedFunctions: 1
+  monitorExtraRelativeChannels: 
+  ch1: 0
+  ch2: 0
+  ch3: 0
+  ch4: 0
+  ch5: 0
+  monitorItems:
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 1
+    absoluteCh: 1
+    value: 0
+  - useElementSchema: 0
+    function: 4
+    label: PanCoarse
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 1
+    absoluteCh: 1
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 2
+    absoluteCh: 2
+    value: 0
+  - useElementSchema: 0
+    function: 5
+    label: PanFine
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 2
+    absoluteCh: 2
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 3
+    absoluteCh: 3
+    value: 0
+  - useElementSchema: 0
+    function: 6
+    label: TiltCoarse
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 3
+    absoluteCh: 3
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 4
+    absoluteCh: 4
+    value: 0
+  - useElementSchema: 0
+    function: 7
+    label: TiltFine
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 4
+    absoluteCh: 4
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 5
+    absoluteCh: 5
+    value: 0
+  - useElementSchema: 0
+    function: 15
+    label: PanTiltSpeed
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 5
+    absoluteCh: 5
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 6
+    absoluteCh: 6
+    value: 0
+  - useElementSchema: 0
+    function: 18
+    label: SpecialFunction
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 6
+    absoluteCh: 6
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 7
+    absoluteCh: 7
+    value: 0
+  - useElementSchema: 0
+    function: 1
+    label: Red
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 7
+    absoluteCh: 7
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 8
+    absoluteCh: 8
+    value: 0
+  - useElementSchema: 0
+    function: 2
+    label: Green
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 8
+    absoluteCh: 8
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 9
+    absoluteCh: 9
+    value: 0
+  - useElementSchema: 0
+    function: 3
+    label: Blue
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 9
+    absoluteCh: 9
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 10
+    absoluteCh: 10
+    value: 0
+  - useElementSchema: 0
+    function: 14
+    label: White
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 10
+    absoluteCh: 10
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 11
+    absoluteCh: 11
+    value: 0
+  - useElementSchema: 0
+    function: 20
+    label: ColorMacro
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 11
+    absoluteCh: 11
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 12
+    absoluteCh: 12
+    value: 0
+  - useElementSchema: 0
+    function: 10
+    label: Gobo
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 12
+    absoluteCh: 12
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 13
+    absoluteCh: 13
+    value: 0
+  - useElementSchema: 0
+    function: 17
+    label: GoboRotation
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 13
+    absoluteCh: 13
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 14
+    absoluteCh: 14
+    value: 0
+  - useElementSchema: 0
+    function: 11
+    label: Prism
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 14
+    absoluteCh: 14
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 15
+    absoluteCh: 15
+    value: 0
+  - useElementSchema: 0
+    function: 8
+    label: Strobe
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 15
+    absoluteCh: 15
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 16
+    absoluteCh: 16
+    value: 0
+  - useElementSchema: 0
+    function: 12
+    label: Focus
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 16
+    absoluteCh: 16
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 17
+    absoluteCh: 17
+    value: 0
+  - useElementSchema: 0
+    function: 0
+    label: Dimmer
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 17
+    absoluteCh: 17
+    value: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 18
+    absoluteCh: 18
+    value: 0
+  - useElementSchema: 0
+    function: 19
+    label: DimmerSpeedMode
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeCh: 18
+    absoluteCh: 18
+    value: 0
+  enablePeriodicLog: 0
+  logIntervalSec: 1
+  logOnlyWhenDataArrived: 1
+  includeHeaderInLog: 1
+  _activeProfileLabel: 
+  _activeModeLabel: 18-Channel Mode(Old)
+  _resolvedItems:
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 1
+    absoluteChannel: 1
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 2
+    absoluteChannel: 2
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 3
+    absoluteChannel: 3
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 4
+    absoluteChannel: 4
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 5
+    absoluteChannel: 5
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 6
+    absoluteChannel: 6
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 7
+    absoluteChannel: 7
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 8
+    absoluteChannel: 8
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 9
+    absoluteChannel: 9
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 10
+    absoluteChannel: 10
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 11
+    absoluteChannel: 11
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 12
+    absoluteChannel: 12
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 13
+    absoluteChannel: 13
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 14
+    absoluteChannel: 14
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 15
+    absoluteChannel: 15
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 16
+    absoluteChannel: 16
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 17
+    absoluteChannel: 17
+  - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeChannel: 18
+    absoluteChannel: 18
+  - function: 4
+    useElementSchema: 0
+    label: PanCoarse
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 1
+    absoluteChannel: 1
+  - function: 5
+    useElementSchema: 0
+    label: PanFine
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 2
+    absoluteChannel: 2
+  - function: 6
+    useElementSchema: 0
+    label: TiltCoarse
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 3
+    absoluteChannel: 3
+  - function: 7
+    useElementSchema: 0
+    label: TiltFine
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 4
+    absoluteChannel: 4
+  - function: 15
+    useElementSchema: 0
+    label: PanTiltSpeed
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 5
+    absoluteChannel: 5
+  - function: 18
+    useElementSchema: 0
+    label: SpecialFunction
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 6
+    absoluteChannel: 6
+  - function: 1
+    useElementSchema: 0
+    label: Red
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 7
+    absoluteChannel: 7
+  - function: 2
+    useElementSchema: 0
+    label: Green
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 8
+    absoluteChannel: 8
+  - function: 3
+    useElementSchema: 0
+    label: Blue
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 9
+    absoluteChannel: 9
+  - function: 14
+    useElementSchema: 0
+    label: White
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 10
+    absoluteChannel: 10
+  - function: 20
+    useElementSchema: 0
+    label: ColorMacro
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 11
+    absoluteChannel: 11
+  - function: 10
+    useElementSchema: 0
+    label: Gobo
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 12
+    absoluteChannel: 12
+  - function: 17
+    useElementSchema: 0
+    label: GoboRotation
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 13
+    absoluteChannel: 13
+  - function: 11
+    useElementSchema: 0
+    label: Prism
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 14
+    absoluteChannel: 14
+  - function: 8
+    useElementSchema: 0
+    label: Strobe
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 15
+    absoluteChannel: 15
+  - function: 12
+    useElementSchema: 0
+    label: Focus
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 16
+    absoluteChannel: 16
+  - function: 0
+    useElementSchema: 0
+    label: Dimmer
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 17
+    absoluteChannel: 17
+  - function: 19
+    useElementSchema: 0
+    label: DimmerSpeedMode
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 18
+    absoluteChannel: 18
+--- !u!4 &8876304756517623177 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+  m_PrefabInstance: {fileID: 3488826918228270366}
+  m_PrefabAsset: {fileID: 0}

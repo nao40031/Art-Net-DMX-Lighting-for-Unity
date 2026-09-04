@@ -325,9 +325,7 @@
       "version": "file:jp.oshino.art-net-dmx-lighting-for-unity",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {
-        "com.unity.render-pipelines.high-definition": "17.0.4"
-      }
+      "dependencies": {}
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

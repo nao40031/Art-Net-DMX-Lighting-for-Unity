@@ -23,10 +23,20 @@ namespace ArtNet.Runtime
         public AnimationCurve dimmerCurve;
 
         private Light _light;
+        private Color _initialColor;
+        private bool _hasInitialColor;
 
         public void Initialize(Light targetLight)
         {
+            if (_light != targetLight)
+                _hasInitialColor = false;
+
             _light = targetLight;
+            if (_light != null && !_hasInitialColor)
+            {
+                _initialColor = _light.color;
+                _hasInitialColor = true;
+            }
         }
 
         public void Apply(FixtureRenderState state)
@@ -35,7 +45,7 @@ namespace ArtNet.Runtime
 
             float d = ApplyCurve(state.lightDimmer01);
             _light.intensity = d * maxIntensity;
-            _light.color = state.color;
+            _light.color = state.syncLightColorToDmx ? state.color : _initialColor;
             _light.cookie = state.goboEnabled ? state.goboTexture : null;
 
             if (state.zoomEnabled)

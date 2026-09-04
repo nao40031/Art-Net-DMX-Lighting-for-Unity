@@ -836,6 +836,7 @@ namespace ArtNet.Runtime
         private readonly Dictionary<FixtureFunction, int> _relativeMap = new();
         private readonly Dictionary<ElementKey, ElementBinding> _elementMap = new();
         private readonly Dictionary<WheelKey, GoboWheelDefinition> _goboWheelMap = new();
+        private readonly Dictionary<Light, Color> _directLightInitialColors = new();
         private bool _usesElementMode;
         [SerializeField] private string _activeProfileLabel;
         [SerializeField] private string _activeModeLabel;
@@ -943,8 +944,8 @@ namespace ArtNet.Runtime
             }
         }
 
-        public void Initialize() => ResolveAll();
-        public void Initialize(bool _) => ResolveAll();
+        public void Initialize() => ResolveAll(Application.isPlaying);
+        public void Initialize(bool _) => ResolveAll(Application.isPlaying);
 
         [ContextMenu("Auto Attach Target Light (Find in Children)")]
         public void Context_AutoAttachTargetLight()
@@ -1016,7 +1017,7 @@ namespace ArtNet.Runtime
         private void OnEnable()
         {
             MigrateLegacyBeamRenderMode();
-            ResolveAll();
+            ResolveAll(Application.isPlaying);
 
             if (Application.isPlaying)
                 CaptureMovementBaseIfNeeded(force: true);
@@ -1030,7 +1031,7 @@ namespace ArtNet.Runtime
             MigrateLegacyBeamRenderMode();
             InitializeVlbPipelineDefaultsIfNeeded();
             if (!autoResolveOnValidate) return;
-            ResolveAll();
+            ResolveAll(allowAutoAddDriver: false);
         }
 
         private void OnDisable()
@@ -1143,11 +1144,11 @@ namespace ArtNet.Runtime
         // Resolve Mapping + Driver
         // ------------------------------------------------------------
 
-        private void ResolveAll()
+        private void ResolveAll(bool allowAutoAddDriver)
         {
             ResolveMapping();
             if (monitorEnabled) RebuildMonitorItemsSkeleton();
-            ResolveAndInitializeDrivers();
+            ResolveAndInitializeDrivers(allowAutoAddDriver);
             CaptureMovementBaseIfNeeded(force: false);
         }
 
@@ -1352,7 +1353,7 @@ namespace ArtNet.Runtime
         public bool TryGetRelativeChannel(FixtureFunction function, out int relative1Based)
             => _relativeMap.TryGetValue(function, out relative1Based);
 
-        private void ResolveAndInitializeDrivers()
+        private void ResolveAndInitializeDrivers(bool allowAutoAddDriver)
         {
             isInitialized = false;
             runtimeDriver = null;
@@ -1463,7 +1464,7 @@ namespace ArtNet.Runtime
                 }
 
                 // 3) auto add to SAME GameObject
-                if (driver == null && autoAddDriverIfMissing)
+                if (driver == null && allowAutoAddDriver && autoAddDriverIfMissing)
                 {
 #if HAS_HDRP
                     if (wantHdrp)
@@ -1794,6 +1795,11 @@ namespace ArtNet.Runtime
 
             Color rgb = ReadElementColor(universe512);
 
+            bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
+            float panTiltMaxDegPerSec = hasPanTiltSpeed
+                ? Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, panTiltSpeed01)
+                : -1f;
+
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
             int goboValue = TryReadElementRaw8(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.SelectMode, out int goboRaw)
@@ -1825,7 +1831,7 @@ namespace ArtNet.Runtime
                 float panDeg = (pan01 - 0.5f) * panRangeDeg;
                 if (panInvert) panDeg = -panDeg;
                 panDeg += panOffsetDeg;
-                SetPanTarget(panDeg, -1f, panTiltSmoothing);
+                SetPanTarget(panDeg, panTiltMaxDegPerSec, panTiltSmoothing);
             }
 
             if (tiltTransform != null && TryReadElement01(universe512, FixtureAttribute.Tilt, 1, FixtureChannelRole.Position, out float tilt01))
@@ -1833,7 +1839,7 @@ namespace ArtNet.Runtime
                 float tiltDeg = (tilt01 - 0.5f) * tiltRangeDeg;
                 if (tiltInvert) tiltDeg = -tiltDeg;
                 tiltDeg += tiltOffsetDeg;
-                SetTiltTarget(tiltDeg, -1f, panTiltSmoothing);
+                SetTiltTarget(tiltDeg, panTiltMaxDegPerSec, panTiltSmoothing);
             }
         }
 
@@ -1855,6 +1861,11 @@ namespace ArtNet.Runtime
 
             Color rgb = ReadElementColor(universe512);
 
+            bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
+            float panTiltMaxDegPerSec = hasPanTiltSpeed
+                ? Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, panTiltSpeed01)
+                : -1f;
+
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
             int goboValue = TryReadElementRaw8(universe512, FixtureAttribute.GoboWheel, 1, FixtureChannelRole.SelectMode, out int goboRaw)
@@ -1886,7 +1897,7 @@ namespace ArtNet.Runtime
                 float panDeg = (pan01 - 0.5f) * panRangeDeg;
                 if (panInvert) panDeg = -panDeg;
                 panDeg += panOffsetDeg;
-                SetPanTarget(panDeg, -1f, panTiltSmoothing);
+                SetPanTarget(panDeg, panTiltMaxDegPerSec, panTiltSmoothing);
             }
 
             if (tiltTransform != null && TryReadElement01(universe512, FixtureAttribute.Tilt, 1, FixtureChannelRole.Position, out float tilt01))
@@ -1894,7 +1905,7 @@ namespace ArtNet.Runtime
                 float tiltDeg = (tilt01 - 0.5f) * tiltRangeDeg;
                 if (tiltInvert) tiltDeg = -tiltDeg;
                 tiltDeg += tiltOffsetDeg;
-                SetTiltTarget(tiltDeg, -1f, panTiltSmoothing);
+                SetTiltTarget(tiltDeg, panTiltMaxDegPerSec, panTiltSmoothing);
             }
         }
 
@@ -2886,7 +2897,13 @@ namespace ArtNet.Runtime
             {
                 var l = targets[i];
                 if (l == null) continue;
-                l.color = state.color;
+                if (!_directLightInitialColors.TryGetValue(l, out var initialColor))
+                {
+                    initialColor = l.color;
+                    _directLightInitialColors[l] = initialColor;
+                }
+
+                l.color = state.syncLightColorToDmx ? state.color : initialColor;
                 l.intensity = state.lightDimmer01 * 10f;
                 l.cookie = state.goboEnabled ? state.goboTexture : null;
             }
@@ -3606,6 +3623,7 @@ namespace ArtNet.Runtime
                 lightDimmer01 = lightDim01,
                 lensDimmer01 = lensDim01,
                 color = rgb,
+                syncLightColorToDmx = syncBeamColorToDmx,
                 goboEnabled = goboEnabled && goboTextureForRender != null,
                 goboTexture = goboTextureForRender,
                 goboRotationDeg = goboRotationDeg,

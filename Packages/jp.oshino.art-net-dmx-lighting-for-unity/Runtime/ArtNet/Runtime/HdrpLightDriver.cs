@@ -36,11 +36,21 @@ namespace ArtNet.Runtime
 
         private Light _light;
         private HDAdditionalLightData _hd;
+        private Color _initialColor;
+        private bool _hasInitialColor;
 
         public void Initialize(Light targetLight)
         {
+            if (_light != targetLight)
+                _hasInitialColor = false;
+
             _light = targetLight;
             _hd = (_light != null) ? _light.GetComponent<HDAdditionalLightData>() : null;
+            if (_light != null && !_hasInitialColor)
+            {
+                _initialColor = _light.color;
+                _hasInitialColor = true;
+            }
         }
 
         public void Apply(FixtureRenderState state)
@@ -51,7 +61,7 @@ namespace ArtNet.Runtime
             float intensity = d * maxIntensity;
             Texture cookie = state.goboEnabled ? state.goboTexture : Texture2D.whiteTexture;
 
-            _light.color = state.color;
+            _light.color = state.syncLightColorToDmx ? state.color : _initialColor;
 
             if (_hd != null)
             {

@@ -14,7 +14,9 @@ namespace ArtNet.Runtime
 {
     internal sealed class VlbBeamAdapter
     {
-        private const float CookieScaleToMatchUnitySpotLight = 0.5f;
+        // VLB HD Cookie scale is expressed in its own projection space. A value of
+        // 1.0 matches the URP Spot Light cone; 0.5 made the gobo projection too small.
+        private const float CookieScaleToMatchUnitySpotLight = 1.0f;
 
         private readonly List<Entry> _entries = new();
         private readonly HashSet<Light> _knownLights = new();

@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &1844078138614948012
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      propertyPath: beamRenderMode
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      propertyPath: syncPseudoBeamToDmx
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      propertyPath: overrideVlbHdIntensityMultiplier
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      propertyPath: vlbHdIntensityMultiplier
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      propertyPath: overrideVlbHdrpExposureWeight
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      propertyPath: vlbHdrpExposureWeight
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3840151856632156110, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4727798502002912436}
+  m_SourcePrefab: {fileID: 100100000, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+--- !u!1 &1593019490625217148 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3840151856632156110, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+  m_PrefabInstance: {fileID: 1844078138614948012}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4727798502002912436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593019490625217148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92b0a6142b2b0b449a62558873544363, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pluginVersion: 20207
+  m_ColorFromLight: 1
+  m_ColorMode: 0
+  m_ColorFlat: {r: 1, g: 1, b: 1, a: 1}
+  m_ColorGradient:
+    serializedVersion: 2
+    key0: {r: 1, g: 1, b: 1, a: 1}
+    key1: {r: 1, g: 1, b: 1, a: 1}
+    key2: {r: 0, g: 0, b: 0, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 65535
+    ctime2: 0
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 2
+    m_NumAlphaKeys: 2
+  m_BlendingMode: 0
+  m_Intensity: 1
+  m_IntensityMultiplier: 1
+  m_HDRPExposureWeight: 0
+  m_SpotAngle: 15.170944
+  m_SpotAngleMultiplier: 1
+  m_ConeRadiusStart: 0.05
+  m_Scalable: 0
+  m_FallOffStart: 0
+  m_FallOffEnd: 10
+  m_FallOffEndMultiplier: 1
+  m_AttenuationEquation: 1
+  m_SideSoftness: 1
+  m_RaymarchingQualityID: 3
+  m_JitteringFactor: 0
+  m_JitteringFrameRate: 60
+  m_JitteringLerpRange:
+    m_MinValue: 0
+    m_MaxValue: 0.33
+  m_NoiseMode: 0
+  m_NoiseIntensity: 0
+  m_NoiseScaleUseGlobal: 1
+  m_NoiseScaleLocal: 0.5
+  m_NoiseVelocityUseGlobal: 1
