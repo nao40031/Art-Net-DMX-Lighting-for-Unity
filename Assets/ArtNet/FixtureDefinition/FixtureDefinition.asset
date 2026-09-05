@@ -137,94 +137,142 @@ MonoBehaviour:
     - function: 19
       channel: 18
     elements:
-    - attribute: 0
+    - attribute: 19
+      instance: 1
+      role: 2
+      byteRole: 1
+      ranges: []
+    - attribute: 19
+      instance: 1
+      role: 2
+      byteRole: 2
+      ranges: []
+    - attribute: 20
+      instance: 1
+      role: 2
+      byteRole: 1
+      ranges: []
+    - attribute: 20
+      instance: 1
+      role: 2
+      byteRole: 2
+      ranges: []
+    - attribute: 19
+      instance: 1
+      role: 5
+      byteRole: 0
+      ranges: []
+    - attribute: 23
+      instance: 1
+      role: 7
+      byteRole: 0
+      ranges:
+      - name: Reset All
+        dmxMin: 200
+        dmxMax: 209
+        type: 14
+        mappingContext: 0
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+    - attribute: 3
       instance: 1
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 4
       instance: 1
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 5
       instance: 1
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 6
       instance: 1
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 11
+      instance: 1
+      role: 9
+      byteRole: 0
+      ranges: []
+    - attribute: 12
+      instance: 1
+      role: 1
+      byteRole: 0
+      ranges: []
+    - attribute: 12
+      instance: 1
+      role: 3
+      byteRole: 0
+      ranges:
+      - name: Stop Rotation
+        dmxMin: 0
+        dmxMax: 127
+        type: 1
+        mappingContext: 0
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Left Rotation Fast to Slow
+        dmxMin: 128
+        dmxMax: 189
+        type: 6
+        mappingContext: 0
+        mappingPreset: 1
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Stop Rotation
+        dmxMin: 190
+        dmxMax: 193
+        type: 1
+        mappingContext: 0
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Right Rotation Slow to Fast
+        dmxMin: 194
+        dmxMax: 255
+        type: 7
+        mappingContext: 0
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+    - attribute: 14
+      instance: 1
+      role: 1
+      byteRole: 0
+      ranges: []
+    - attribute: 2
+      instance: 1
+      role: 0
+      byteRole: 0
+      ranges:
+      - name: Shutter Closed
+        dmxMin: 0
+        dmxMax: 31
+        type: 3
+        mappingContext: 0
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+    - attribute: 18
       instance: 1
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 1
       instance: 1
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 1
       instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
-      instance: 1
-      role: 0
+      role: 5
       byteRole: 0
       ranges: []
     wheelBindings: []

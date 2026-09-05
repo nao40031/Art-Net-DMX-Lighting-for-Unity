@@ -42,7 +42,7 @@ Material:
     - _BeamGoboInfluence: 1
     - _BeamGoboMinLight: 0.2
     - _BeamGoboProjection: 1
-    - _BeamIntensity: 0.4
+    - _BeamIntensity: 1.4
     - _BeamLength: 10
     - _BeamLengthFade: 1
     - _BeamNoiseContrast: 1
