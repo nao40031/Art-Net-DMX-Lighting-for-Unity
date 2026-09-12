@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -78,6 +79,45 @@ namespace ArtNet.Runtime
         [Tooltip("Dimmer(0-1)に掛ける倍率。レンズの明るさ調整用。")]
         [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
 
+        [Tooltip("レンズ開口の端で模様を弱める幅。0はメッシュ境界で明確に見切れます。")]
+        [FormerlySerializedAs("goboLensEdgeFeather")]
+        [SerializeField, Range(0f, 0.5f)] private float lensApertureFeather = 0f;
+
+        [Header("Lens Gobo")]
+        [Tooltip("レンズ表現へゴボを同期します。")]
+        [SerializeField] private bool syncLensGoboToDmx = true;
+
+        [Tooltip("レンズ用ゴボTextureプロパティ名。")]
+        [SerializeField] private string lensGoboTextureProperty = "_GoboTexture";
+
+        [Tooltip("レンズ用ゴボ回転プロパティ名。")]
+        [SerializeField] private string lensGoboRotationProperty = "_GoboRotationDeg";
+
+        [Tooltip("レンズ用ゴボ有効プロパティ名。")]
+        [SerializeField] private string lensGoboEnabledProperty = "_GoboEnabled";
+
+        [Tooltip("有効時、ゴボ対応HDRPレンズシェーダーへ実行時に切り替えます。既存のレンズMeshとDMX同期は維持されます。")]
+        [SerializeField] private bool useDedicatedGoboLensShader = true;
+
+        [Tooltip("レンズ上のゴボ発光の強さ。HDRP Exposure設定に応じて調整してください。")]
+        [SerializeField, Min(0f)] private float goboLensEmission = 2f;
+
+        [Tooltip("レンズ内におけるゴボの大きさ。1が基準サイズです。")]
+        [SerializeField, Range(0.1f, 3f)] private float goboLensScale = 1f;
+
+        [Tooltip("レンズ上のゴボ模様全体のぼかし幅。0はシャープです。")]
+        [InspectorName("Lens Gobo Blur")]
+        [SerializeField, Range(0f, 0.02f)] private float goboLensBlur = 0f;
+
+        [Tooltip("レンズ面UVの中央からの左右オフセット。ゴボShakeの移動量へ加算されます。")]
+        [SerializeField, Range(-1f, 1f)] private float goboLensHorizontalOffset = 0f;
+
+        [Tooltip("レンズ面UVの中央からの上下オフセット。ゴボShakeの移動量へ加算されます。")]
+        [SerializeField, Range(-1f, 1f)] private float goboLensVerticalOffset = 0f;
+
+        [Tooltip("ゴボ有効時にも残すレンズ中央のハイライト強度。")]
+        [SerializeField, Min(0f)] private float goboLensHotspotStrength = 0.35f;
+
         // ------------------------------------------------------------
         // Gobo
         // ------------------------------------------------------------
@@ -88,9 +128,6 @@ namespace ArtNet.Runtime
 
         [Tooltip("ライトのcookieへゴボを同期します。")]
         [SerializeField] private bool syncLightCookieToGobo = true;
-
-        [Tooltip("レンズ表現へゴボを同期します。")]
-        [SerializeField] private bool syncLensGoboToDmx = true;
 
         [Tooltip("ビーム表現へゴボを同期します。")]
         [SerializeField] private bool syncBeamGoboToDmx = true;
@@ -112,15 +149,6 @@ namespace ArtNet.Runtime
 
         [Tooltip("Cookie Transformへ加算する固定ロール角度補正（deg）。")]
         [SerializeField] private float goboCookieRollOffsetDeg = 0f;
-
-        [Tooltip("レンズ用ゴボTextureプロパティ名。")]
-        [SerializeField] private string lensGoboTextureProperty = "_GoboTexture";
-
-        [Tooltip("レンズ用ゴボ回転プロパティ名。")]
-        [SerializeField] private string lensGoboRotationProperty = "_GoboRotationDeg";
-
-        [Tooltip("レンズ用ゴボ有効プロパティ名。")]
-        [SerializeField] private string lensGoboEnabledProperty = "_GoboEnabled";
 
         [Tooltip("ビーム用ゴボTextureプロパティ名。")]
         [SerializeField] private string beamGoboTextureProperty = "_GoboTexture";
@@ -520,7 +548,15 @@ namespace ArtNet.Runtime
         private int _lensGoboRotationId;
         private int _lensGoboEnabledId;
         private int _lensGoboOffsetId;
+        private int _goboLensInfluenceId;
+        private int _goboLensEmissionId;
+        private int _goboLensScaleId;
+        private int _goboLensBlurId;
+        private int _lensApertureFeatherId;
+        private int _goboLensHotspotStrengthId;
         private bool _lensPropertyIdsReady;
+        private Material _dedicatedGoboLensMaterial;
+        private Shader _dedicatedGoboLensShader;
 
         private MaterialPropertyBlock _beamMpb;
         private int _beamColorId;
@@ -2930,6 +2966,12 @@ namespace ArtNet.Runtime
             _lensGoboRotationId = Shader.PropertyToID(lensGoboRotationProperty);
             _lensGoboEnabledId = Shader.PropertyToID(lensGoboEnabledProperty);
             _lensGoboOffsetId = Shader.PropertyToID("_GoboOffset");
+            _goboLensInfluenceId = Shader.PropertyToID("_GoboLensInfluence");
+            _goboLensEmissionId = Shader.PropertyToID("_GoboLensEmission");
+            _goboLensScaleId = Shader.PropertyToID("_GoboLensScale");
+            _goboLensBlurId = Shader.PropertyToID("_GoboLensBlur");
+            _lensApertureFeatherId = Shader.PropertyToID("_LensApertureFeather");
+            _goboLensHotspotStrengthId = Shader.PropertyToID("_GoboLensHotspotStrength");
             if (_lensMpb == null) _lensMpb = new MaterialPropertyBlock();
             _lensPropertyIdsReady = true;
         }
@@ -2947,6 +2989,13 @@ namespace ArtNet.Runtime
 
             if (_lensMpb == null) return;
 
+            EnsureDedicatedGoboLensMaterial(lensRenderer);
+            if (extraLensRenderers != null)
+            {
+                for (int i = 0; i < extraLensRenderers.Length; i++)
+                    EnsureDedicatedGoboLensMaterial(extraLensRenderers[i]);
+            }
+
             float d = Mathf.Clamp01(state.lensDimmer01) * Mathf.Max(0f, lensDimmerScale);
 
             // 共通のMPBに値をセットし、各Rendererに適用
@@ -2960,19 +3009,78 @@ namespace ArtNet.Runtime
                 _lensMpb.SetTexture(_lensGoboTextureId, state.goboEnabled && state.goboTexture != null ? state.goboTexture : Texture2D.whiteTexture);
                 _lensMpb.SetFloat(_lensGoboRotationId, state.goboRotationDeg);
                 _lensMpb.SetFloat(_lensGoboEnabledId, state.goboEnabled ? 1f : 0f);
-                _lensMpb.SetVector(_lensGoboOffsetId, new Vector4(state.goboOffsetUv.x, state.goboOffsetUv.y, 0f, 0f));
+                _lensMpb.SetVector(_lensGoboOffsetId, new Vector4(
+                    state.goboOffsetUv.x + goboLensHorizontalOffset,
+                    state.goboOffsetUv.y + goboLensVerticalOffset,
+                    0f,
+                    0f));
+                _lensMpb.SetFloat(_goboLensInfluenceId, 1f);
+                _lensMpb.SetFloat(_goboLensEmissionId, Mathf.Max(0f, goboLensEmission));
+                _lensMpb.SetFloat(_goboLensScaleId, Mathf.Max(0.01f, goboLensScale));
+                _lensMpb.SetFloat(_goboLensBlurId, Mathf.Clamp(goboLensBlur, 0f, 0.02f));
+                _lensMpb.SetFloat(_lensApertureFeatherId, Mathf.Clamp(lensApertureFeather, 0f, 0.5f));
+                _lensMpb.SetFloat(_goboLensHotspotStrengthId, Mathf.Max(0f, goboLensHotspotStrength));
             }
 
             if (lensRenderer != null)
+            {
                 lensRenderer.SetPropertyBlock(_lensMpb);
+            }
 
             if (extraLensRenderers != null)
             {
                 for (int i = 0; i < extraLensRenderers.Length; i++)
                 {
                     var r = extraLensRenderers[i];
-                    if (r != null) r.SetPropertyBlock(_lensMpb);
+                    if (r == null) continue;
+                    r.SetPropertyBlock(_lensMpb);
                 }
+            }
+        }
+
+        private void EnsureDedicatedGoboLensMaterial(Renderer renderer)
+        {
+            if (!useDedicatedGoboLensShader || !Application.isPlaying || renderer == null)
+                return;
+
+            if (_dedicatedGoboLensShader == null)
+                _dedicatedGoboLensShader = Shader.Find("ArtNet/HDRP/Gobo Lens Surface");
+
+            if (_dedicatedGoboLensShader == null)
+                return;
+
+            if (_dedicatedGoboLensMaterial == null)
+            {
+                _dedicatedGoboLensMaterial = new Material(_dedicatedGoboLensShader)
+                {
+                    name = $"{name} Gobo Lens (Runtime)"
+                };
+            }
+
+            var materials = renderer.sharedMaterials;
+            bool needsAssignment = materials == null || materials.Length == 0;
+            if (!needsAssignment)
+            {
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    if (materials[i] != _dedicatedGoboLensMaterial)
+                    {
+                        needsAssignment = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!needsAssignment)
+                return;
+
+            if (materials == null || materials.Length == 0)
+                renderer.sharedMaterial = _dedicatedGoboLensMaterial;
+            else
+            {
+                for (int i = 0; i < materials.Length; i++)
+                    materials[i] = _dedicatedGoboLensMaterial;
+                renderer.sharedMaterials = materials;
             }
         }
 
