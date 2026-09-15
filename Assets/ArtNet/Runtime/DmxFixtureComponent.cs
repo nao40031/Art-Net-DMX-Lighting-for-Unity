@@ -29,10 +29,10 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Addressing (RigController expects these)")]
-        [Tooltip("DMX Universe番号。送信側と合わせてください（0/1始まりはRigController設定に合わせる）。")]
+        [Tooltip("DMX Universe番号。送信側と合わせてください（0/1始まりはRigController設定に合わせる）。\nDMX Universe number. Match the sender; whether numbering starts at 0 or 1 follows the Rig Controller setting.")]
         public int universe = 0;
 
-        [Tooltip("DMX開始アドレス（1-512）。")]
+        [Tooltip("DMX開始アドレス（1-512）。\nDMX start address (1-512).")]
         [Range(1, 512)]
         public int startAddress = 1;
 
@@ -48,7 +48,7 @@ namespace ArtNet.Runtime
 
         [Header("Targets")]
         public Light targetLight;
-        [Tooltip("複数ライトを対象にする場合に設定。ここに登録した全Lightへ同じDMXを適用します。")]
+        [Tooltip("複数ライトを対象にする場合に設定。ここに登録した全Lightへ同じDMXを適用します。\nSet this when controlling multiple Lights. The same DMX data is applied to every Light registered here.")]
         public List<Light> targetLights = new();
         public Transform panTransform;
         public Transform tiltTransform;
@@ -59,63 +59,67 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Lens (ShaderGraph DMX Sync)")]
-        [Tooltip("レンズ面のRenderer。ShaderGraph側に _DmxColor(Color) / _DmxDimmer(Float) がある前提です。")]
+        [Tooltip("レンズ面のRenderer。ShaderGraph側に _DmxColor(Color) / _DmxDimmer(Float) がある前提です。\nRenderer for the lens surface. The Shader Graph must provide _DmxColor (Color) and _DmxDimmer (Float).")]
         [SerializeField] private Renderer lensRenderer;
 
-        [Tooltip("レンズが複数Rendererに分かれる場合の追加登録（任意）。")]
+        [Tooltip("レンズが複数Rendererに分かれる場合の追加登録（任意）。\nOptional additional Renderers when the lens is split across multiple Renderers.")]
         [SerializeField] private Renderer[] extraLensRenderers;
 
-        [Tooltip("レンズへDMX同期を行います。")]
+        [Tooltip("レンズへDMX同期を行います。\nSynchronizes DMX data to the lens.")]
+        [InspectorName("Sync Lens To DMX")]
         [SerializeField] private bool syncLensToDmx = true;
+        [InspectorName("Sync Lens Color To DMX")]
         [SerializeField] private bool syncLensColorToDmx = true;
+        [InspectorName("Sync Lens Dimmer To DMX")]
         [SerializeField] private bool syncLensDimmerToDmx = true;
 
-        [Tooltip("ShaderGraphのColorプロパティ名（例: _DmxColor）。")]
+        [Tooltip("ShaderGraphのColorプロパティ名（例: _DmxColor）。\nShader Graph Color property name, for example _DmxColor.")]
         [SerializeField] private string lensColorProperty = "_DmxColor";
 
-        [Tooltip("ShaderGraphのFloatプロパティ名（例: _DmxDimmer）。")]
+        [Tooltip("ShaderGraphのFloatプロパティ名（例: _DmxDimmer）。\nShader Graph Float property name, for example _DmxDimmer.")]
         [SerializeField] private string lensDimmerProperty = "_DmxDimmer";
 
-        [Tooltip("Dimmer(0-1)に掛ける倍率。レンズの明るさ調整用。")]
+        [Tooltip("Dimmer（0-1）に掛ける倍率。レンズの明るさ調整用。\nMultiplier applied to Dimmer (0-1), used to adjust lens brightness.")]
         [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
 
-        [Tooltip("レンズ開口の端で模様を弱める幅。0はメッシュ境界で明確に見切れます。")]
+        [Tooltip("レンズ開口の端で模様を弱める幅。0はメッシュ境界で明確に見切れます。\nWidth used to soften the pattern at the lens aperture edge. At 0, it is sharply clipped at the mesh boundary.")]
         [FormerlySerializedAs("goboLensEdgeFeather")]
         [SerializeField, Range(0f, 0.5f)] private float lensApertureFeather = 0f;
 
         [Header("Lens Gobo")]
-        [Tooltip("レンズ表現へゴボを同期します。")]
+        [Tooltip("レンズ表現へゴボを同期します。\nSynchronizes the gobo to the lens representation.")]
+        [InspectorName("Sync Lens Gobo To DMX")]
         [SerializeField] private bool syncLensGoboToDmx = true;
 
-        [Tooltip("レンズ用ゴボTextureプロパティ名。")]
+        [Tooltip("レンズ用ゴボTextureプロパティ名。\nGobo Texture property name for the lens.")]
         [SerializeField] private string lensGoboTextureProperty = "_GoboTexture";
 
-        [Tooltip("レンズ用ゴボ回転プロパティ名。")]
+        [Tooltip("レンズ用ゴボ回転プロパティ名。\nGobo rotation property name for the lens.")]
         [SerializeField] private string lensGoboRotationProperty = "_GoboRotationDeg";
 
-        [Tooltip("レンズ用ゴボ有効プロパティ名。")]
+        [Tooltip("レンズ用ゴボ有効プロパティ名。\nGobo enabled property name for the lens.")]
         [SerializeField] private string lensGoboEnabledProperty = "_GoboEnabled";
 
-        [Tooltip("有効時、ゴボ対応HDRPレンズシェーダーへ実行時に切り替えます。既存のレンズMeshとDMX同期は維持されます。")]
+        [Tooltip("有効時、ゴボ対応HDRPレンズシェーダーへ実行時に切り替えます。既存のレンズMeshとDMX同期は維持されます。\nWhen enabled, switches to an HDRP lens shader that supports gobos at runtime. Existing lens Mesh and DMX synchronization are retained.")]
         [SerializeField] private bool useDedicatedGoboLensShader = true;
 
-        [Tooltip("レンズ上のゴボ発光の強さ。HDRP Exposure設定に応じて調整してください。")]
+        [Tooltip("レンズ上のゴボ発光の強さ。HDRP Exposure設定に応じて調整してください。\nGobo emission intensity on the lens. Adjust it for the HDRP Exposure settings.")]
         [SerializeField, Min(0f)] private float goboLensEmission = 2f;
 
-        [Tooltip("レンズ内におけるゴボの大きさ。1が基準サイズです。")]
+        [Tooltip("レンズ内におけるゴボの大きさ。1が基準サイズです。\nGobo size within the lens. A value of 1 is the reference size.")]
         [SerializeField, Range(0.1f, 3f)] private float goboLensScale = 1f;
 
-        [Tooltip("レンズ上のゴボ模様全体のぼかし幅。0はシャープです。")]
+        [Tooltip("レンズ上のゴボ模様全体のぼかし幅。0はシャープです。\nOverall blur width of the gobo pattern on the lens. A value of 0 is sharp.")]
         [InspectorName("Lens Gobo Blur")]
         [SerializeField, Range(0f, 0.02f)] private float goboLensBlur = 0f;
 
-        [Tooltip("レンズ面UVの中央からの左右オフセット。ゴボShakeの移動量へ加算されます。")]
+        [Tooltip("レンズ面UVの中央からの左右オフセット。ゴボShakeの移動量へ加算されます。\nHorizontal offset from the center of the lens UV. Added to the gobo Shake movement.")]
         [SerializeField, Range(-1f, 1f)] private float goboLensHorizontalOffset = 0f;
 
-        [Tooltip("レンズ面UVの中央からの上下オフセット。ゴボShakeの移動量へ加算されます。")]
+        [Tooltip("レンズ面UVの中央からの上下オフセット。ゴボShakeの移動量へ加算されます。\nVertical offset from the center of the lens UV. Added to the gobo Shake movement.")]
         [SerializeField, Range(-1f, 1f)] private float goboLensVerticalOffset = 0f;
 
-        [Tooltip("ゴボ有効時にも残すレンズ中央のハイライト強度。")]
+        [Tooltip("ゴボ有効時にも残すレンズ中央のハイライト強度。\nCenter-highlight intensity retained on the lens while a gobo is enabled.")]
         [SerializeField, Min(0f)] private float goboLensHotspotStrength = 0.35f;
 
         // ------------------------------------------------------------
@@ -123,40 +127,41 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Gobo")]
-        [Tooltip("DMX値とゴボテクスチャを対応付ける定義。")]
+        [Tooltip("DMX値とゴボテクスチャを対応付ける定義。\nDefinition that maps DMX values to gobo Textures.")]
         [SerializeField] private GoboWheelDefinition goboWheel;
 
-        [Tooltip("ライトのcookieへゴボを同期します。")]
+        [Tooltip("ライトのcookieへゴボを同期します。\nSynchronizes the gobo to the Light cookie.")]
         [SerializeField] private bool syncLightCookieToGobo = true;
 
-        [Tooltip("ビーム表現へゴボを同期します。")]
+        [Tooltip("ビーム表現へゴボを同期します。\nSynchronizes the gobo to the beam representation.")]
+        [InspectorName("Sync Beam Gobo To DMX")]
         [SerializeField] private bool syncBeamGoboToDmx = true;
 
-        [Tooltip("GoboRotation=255 のときの角速度（deg/sec）。")]
+        [Tooltip("GoboRotation=255のときの角速度（deg/sec）。\nAngular velocity at GoboRotation = 255, in degrees per second.")]
         [SerializeField, Min(0f)] private float maxGoboRotateDegPerSec = 360f;
 
-        [Tooltip("Gobo WheelのShake範囲をゴボ回転角の往復揺れとして反映します。")]
+        [Tooltip("Gobo WheelのShake範囲をゴボ回転角の往復揺れとして反映します。\nApplies the Gobo Wheel Shake range as an oscillation of the gobo rotation angle.")]
         [SerializeField] private bool enableGoboShake = true;
 
-        [Tooltip("ゴボ回転をLight Cookie用Transformのロール回転へ同期します。")]
+        [Tooltip("ゴボ回転をLight Cookie用Transformのロール回転へ同期します。\nSynchronizes gobo rotation to the roll rotation of the Light Cookie Transform.")]
         [SerializeField] private bool syncGoboRotationToCookieTransform = true;
 
-        [Tooltip("Light Cookieを回転させるTransform。通常はSpot Light本体のTransformを指定します。")]
+        [Tooltip("Light Cookieを回転させるTransform。通常はSpot Light本体のTransformを指定します。\nTransform used to rotate the Light Cookie. Normally assign the Spot Light Transform.")]
         [SerializeField] private Transform goboCookieRollTransform;
 
-        [Tooltip("Cookie Transformを回転させるローカル軸。通常はZ軸です。")]
+        [Tooltip("Cookie Transformを回転させるローカル軸。通常はZ軸です。\nLocal axis used to rotate the Cookie Transform. Normally this is the Z axis.")]
         [SerializeField] private Vector3 goboCookieRollAxis = Vector3.forward;
 
-        [Tooltip("Cookie Transformへ加算する固定ロール角度補正（deg）。")]
+        [Tooltip("Cookie Transformへ加算する固定ロール角度補正（deg）。\nFixed roll-angle correction in degrees added to the Cookie Transform.")]
         [SerializeField] private float goboCookieRollOffsetDeg = 0f;
 
-        [Tooltip("ビーム用ゴボTextureプロパティ名。")]
+        [Tooltip("ビーム用ゴボTextureプロパティ名。\nGobo Texture property name for the beam.")]
         [SerializeField] private string beamGoboTextureProperty = "_GoboTexture";
 
-        [Tooltip("ビーム用ゴボ回転プロパティ名。")]
+        [Tooltip("ビーム用ゴボ回転プロパティ名。\nGobo rotation property name for the beam.")]
         [SerializeField] private string beamGoboRotationProperty = "_GoboRotationDeg";
 
-        [Tooltip("ビーム用ゴボ有効プロパティ名。")]
+        [Tooltip("ビーム用ゴボ有効プロパティ名。\nGobo enabled property name for the beam.")]
         [SerializeField] private string beamGoboEnabledProperty = "_GoboEnabled";
 
         // ------------------------------------------------------------
@@ -171,21 +176,21 @@ namespace ArtNet.Runtime
         }
 
         [Header("Beam Render")]
-        [Tooltip("照明ビームの描画方式。VLBのHD/SDはPrefabに付与されたコンポーネントで自動判定します。")]
+        [Tooltip("照明ビームの描画方式。VLBのHD/SDはPrefabに付与されたコンポーネントで自動判定します。\nRendering method for the lighting beam. VLB HD or SD is detected automatically from components on the Prefab.")]
         [SerializeField] private BeamRenderMode beamRenderMode = BeamRenderMode.Normal;
 
         [Header("VLB Overrides")]
-        [Tooltip("有効時、VolumetricLightBeamHDのIntensity Multiplierをこの値で上書きします。")]
+        [Tooltip("有効時、VolumetricLightBeamHDのIntensity Multiplierをこの値で上書きします。\nWhen enabled, overrides VolumetricLightBeamHD Intensity Multiplier with this value.")]
         [SerializeField] private bool overrideVlbHdIntensityMultiplier = true;
 
         [SerializeField, Min(0f)] private float vlbHdIntensityMultiplier = 0.01f;
 
-        [Tooltip("有効時、VolumetricLightBeamSDのIntensity Multiplierをこの値で上書きします。")]
+        [Tooltip("有効時、VolumetricLightBeamSDのIntensity Multiplierをこの値で上書きします。\nWhen enabled, overrides VolumetricLightBeamSD Intensity Multiplier with this value.")]
         [SerializeField] private bool overrideVlbSdIntensityMultiplier = true;
 
         [SerializeField, Min(0f)] private float vlbSdIntensityMultiplier = 0.01f;
 
-        [Tooltip("有効時、VolumetricLightBeamHDのHDRP Exposure Weightをこの値で上書きします。")]
+        [Tooltip("有効時、VolumetricLightBeamHDのHDRP Exposure Weightをこの値で上書きします。\nWhen enabled, overrides VolumetricLightBeamHD HDRP Exposure Weight with this value.")]
         [SerializeField] private bool overrideVlbHdrpExposureWeight = true;
 
         [SerializeField, Range(0f, 1f)] private float vlbHdrpExposureWeight = 0f;
@@ -195,21 +200,21 @@ namespace ArtNet.Runtime
         [SerializeField, HideInInspector] private bool _vlbPipelineDefaultsInitialized;
 
         [Header("Pseudo Beam Shader")]
-        [Tooltip("Pseudo Beam Shader用の代表Renderer。VLBモードでは使用しません。")]
+        [Tooltip("Pseudo Beam Shader用の代表Renderer。VLBモードでは使用しません。\nPrimary Renderer for the Pseudo Beam Shader. Not used in VLB mode.")]
         [InspectorName("Pseudo Beam Renderer")]
         [SerializeField] private Renderer beamRenderer;
 
-        [Tooltip("Pseudo Beam Shader用Rendererが複数ある場合の追加Renderer。VLBモードでは使用しません。")]
+        [Tooltip("Pseudo Beam Shader用Rendererが複数ある場合の追加Renderer。VLBモードでは使用しません。\nAdditional Renderers for the Pseudo Beam Shader. Not used in VLB mode.")]
         [InspectorName("Extra Pseudo Beam Renderers")]
         [SerializeField] private Renderer[] extraBeamRenderers;
 
-        [InspectorName("Sync Pseudo Beam Color To Dmx")]
+        [InspectorName("Sync Pseudo Beam Color To DMX")]
         [SerializeField] private bool syncBeamColorToDmx = true;
-        [InspectorName("Sync Pseudo Beam Dimmer To Dmx")]
+        [InspectorName("Sync Pseudo Beam Dimmer To DMX")]
         [SerializeField] private bool syncBeamDimmerToDmx = true;
-        [InspectorName("Sync Pseudo Beam Prism To Dmx")]
+        [InspectorName("Sync Pseudo Beam Prism To DMX")]
         [SerializeField] private bool syncBeamPrismToDmx = true;
-        [InspectorName("Sync Pseudo Beam Zoom To Dmx")]
+        [InspectorName("Sync Pseudo Beam Zoom To DMX")]
         [SerializeField] private bool syncBeamZoomToDmx = true;
         [InspectorName("Sync Pseudo Beam Noise Volume To Beam")]
         [SerializeField] private bool syncBeamNoiseVolumeToBeam = true;
@@ -217,180 +222,180 @@ namespace ArtNet.Runtime
         private enum BeamNoiseVolumeScrollSpace { Local, World }
         private enum BeamNoiseVolumeScrollAxis { X, Y, Z }
 
-        [Tooltip("ビームマテリアルのColorプロパティ名。例: _DmxColor / _BaseColor")]
+        [Tooltip("ビームマテリアルのColorプロパティ名。例: _DmxColor / _BaseColor\nColor property name on the beam Material. Example: _DmxColor / _BaseColor.")]
         [InspectorName("Pseudo Beam Color Property")]
         [SerializeField] private string beamColorProperty = "_DmxColor";
 
-        [Tooltip("ビームマテリアルの強度プロパティ名。例: _DmxDimmer / _BeamIntensity")]
+        [Tooltip("ビームマテリアルの強度プロパティ名。例: _DmxDimmer / _BeamIntensity\nIntensity property name on the beam Material. Example: _DmxDimmer / _BeamIntensity.")]
         [InspectorName("Pseudo Beam Dimmer Property")]
         [SerializeField] private string beamDimmerProperty = "_DmxDimmer";
 
-        [Tooltip("ビームマテリアルのPrism有効プロパティ名。")]
+        [Tooltip("ビームマテリアルのPrism有効プロパティ名。\nPrism enabled property name on the beam Material.")]
         [InspectorName("Pseudo Beam Prism Enabled Property")]
         [SerializeField] private string beamPrismEnabledProperty = "_DmxPrismEnabled";
 
-        [Tooltip("ビームマテリアルのPrism Facet数プロパティ名。")]
+        [Tooltip("ビームマテリアルのPrism Facet数プロパティ名。\nPrism Facet-count property name on the beam Material.")]
         [InspectorName("Pseudo Beam Prism Facet Count Property")]
         [SerializeField] private string beamPrismFacetCountProperty = "_DmxPrismFacetCount";
 
-        [Tooltip("ビームマテリアルのPrism Spreadプロパティ名。")]
+        [Tooltip("ビームマテリアルのPrism Spreadプロパティ名。\nPrism Spread property name on the beam Material.")]
         [InspectorName("Pseudo Beam Prism Spread Property")]
         [SerializeField] private string beamPrismSpreadProperty = "_DmxPrismSpread";
 
-        [Tooltip("ビームマテリアルのPrism Rotationプロパティ名。")]
+        [Tooltip("ビームマテリアルのPrism Rotationプロパティ名。\nPrism Rotation property name on the beam Material.")]
         [InspectorName("Pseudo Beam Prism Rotation Property")]
         [SerializeField] private string beamPrismRotationProperty = "_DmxPrismRotation";
 
-        [Tooltip("ビームマテリアルのPrism強度プロパティ名。")]
+        [Tooltip("ビームマテリアルのPrism強度プロパティ名。\nPrism intensity property name on the beam Material.")]
         [InspectorName("Pseudo Beam Prism Intensity Property")]
         [SerializeField] private string beamPrismIntensityProperty = "_DmxPrismIntensity";
 
-        [Tooltip("ビームマテリアルのBeam Lengthプロパティ名。")]
+        [Tooltip("ビームマテリアルのBeam Lengthプロパティ名。\nBeam Length property name on the beam Material.")]
         [InspectorName("Pseudo Beam Length Property")]
         [SerializeField] private string beamLengthProperty = "_BeamLength";
 
-        [Tooltip("ビームマテリアルのBeam Start Radiusプロパティ名。")]
+        [Tooltip("ビームマテリアルのBeam Start Radiusプロパティ名。\nBeam Start Radius property name on the beam Material.")]
         [InspectorName("Pseudo Beam Start Radius Property")]
         [SerializeField] private string beamStartRadiusProperty = "_BeamStartRadius";
 
-        [Tooltip("ビームマテリアルのBeam End Radiusプロパティ名。")]
+        [Tooltip("ビームマテリアルのBeam End Radiusプロパティ名。\nBeam End Radius property name on the beam Material.")]
         [InspectorName("Pseudo Beam End Radius Property")]
         [SerializeField] private string beamEndRadiusProperty = "_BeamEndRadius";
 
-        [Tooltip("MewNoiseGen等で生成した3DノイズTexture。疑似ビームのフォグ濃淡に使用します。")]
+        [Tooltip("MewNoiseGen等で生成した3DノイズTexture。疑似ビームのフォグ濃淡に使用します。\n3D noise Texture generated by MewNoiseGen or similar, used for fog variation in the pseudo beam.")]
         [InspectorName("Pseudo Beam Noise Volume")]
         [SerializeField] private Texture3D beamNoiseVolume;
 
-        [Tooltip("3DノイズTextureを疑似ビームへ適用します。Texture未設定時は自動で無効扱いになります。")]
+        [Tooltip("3DノイズTextureを疑似ビームへ適用します。Texture未設定時は自動で無効扱いになります。\nApplies the 3D noise Texture to the pseudo beam. It is disabled automatically when no Texture is assigned.")]
         [InspectorName("Pseudo Beam Noise Volume Enabled")]
         [SerializeField] private bool beamNoiseVolumeEnabled = false;
 
-        [Tooltip("既存の手続きノイズと3DノイズTextureのブレンド量。")]
+        [Tooltip("既存の手続きノイズと3DノイズTextureのブレンド量。\nBlend amount between the existing procedural noise and the 3D noise Texture.")]
         [InspectorName("Pseudo Beam Noise Volume Strength")]
         [SerializeField, Range(0f, 1f)] private float beamNoiseVolumeStrength = 1f;
 
-        [Tooltip("Open以外のゴボがビームに適用されている時に3DノイズTextureの強さへ掛ける倍率。0でゴボ時のみ3Dノイズを無効化、1で通常時と同じ強さです。")]
+        [Tooltip("Open以外のゴボがビームに適用されている時に3DノイズTextureの強さへ掛ける倍率。0でゴボ時のみ3Dノイズを無効化、1で通常時と同じ強さです。\nMultiplier for 3D noise Texture strength when a non-Open gobo is applied. 0 disables it only with gobos; 1 keeps normal strength.")]
         [UnityEngine.Serialization.FormerlySerializedAs("beamNoiseVolumePrismScale")]
         [InspectorName("Pseudo Beam Noise Volume Gobo Scale")]
         [SerializeField, Range(0f, 1f)] private float beamNoiseVolumeGoboScale = 1f;
 
-        [Tooltip("Open GoboでPrismが公転している時に3DノイズTextureの強さへ掛ける倍率。0で公転中のみ3Dノイズを無効化、1で通常時と同じ強さです。")]
+        [Tooltip("Open GoboでPrismが公転している時に3DノイズTextureの強さへ掛ける倍率。0で公転中のみ3Dノイズを無効化、1で通常時と同じ強さです。\nMultiplier for 3D noise Texture strength while a Prism orbits with an Open Gobo. 0 disables it only while orbiting; 1 keeps normal strength.")]
         [InspectorName("Pseudo Beam Noise Volume Prism Rotation Scale")]
         [SerializeField, Range(0f, 1f)] private float beamNoiseVolumePrismRotationScale = 0f;
 
-        [Tooltip("3DノイズTextureの空間スケール。大きいほど細かい模様になります。")]
+        [Tooltip("3DノイズTextureの空間スケール。大きいほど細かい模様になります。\nSpatial scale of the 3D noise Texture. Larger values create finer patterns.")]
         [InspectorName("Pseudo Beam Noise Volume Scale")]
         [SerializeField, Min(0.001f)] private float beamNoiseVolumeScale = 1f;
 
-        [Tooltip("3DノイズTextureのビーム断面方向スケール。大きいほど断面方向の模様が細かくなります。")]
+        [Tooltip("3DノイズTextureのビーム断面方向スケール。大きいほど断面方向の模様が細かくなります。\nCross-section scale of the 3D noise Texture. Larger values create finer cross-section patterns.")]
         [InspectorName("Pseudo Beam Noise Volume Radial Scale")]
         [SerializeField, Min(0.001f)] private float beamNoiseVolumeRadialScale = 4f;
 
-        [Tooltip("3DノイズTextureのビーム長方向スケール。大きいほど長さ方向の模様が細かくなります。")]
+        [Tooltip("3DノイズTextureのビーム長方向スケール。大きいほど長さ方向の模様が細かくなります。\nLengthwise scale of the 3D noise Texture. Larger values create finer patterns along the beam length.")]
         [InspectorName("Pseudo Beam Noise Volume Length Scale")]
         [SerializeField, Min(0.001f)] private float beamNoiseVolumeLengthScale = 12f;
 
-        [Tooltip("3DノイズTextureのZ方向スクロール速度。")]
+        [Tooltip("3DノイズTextureのZ方向スクロール速度。\nZ-axis scroll speed of the 3D noise Texture.")]
         [InspectorName("Pseudo Beam Noise Volume Speed")]
         [SerializeField] private float beamNoiseVolumeSpeed = 0.1f;
 
-        [Tooltip("3DノイズTextureのコントラスト。")]
+        [Tooltip("3DノイズTextureのコントラスト。\nContrast of the 3D noise Texture.")]
         [InspectorName("Pseudo Beam Noise Volume Contrast")]
         [SerializeField, Min(0.01f)] private float beamNoiseVolumeContrast = 1f;
 
-        [Tooltip("3DノイズTextureのサンプリングオフセット。灯体ごとの柄ずらしに使用します。")]
+        [Tooltip("3DノイズTextureのサンプリングオフセット。灯体ごとの柄ずらしに使用します。\nSampling offset of the 3D noise Texture, used to vary the pattern between fixtures.")]
         [InspectorName("Pseudo Beam Noise Volume Offset")]
         [SerializeField] private Vector3 beamNoiseVolumeOffset = Vector3.zero;
 
-        [Tooltip("3DノイズTextureのスクロール方向をLocal軸基準にするかWorld軸基準にするか。")]
+        [Tooltip("3DノイズTextureのスクロール方向をLocal軸基準にするかWorld軸基準にするか。\nWhether 3D noise Texture scrolling uses Local-axis or World-axis direction.")]
         [InspectorName("Pseudo Beam Noise Volume Scroll Space")]
         [SerializeField] private BeamNoiseVolumeScrollSpace beamNoiseVolumeScrollSpace = BeamNoiseVolumeScrollSpace.Local;
 
-        [Tooltip("3DノイズTextureをスクロールさせる軸。World指定時はムービングの向きが変わってもWorld軸方向を維持します。")]
+        [Tooltip("3DノイズTextureをスクロールさせる軸。World指定時はムービングの向きが変わってもWorld軸方向を維持します。\nAxis along which the 3D noise Texture scrolls. World keeps the World-axis direction even when the moving fixture rotates.")]
         [InspectorName("Pseudo Beam Noise Volume Scroll Axis")]
         [SerializeField] private BeamNoiseVolumeScrollAxis beamNoiseVolumeScrollAxis = BeamNoiseVolumeScrollAxis.Z;
 
-        [Tooltip("3DノイズTextureのスクロール方向を反転します。")]
+        [Tooltip("3DノイズTextureのスクロール方向を反転します。\nReverses the 3D noise Texture scroll direction.")]
         [InspectorName("Pseudo Beam Noise Volume Scroll Reverse")]
         [SerializeField] private bool beamNoiseVolumeScrollReverse = false;
 
-        [Tooltip("ビームマテリアルの3DノイズTextureプロパティ名。")]
+        [Tooltip("ビームマテリアルの3DノイズTextureプロパティ名。\n3D noise Texture property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Property")]
         [SerializeField] private string beamNoiseVolumeProperty = "_BeamNoiseVolume";
 
-        [Tooltip("ビームマテリアルの3Dノイズ有効プロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズ有効プロパティ名。\n3D noise enabled property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Enabled Property")]
         [SerializeField] private string beamNoiseVolumeEnabledProperty = "_BeamNoiseVolumeEnabled";
 
-        [Tooltip("ビームマテリアルの3Dノイズブレンド強度プロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズブレンド強度プロパティ名。\n3D noise blend-strength property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Strength Property")]
         [SerializeField] private string beamNoiseVolumeStrengthProperty = "_BeamNoiseVolumeStrength";
 
-        [Tooltip("ビームマテリアルの3Dノイズスケールプロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズスケールプロパティ名。\n3D noise scale property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Scale Property")]
         [SerializeField] private string beamNoiseVolumeScaleProperty = "_BeamNoiseVolumeScale";
 
-        [Tooltip("ビームマテリアルの3Dノイズ断面方向スケールプロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズ断面方向スケールプロパティ名。\n3D noise cross-section scale property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Radial Scale Property")]
         [SerializeField] private string beamNoiseVolumeRadialScaleProperty = "_BeamNoiseVolumeRadialScale";
 
-        [Tooltip("ビームマテリアルの3Dノイズ長さ方向スケールプロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズ長さ方向スケールプロパティ名。\n3D noise lengthwise scale property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Length Scale Property")]
         [SerializeField] private string beamNoiseVolumeLengthScaleProperty = "_BeamNoiseVolumeLengthScale";
 
-        [Tooltip("ビームマテリアルの3Dノイズ速度プロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズ速度プロパティ名。\n3D noise speed property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Speed Property")]
         [SerializeField] private string beamNoiseVolumeSpeedProperty = "_BeamNoiseVolumeSpeed";
 
-        [Tooltip("ビームマテリアルの3Dノイズコントラストプロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズコントラストプロパティ名。\n3D noise contrast property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Contrast Property")]
         [SerializeField] private string beamNoiseVolumeContrastProperty = "_BeamNoiseVolumeContrast";
 
-        [Tooltip("ビームマテリアルの3Dノイズオフセットプロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズオフセットプロパティ名。\n3D noise offset property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Offset Property")]
         [SerializeField] private string beamNoiseVolumeOffsetProperty = "_BeamNoiseVolumeOffset";
 
-        [Tooltip("ビームマテリアルの3Dノイズスクロール方向プロパティ名。")]
+        [Tooltip("ビームマテリアルの3Dノイズスクロール方向プロパティ名。\n3D noise scroll-direction property name on the beam Material.")]
         [InspectorName("Pseudo Beam Noise Volume Scroll Direction Property")]
         [SerializeField] private string beamNoiseVolumeScrollDirectionProperty = "_BeamNoiseVolumeScrollDirection";
 
-        [Tooltip("ビーム強度に掛ける倍率。")]
+        [Tooltip("ビーム強度に掛ける倍率。\nMultiplier applied to beam intensity.")]
         [InspectorName("Pseudo Beam Dimmer Scale")]
         [SerializeField, Min(0f)] private float beamDimmerScale = 1.0f;
 
-        [Tooltip("ビーム強度の下限値。暗転時の残光調整用。")]
+        [Tooltip("ビーム強度の下限値。暗転時の残光調整用。\nMinimum beam intensity, used to adjust residual light while dimmed out.")]
         [InspectorName("Pseudo Beam Dimmer Floor")]
         [SerializeField, Range(0f, 1f)] private float beamDimmerFloor = 0f;
 
-        [Tooltip("Zoomから計算した疑似ビーム先端半径へ掛ける倍率。")]
+        [Tooltip("Zoomから計算した疑似ビーム先端半径へ掛ける倍率。\nMultiplier applied to the pseudo-beam end radius calculated from Zoom.")]
         [InspectorName("Pseudo Beam Zoom Radius Scale")]
         [SerializeField, Min(0f)] private float beamZoomRadiusScale = 1f;
 
-        [Tooltip("Zoom連動時の疑似ビーム先端半径の最小値。")]
+        [Tooltip("Zoom連動時の疑似ビーム先端半径の最小値。\nMinimum pseudo-beam end radius while linked to Zoom.")]
         [InspectorName("Pseudo Beam Zoom Min End Radius")]
         [SerializeField, Min(0.001f)] private float beamZoomMinEndRadius = 0.01f;
 
-        [Tooltip("Zoom連動時の疑似ビーム先端半径の最大値。")]
+        [Tooltip("Zoom連動時の疑似ビーム先端半径の最大値。\nMaximum pseudo-beam end radius while linked to Zoom.")]
         [InspectorName("Pseudo Beam Zoom Max End Radius")]
         [SerializeField, Min(0.001f)] private float beamZoomMaxEndRadius = 25f;
 
-        [Tooltip("疑似ビームの外側に薄いにじみ用レイヤーを追加します。")]
+        [Tooltip("疑似ビームの外側に薄いにじみ用レイヤーを追加します。\nAdds a subtle bloom layer around the outside of the pseudo beam.")]
         [InspectorName("Enable Pseudo Beam Soft Shell")]
         [SerializeField] private bool enableBeamSoftShell = false;
 
-        [Tooltip("にじみ用ビームの半径倍率。")]
+        [Tooltip("にじみ用ビームの半径倍率。\nRadius multiplier for the bloom beam.")]
         [InspectorName("Pseudo Beam Soft Shell Radius Scale")]
         [SerializeField, Min(1f)] private float beamSoftShellRadiusScale = 1.35f;
 
-        [Tooltip("にじみ用ビームのMaterial側Beam Intensity。")]
+        [Tooltip("にじみ用ビームのMaterial側Beam Intensity。\nBeam Intensity on the Material for the bloom beam.")]
         [InspectorName("Pseudo Beam Soft Shell Intensity")]
         [SerializeField, Min(0f)] private float beamSoftShellIntensity = 0.2f;
 
-        [Tooltip("にじみ用ビームのEdge Softness上書き値。")]
+        [Tooltip("にじみ用ビームのEdge Softness上書き値。\nEdge Softness override for the bloom beam.")]
         [InspectorName("Pseudo Beam Soft Shell Edge Softness")]
         [SerializeField, Range(0f, 1f)] private float beamSoftShellEdgeSoftness = 0.9f;
 
-        [Tooltip("にじみ用ビームのNoise Strength上書き値。")]
+        [Tooltip("にじみ用ビームのNoise Strength上書き値。\nNoise Strength override for the bloom beam.")]
         [InspectorName("Pseudo Beam Soft Shell Noise Strength")]
         [SerializeField, Range(0f, 1f)] private float beamSoftShellNoiseStrength = 0.25f;
 
@@ -399,19 +404,19 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Zoom")]
-        [Tooltip("DMXのZoom値をLightのOuter Spot Angleへ同期します。")]
+        [Tooltip("DMXのZoom値をLightのOuter Spot Angleへ同期します。\nSynchronizes the DMX Zoom value to the Light Outer Spot Angle.")]
         [SerializeField] private bool syncZoomToLight = true;
 
-        [Tooltip("Zoom最小時のOuter Spot Angle。")]
+        [Tooltip("Zoom最小時のOuter Spot Angle。\nOuter Spot Angle at minimum Zoom.")]
         [SerializeField, Range(0.1f, 179f)] private float minOuterSpotAngle = 5f;
 
-        [Tooltip("Zoom最大時のOuter Spot Angle。")]
+        [Tooltip("Zoom最大時のOuter Spot Angle。\nOuter Spot Angle at maximum Zoom.")]
         [SerializeField, Range(0.1f, 179f)] private float maxOuterSpotAngle = 50f;
 
-        [Tooltip("DMX Zoom値の向きを反転します。")]
+        [Tooltip("DMX Zoom値の向きを反転します。\nReverses the direction of the DMX Zoom value.")]
         [SerializeField] private bool invertZoom = false;
 
-        [Tooltip("Outer Spot Angleに対するInner Spotの割合。HDRPではinnerSpotPercentとして使用します。")]
+        [Tooltip("Outer Spot Angleに対するInner Spotの割合。HDRPではinnerSpotPercentとして使用します。\nRatio of the Inner Spot to the Outer Spot Angle. In HDRP, this is used as innerSpotPercent.")]
         [SerializeField, Range(0f, 100f)] private float zoomInnerSpotPercent = 80f;
 
         // ------------------------------------------------------------
@@ -441,52 +446,52 @@ namespace ArtNet.Runtime
         }
 
         [Header("Prism")]
-        [Tooltip("DMX値とプリズムスロットを対応付ける定義。")]
+        [Tooltip("DMX値とプリズムスロットを対応付ける定義。\nDefinition that maps DMX values to prism slots.")]
         [SerializeField] private PrismDefinition prismDefinition;
 
-        [Tooltip("プリズム機能を有効にします。オフの場合、Prism DefinitionとDMX値が設定されていてもプリズム描画は行いません。")]
+        [Tooltip("プリズム機能を有効にします。オフの場合、Prism DefinitionとDMX値が設定されていてもプリズム描画は行いません。\nEnables the prism feature. When disabled, no prism is rendered even if a Prism Definition and DMX value are set.")]
         [SerializeField] private bool enablePrism = true;
 
-        [Tooltip("プリズムの描画モード。Projection Onlyは床・壁のCookie投影中心、Full Auxiliary Lightsは高品質、Projection + Shader Beamは将来のShaderビーム分割用です。")]
+        [Tooltip("プリズムの描画モード。Projection Onlyは床・壁のCookie投影中心、Full Auxiliary Lightsは高品質、Projection + Shader Beamは将来のShaderビーム分割用です。\nPrism rendering mode. Projection Only focuses on Cookie projection onto floors and walls; Full Auxiliary Lights provides high quality; Projection + Shader Beam is reserved for future Shader beam splitting.")]
         [SerializeField] private PrismDrawMode prismDrawMode = PrismDrawMode.ProjectionOnly;
 
-        [Tooltip("旧プリズム描画方式。既存Prefabの互換性維持用です。")]
+        [Tooltip("旧プリズム描画方式。既存Prefabの互換性維持用です。\nLegacy prism rendering method, retained for compatibility with existing Prefabs.")]
         [SerializeField, HideInInspector] private PrismRenderMode prismRenderMode = PrismRenderMode.CookieComposite;
 
-        [Tooltip("旧Projection Only互換用。現在のProjection OnlyではPrimary Lightを抑制し、補助ライト側で投影します。")]
+        [Tooltip("旧Projection Only互換用。現在のProjection OnlyではPrimary Lightを抑制し、補助ライト側で投影します。\nCompatibility option for the legacy Projection Only mode. The current mode suppresses the Primary Light and projects using Auxiliary Lights.")]
         [SerializeField, HideInInspector, Range(0f, 1f)] private float projectionOnlyPrimaryIntensityScale = 0.65f;
 
-        [Tooltip("Projection Only時に補助HDRPライトのVolumetric Dimmerを0にします。")]
+        [Tooltip("Projection Only時に補助HDRPライトのVolumetric Dimmerを0にします。\nSets the Volumetric Dimmer of Auxiliary HDRP Lights to 0 in Projection Only mode.")]
         [SerializeField] private bool disableAuxiliaryVolumetricInProjectionOnly = true;
 
-        [Tooltip("AuxiliaryLightsでのGobo Rotation方式。AutoはHDRPならTransform Roll、それ以外はComposite Texture Rollです。")]
+        [Tooltip("AuxiliaryLightsでのGobo Rotation方式。AutoはHDRPならTransform Roll、それ以外はComposite Texture Rollです。\nGobo Rotation method for Auxiliary Lights. Auto uses Transform Roll in HDRP and Composite Texture Roll otherwise.")]
         [SerializeField] private AuxiliaryCookieRotationMode auxiliaryCookieRotationMode = AuxiliaryCookieRotationMode.CompositeTextureRoll;
 
-        [Tooltip("Prism Rotation=最大時の角速度（deg/sec）。")]
+        [Tooltip("Prism Rotation=最大時の角速度（deg/sec）。\nAngular velocity in degrees per second when Prism Rotation is at its maximum.")]
         [SerializeField, Min(0f)] private float maxPrismRotateDegPerSec = 360f;
 
-        [Tooltip("CookieComposite用のRenderTextureサイズ。")]
+        [Tooltip("CookieComposite用のRenderTextureサイズ。\nRenderTexture size used by Cookie Composite.")]
         [SerializeField, Min(16)] private int prismCompositeCookieSize = 512;
 
-        [Tooltip("角度変化がこの値未満ならCookieを再合成しません。0で毎回更新。")]
+        [Tooltip("角度変化がこの値未満ならCookieを再合成しません。0で毎回更新。\nDoes not recomposite the Cookie when the angle change is below this value. Set to 0 to update every time.")]
         [SerializeField, Min(0f)] private float prismCompositeRotationStepDeg = 1f;
 
-        [Tooltip("CookieCompositeで扱う最大Facet数。")]
+        [Tooltip("CookieCompositeで扱う最大Facet数。\nMaximum number of Facets handled by Cookie Composite.")]
         [SerializeField, Range(1, 16)] private int maxPrismCompositeFacets = 8;
 
-        [Tooltip("AuxiliaryLightsで扱う最大Facet数。")]
+        [Tooltip("AuxiliaryLightsで扱う最大Facet数。\nMaximum number of Facets handled by Auxiliary Lights.")]
         [SerializeField, Range(1, 16)] private int maxPrismAuxiliaryFacets = 8;
 
-        [Tooltip("PrismSlot.spreadをAuxiliary Lightの角度へ変換する倍率。")]
+        [Tooltip("PrismSlot.spreadをAuxiliary Lightの角度へ変換する倍率。\nMultiplier used to convert PrismSlot.spread into an Auxiliary Light angle.")]
         [SerializeField, Min(0f)] private float auxiliarySpreadMultiplierDeg = 10f;
 
-        [Tooltip("Auxiliary Lightの明るさに掛ける追加倍率。")]
+        [Tooltip("Auxiliary Lightの明るさに掛ける追加倍率。\nAdditional multiplier applied to Auxiliary Light brightness.")]
         [SerializeField, Min(0f)] private float auxiliaryIntensityScale = 1f;
 
-        [Tooltip("補助SpotLightのVolumetricだけに掛ける倍率。床や壁へのCookie投影の明るさは変えず、Full Auxiliary Lightsの空間ビームだけを調整します。")]
+        [Tooltip("補助SpotLightのVolumetricだけに掛ける倍率。床や壁へのCookie投影の明るさは変えず、Full Auxiliary Lightsの空間ビームだけを調整します。\nMultiplier applied only to the Volumetric output of Auxiliary Spot Lights. It adjusts only the spatial beams in Full Auxiliary Lights without changing Cookie projection brightness on floors or walls.")]
         [SerializeField, Range(0f, 30f)] private float auxiliaryVolumetricIntensityScale = 1f;
 
-        [Tooltip("プリズム時の明るさ分散量。0で分散なし、1でFacet数に応じて完全分散します。")]
+        [Tooltip("プリズム時の明るさ分散量。0で分散なし、1でFacet数に応じて完全分散します。\nAmount of brightness distribution while using a prism. 0 applies no distribution; 1 distributes fully according to the Facet count.")]
         [SerializeField, Range(0f, 1f)] private float prismBrightnessDistribution = 1f;
 
         private enum PrismZoomCorrectionMode
@@ -496,20 +501,20 @@ namespace ArtNet.Runtime
             Custom
         }
 
-        [Tooltip("プリズム分割されたゴボ同士の距離をZoomに連動して補正します。Offは補正なし、AutoはSpot Angleから自動補正、Customは下の倍率をそのまま使います。")]
+        [Tooltip("プリズム分割されたゴボ同士の距離をZoomに連動して補正します。Offは補正なし、AutoはSpot Angleから自動補正、Customは下の倍率をそのまま使います。\nCorrects the distance between prism-split gobos according to Zoom. Off applies no correction, Auto derives it from Spot Angle, and Custom uses the multiplier below directly.")]
         [SerializeField] private PrismZoomCorrectionMode prismZoomCorrection = PrismZoomCorrectionMode.Off;
 
-        [Tooltip("プリズム分割されたゴボ同士の距離倍率。AutoではZoom補正後の倍率、Customでは直接の距離倍率として使用します。")]
+        [Tooltip("プリズム分割されたゴボ同士の距離倍率。AutoではZoom補正後の倍率、Customでは直接の距離倍率として使用します。\nDistance multiplier between prism-split gobos. Auto applies it after Zoom correction; Custom uses it directly.")]
         [SerializeField, Range(0f, 3f)] private float prismGoboSpacingScale = 1f;
 
-        [Tooltip("VLBのプリズム時に、各ゴボ投影の外形サイズをSpot Angleで調整します。1で通常のSpot Lightに合わせた基準サイズです。")]
+        [Tooltip("VLBのプリズム時に、各ゴボ投影の外形サイズをSpot Angleで調整します。1で通常のSpot Lightに合わせた基準サイズです。\nAdjusts the outline size of each gobo projection by Spot Angle when using a VLB prism. A value of 1 matches the standard Spot Light size.")]
         [InspectorName("Prism Gobo Scale (VLB)")]
         [SerializeField, Range(0.1f, 3f)] private float prismGoboScaleVlb = 1f;
 
-        [Tooltip("Auxiliary LightのShadowを有効化します。初期OFF推奨。")]
+        [Tooltip("Auxiliary LightのShadowを有効化します。初期OFF推奨。\nEnables Shadows on Auxiliary Lights. Keeping this disabled initially is recommended.")]
         [SerializeField] private bool auxiliaryLightShadows = false;
 
-        [Tooltip("Cookie合成Shader。未設定の場合はResources/Shader.Findから解決します。")]
+        [Tooltip("Cookie合成Shader。未設定の場合はResources/Shader.Findから解決します。\nShader used for Cookie composition. If unset, it is resolved through Resources or Shader.Find.")]
         [SerializeField] private Shader prismCookieShader;
 
         // ------------------------------------------------------------
@@ -522,22 +527,22 @@ namespace ArtNet.Runtime
         public LightResponseMode lightResponseMode = LightResponseMode.Led;
 
         [Header("Halogen Response (seconds)")]
-        [Tooltip("ソース(レンズ)の立ち上がり時間（0→1秒）。")]
+        [Tooltip("ソース（レンズ）の立ち上がり時間（0→1秒）。\nFade-in time of the source (lens), from 0 to 1, in seconds.")]
         [SerializeField, Min(0f)] private float halogenSourceRiseTime = 0.06f;
 
-        [Tooltip("ソース(レンズ)の立ち下がり時間（1→0秒）。")]
+        [Tooltip("ソース（レンズ）の立ち下がり時間（1→0秒）。\nFade-out time of the source (lens), from 1 to 0, in seconds.")]
         [SerializeField, Min(0f)] private float halogenSourceFallTime = 0.10f;
 
-        [Tooltip("ソースON後、ビーム(ライト)が点灯するまでの遅延。")]
+        [Tooltip("ソースON後、ビーム（ライト）が点灯するまでの遅延。\nDelay after the source turns on before the beam (Light) turns on.")]
         [SerializeField, Min(0f)] private float halogenBeamOnDelay = 0.04f;
 
-        [Tooltip("ソースOFF後、ビーム(ライト)が消灯するまでの遅延。")]
+        [Tooltip("ソースOFF後、ビーム（ライト）が消灯するまでの遅延。\nDelay after the source turns off before the beam (Light) turns off.")]
         [SerializeField, Min(0f)] private float halogenBeamOffDelay = 0.04f;
 
-        [Tooltip("ビーム(ライト)の立ち上がり時間（0→1秒）。")]
+        [Tooltip("ビーム（ライト）の立ち上がり時間（0→1秒）。\nFade-in time of the beam (Light), from 0 to 1, in seconds.")]
         [SerializeField, Min(0f)] private float halogenBeamRiseTime = 0.06f;
 
-        [Tooltip("ビーム(ライト)の立ち下がり時間（1→0秒）。")]
+        [Tooltip("ビーム（ライト）の立ち下がり時間（1→0秒）。\nFade-out time of the beam (Light), from 1 to 0, in seconds.")]
         [SerializeField, Min(0f)] private float halogenBeamFallTime = 0.08f;
 
         // MPBで per-renderer 上書きし、マテリアルインスタンス増加を避ける
@@ -600,20 +605,20 @@ namespace ArtNet.Runtime
         [Header("Pipeline / Driver")]
         public PipelineMode pipelineMode = PipelineMode.Auto;
 
-        [Tooltip("明示的に使用するドライバ（GenericLightDriver / HdrpLightDriver など）。")]
+        [Tooltip("明示的に使用するドライバ（GenericLightDriver / HdrpLightDriverなど）。\nDriver to use explicitly, such as GenericLightDriver or HdrpLightDriver.")]
         public MonoBehaviour driverOverride;
 
-        [Tooltip("ドライバが無い場合に自動追加します（同一GameObject）。")]
+        [Tooltip("ドライバが無い場合に自動追加します（同一GameObject）。\nAutomatically adds a driver to the same GameObject when none is present.")]
         public bool autoAddDriverIfMissing = true;
 
         [Header("Driver Intensity Defaults")]
-        [Tooltip("GenericLightDriver.maxIntensity の既定値。")]
+        [Tooltip("GenericLightDriver.maxIntensityの既定値。\nDefault value for GenericLightDriver.maxIntensity.")]
         public float genericMaxIntensity = 10f;
 
-        [Tooltip("HdrpLightDriver.maxIntensity の既定値。")]
+        [Tooltip("HdrpLightDriver.maxIntensityの既定値。\nDefault value for HdrpLightDriver.maxIntensity.")]
         public float hdrpMaxIntensity = 9870f;
 
-        [Tooltip("trueの場合、Initialize時に上記maxIntensityをドライバへ上書きします。")]
+        [Tooltip("trueの場合、Initialize時に上記maxIntensityをドライバへ上書きします。\nWhen true, overwrites the driver maxIntensity with the value above during initialization.")]
         public bool overrideDriverMaxIntensity = true;
 
         // ------------------------------------------------------------
@@ -623,42 +628,42 @@ namespace ArtNet.Runtime
         public enum LocalAxis { X, Y, Z, MinusX, MinusY, MinusZ }
 
         [Header("Pan/Tilt Axis / Tuning")]
-        [Tooltip("Panのローカル回転軸。")]
+        [Tooltip("Panのローカル回転軸。\nLocal rotation axis for Pan.")]
         public LocalAxis panAxis = LocalAxis.Z; // default: Z axis
 
-        [Tooltip("Tiltのローカル回転軸。")]
+        [Tooltip("Tiltのローカル回転軸。\nLocal rotation axis for Tilt.")]
         public LocalAxis tiltAxis = LocalAxis.X;
 
         public bool panInvert = false;
         public bool tiltInvert = false;
 
-        [Tooltip("Panの角度オフセット（度）。")]
+        [Tooltip("Panの角度オフセット（度）。\nPan angle offset in degrees.")]
         public float panOffsetDeg = 0f;
 
-        [Tooltip("Tiltの角度オフセット（度）。")]
+        [Tooltip("Tiltの角度オフセット（度）。\nTilt angle offset in degrees.")]
         public float tiltOffsetDeg = 0f;
 
         [Range(0f, 30f)]
-        [Tooltip("Pan/Tiltの追従スムージング。0=即時、値を上げるほど滑らか。")]
+        [Tooltip("Pan/Tiltの追従スムージング。0=即時、値を上げるほど滑らか。\nFollow smoothing for Pan/Tilt. 0 responds immediately; higher values produce smoother movement.")]
         public float panTiltSmoothing = 12f;
 
 
-        [Tooltip("DMX更新(例:40Hz)と描画更新の差を毎フレーム補間で滑らかにします。")]
+        [Tooltip("DMX更新（例: 40Hz）と描画更新の差を毎フレーム補間で滑らかにします。\nSmooths the difference between DMX updates, such as 40 Hz, and rendering updates by interpolating every frame.")]
         public bool enableContinuousPanTiltUpdate = true;
 
         [Header("Edit Mode Preview")]
-        [Tooltip("EditモードのTimelineプレビュー時にPan/Tiltと光量を即時反映します。")]
+        [Tooltip("EditモードのTimelineプレビュー時にPan/Tiltと光量を即時反映します。\nApplies Pan/Tilt and light intensity immediately during Timeline preview in Edit mode.")]
         public bool applyImmediateInEditMode = true;
 
-        [Header("Pan/Tilt Speed (deg/sec)  ※PanTiltSpeedがある機種のみ有効")]
-        [Tooltip("PanTiltSpeed=0 のときの角速度（deg/sec）。")]
+        [Header("Pan/Tilt Speed (deg/sec) - Available only on fixtures with PanTiltSpeed")]
+        [Tooltip("PanTiltSpeed=0のときの角速度（deg/sec）。\nAngular velocity in degrees per second when PanTiltSpeed = 0.")]
         public float panTiltSpeedMinDegPerSec = 30f;
 
-        [Tooltip("PanTiltSpeed=255 のときの角速度（deg/sec）。")]
+        [Tooltip("PanTiltSpeed=255のときの角速度（deg/sec）。\nAngular velocity in degrees per second when PanTiltSpeed = 255.")]
         public float panTiltSpeedMaxDegPerSec = 720f;
 
         [Header("Reset Threshold")]
-        [Tooltip("Reset ch がこの値以上のとき Reset を実行します（機種に合わせて調整）。")]
+        [Tooltip("Reset chがこの値以上のときResetを実行します（機種に合わせて調整）。\nExecutes Reset when the Reset channel is at or above this value. Adjust it for the fixture model.")]
         [Range(0, 255)]
         public int resetTriggerThreshold = 250;
 
@@ -670,11 +675,11 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Monitoring (DMX)")]
-        [Tooltip("このFixtureのDMXモニタを有効化します（Inspector表示/周期ログ）。")]
+        [Tooltip("このFixtureのDMXモニタを有効化します（Inspector表示/周期ログ）。\nEnables the DMX monitor for this Fixture, including Inspector display and periodic logs.")]
         [SerializeField] private bool monitorEnabled = true;
 
         [Header("Monitor Channels (Absolute 1-512)")]
-        [Tooltip("Universe内の絶対チャンネル（1-512）を監視します。")]
+        [Tooltip("Universe内の絶対チャンネル（1-512）を監視します。\nMonitors absolute channels 1-512 within the Universe.")]
         [Range(1, 512)] public int monitorCh1 = 1;
         [Range(1, 512)] public int monitorCh2 = 2;
         [Range(1, 512)] public int monitorCh3 = 3;
@@ -682,10 +687,10 @@ namespace ArtNet.Runtime
         [Range(1, 512)] public int monitorCh5 = 5;
 
         [Header("Monitoring (Auto / Relative)")]
-        [Tooltip("FixtureDefinitionのModeで解決されたFixtureFunctionを自動で一覧表示します。")]
+        [Tooltip("FixtureDefinitionのModeで解決されたFixtureFunctionを自動で一覧表示します。\nAutomatically lists Fixture Functions resolved from the Mode in Fixture Definition.")]
         [SerializeField] private bool monitorIncludeResolvedFunctions = true;
 
-        [Tooltip("startAddress基準の相対ch（1=Start）を追加監視します（例: 1,2,3,10）。")]
+        [Tooltip("startAddress基準の相対ch（1=Start）を追加監視します（例: 1,2,3,10）。\nAdditionally monitors channels relative to startAddress, where 1 is Start. Example: 1, 2, 3, 10.")]
         [SerializeField] private List<int> monitorExtraRelativeChannels = new();
 
         [Header("Debug Values (ReadOnly)")]
@@ -714,16 +719,16 @@ namespace ArtNet.Runtime
         [SerializeField] private List<DmxMonitorItem> monitorItems = new();
 
         [Header("Periodic Logging (Flood Protection)")]
-        [Tooltip("一定間隔で受信データを要約ログ出力します（ログ洪水対策あり）。")]
+        [Tooltip("一定間隔で受信データを要約ログ出力します（ログ洪水対策あり）。\nLogs received-data summaries at a fixed interval, with log-flood protection.")]
         [SerializeField] private bool enablePeriodicLog = false;
 
-        [Tooltip("ログ出力間隔（秒）。例: 1.0で1秒ごと。")]
+        [Tooltip("ログ出力間隔（秒）。例: 1.0で1秒ごと。\nLog interval in seconds. For example, 1.0 logs once per second.")]
         [SerializeField, Min(0.1f)] private float logIntervalSec = 1.0f;
 
-        [Tooltip("受信が無い間はログを出さない（無駄ログ抑制）。")]
+        [Tooltip("受信が無い間はログを出さない（無駄ログ抑制）。\nDoes not log while no data is being received.")]
         [SerializeField] private bool logOnlyWhenDataArrived = true;
 
-        [Tooltip("ログ先頭にヘッダー（Universe/Start/Modeなど）を含めます。")]
+        [Tooltip("ログ先頭にヘッダー（Universe/Start/Modeなど）を含めます。\nIncludes a header, such as Universe, Start, and Mode, at the beginning of each log.")]
         [SerializeField] private bool includeHeaderInLog = true;
 
         private float _nextLogTime;
@@ -1408,7 +1413,7 @@ namespace ArtNet.Runtime
             var overrideDriver = driverOverride as ILightDriver;
 
             if (driverOverride != null && overrideDriver == null)
-                Debug.LogWarning($"[DmxFixtureComponent] driverOverride is set but does not implement ILightDriver: {driverOverride.GetType().Name}", this);
+                Debug.LogWarning($"[DMX Fixture Component] driverOverride is set but does not implement ILightDriver: {driverOverride.GetType().Name}", this);
 
 #if HAS_HDRP
             var hdrpOnSelf = GetComponents<HdrpLightDriver>();
@@ -1441,7 +1446,7 @@ namespace ArtNet.Runtime
                 }
                 else if (overrideDriver != null && !warnedOverrideReuse)
                 {
-                    Debug.LogWarning("[DmxFixtureComponent] driverOverride is set but multiple targetLights were found. " +
+                    Debug.LogWarning("[DMX Fixture Component] driverOverride is set but multiple targetLights were found. " +
                                      "driverOverride will be used for the first light only.", this);
                     warnedOverrideReuse = true;
                 }
@@ -1483,8 +1488,8 @@ namespace ArtNet.Runtime
                     if (hdrpOnLight != null && !usedDrivers.Contains(hdrpOnLight))
                     {
                         driver = hdrpOnLight;
-                        Debug.LogWarning("[DmxFixtureComponent] Found LightDriver on targetLight GameObject (legacy). " +
-                                         "Now we recommend attaching LightDriver to the same GameObject as DmxFixtureComponent.", this);
+                        Debug.LogWarning("[DMX Fixture Component] Found LightDriver on targetLight GameObject (legacy). " +
+                                         "Now we recommend attaching LightDriver to the same GameObject as DMX Fixture Component.", this);
                     }
 #endif
                     if (driver == null)
@@ -1493,8 +1498,8 @@ namespace ArtNet.Runtime
                         if (genericOnLight != null && !usedDrivers.Contains(genericOnLight))
                         {
                             driver = genericOnLight;
-                            Debug.LogWarning("[DmxFixtureComponent] Found LightDriver on targetLight GameObject (legacy). " +
-                                             "Now we recommend attaching LightDriver to the same GameObject as DmxFixtureComponent.", this);
+                            Debug.LogWarning("[DMX Fixture Component] Found LightDriver on targetLight GameObject (legacy). " +
+                                             "Now we recommend attaching LightDriver to the same GameObject as DMX Fixture Component.", this);
                         }
                     }
                 }
@@ -1509,7 +1514,7 @@ namespace ArtNet.Runtime
                         driver = gameObject.AddComponent<GenericLightDriver>();
 #else
                     if (wantHdrp)
-                        Debug.LogWarning($"[DmxFixtureComponent] HDRP is requested but HAS_HDRP is not enabled. Using GenericLightDriver: {name}", this);
+                        Debug.LogWarning($"[DMX Fixture Component] HDRP is requested but HAS_HDRP is not enabled. Using GenericLightDriver: {name}", this);
 
                     driver = gameObject.AddComponent<GenericLightDriver>();
 #endif
@@ -2535,7 +2540,7 @@ namespace ArtNet.Runtime
         private string BuildMonitorSummaryLog()
         {
             var sb = new StringBuilder(256);
-            sb.Append("[DmxFixtureComponent Monitor] ");
+            sb.Append("[DMX Fixture Component Monitor] ");
 
             if (includeHeaderInLog)
             {

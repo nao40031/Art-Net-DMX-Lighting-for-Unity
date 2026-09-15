@@ -24,13 +24,13 @@ namespace ArtNet.Runtime
         }
 
         [Header("Source")]
-        [Tooltip("購読対象の ArtNetReceiver（未設定なら同一GameObjectから取得）")]
+        [Tooltip("購読対象のArtNetReceiver（未設定なら同一GameObjectから取得）\nArtNetReceiver to subscribe to. If unset, it is obtained from this GameObject.")]
         public ArtNetReceiver receiver;
 
         [Header("Target")]
         public Light targetLight;
 
-        [Tooltip("適用するDriver（Generic/HDRPのどちらかをアタッチして参照）")]
+        [Tooltip("適用するDriver（Generic/HDRPのどちらかをアタッチして参照）\nDriver to apply. Attach and assign either the Generic or HDRP driver.")]
         public MonoBehaviour driverComponent;
 
         [Header("Pipeline")]
@@ -43,7 +43,7 @@ namespace ArtNet.Runtime
         [Range(1, 512)] public int blueChannel = 4;
 
         [Header("Optional Filter")]
-        [Tooltip("特定Universeのみ処理したい場合に設定。-1 でフィルタ無効")]
+        [Tooltip("特定Universeのみ処理したい場合に設定。-1でフィルタ無効\nSet this to process only one Universe. Use -1 to disable filtering.")]
         public int onlyUniverse = -1;
 
         private ILightDriver _driver;

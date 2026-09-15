@@ -74,8 +74,8 @@ namespace ArtNet.EditorTools
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(slot.FindPropertyRelative("name"));
-                EditorGUILayout.PropertyField(slot.FindPropertyRelative("dmxMin"));
-                EditorGUILayout.PropertyField(slot.FindPropertyRelative("dmxMax"));
+                DrawPropertyWithNormalizedAcronyms(slot.FindPropertyRelative("dmxMin"));
+                DrawPropertyWithNormalizedAcronyms(slot.FindPropertyRelative("dmxMax"));
                 EditorGUILayout.PropertyField(slot.FindPropertyRelative("texture"));
                 EditorGUILayout.PropertyField(slot.FindPropertyRelative("isOpen"));
                 EditorGUILayout.PropertyField(slot.FindPropertyRelative("rotationOffsetDeg"));
@@ -119,8 +119,8 @@ namespace ArtNet.EditorTools
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(range.FindPropertyRelative("name"));
-                    EditorGUILayout.PropertyField(range.FindPropertyRelative("dmxMin"));
-                    EditorGUILayout.PropertyField(range.FindPropertyRelative("dmxMax"));
+                    DrawPropertyWithNormalizedAcronyms(range.FindPropertyRelative("dmxMin"));
+                    DrawPropertyWithNormalizedAcronyms(range.FindPropertyRelative("dmxMax"));
 
                     SerializedProperty type = range.FindPropertyRelative("type");
                     GoboRangeType previousType = (GoboRangeType)type.enumValueIndex;
@@ -146,6 +146,18 @@ namespace ArtNet.EditorTools
             {
                 AddRange(ranges, ranges.arraySize);
             }
+        }
+
+        private static void DrawPropertyWithNormalizedAcronyms(SerializedProperty property)
+        {
+            string displayName = property.displayName
+                .Replace("Dmx", "DMX")
+                .Replace("Hdrp", "HDRP")
+                .Replace("Vlb", "VLB")
+                .Replace("Urp", "URP")
+                .Replace("Hd", "HD")
+                .Replace("Sd", "SD");
+            EditorGUILayout.PropertyField(property, new GUIContent(displayName, property.tooltip));
         }
 
         private void AddSlot(int index)

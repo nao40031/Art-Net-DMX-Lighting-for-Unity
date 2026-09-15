@@ -252,14 +252,14 @@ namespace ArtNet.Runtime
     [Serializable]
     public class FixtureModeDefinition
     {
-        [Tooltip("表示用のモード名（例: Mode 3 / Extended 16bit）")]
+        [Tooltip("表示用のモード名（例: Mode 3 / Extended 16bit）\nMode name displayed in the Inspector, for example Mode 3 or Extended 16-bit.")]
         public string modeName = "Mode 1";
 
-        [Tooltip("このModeが消費するチャンネル数（確認用）")]
+        [Tooltip("このModeが消費するチャンネル数（確認用）\nNumber of channels consumed by this Mode, for reference.")]
         [Range(1, 512)]
         public int channelCount = 1;
 
-        [Tooltip("Function -> channel 割当")]
+        [Tooltip("Function → channel割当\nFunction-to-channel assignments.")]
         public List<FunctionChannel> channels = new();
 
         [Header("Channel Elements (GDTF-lite)")]

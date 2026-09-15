@@ -14,7 +14,7 @@ namespace ArtNet.Runtime
         public float lightDimmer01;
         public float lensDimmer01;
         public Color color;
-        // Sync Beam Color To Dmx の値。実ライトもPseudo Beamと同じ設定に従う。
+        // Sync Beam Color To DMX の値。実ライトもPseudo Beamと同じ設定に従う。
         public bool syncLightColorToDmx;
         public bool goboEnabled;
         public Texture goboTexture;

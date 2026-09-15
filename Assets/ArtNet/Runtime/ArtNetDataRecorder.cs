@@ -34,30 +34,30 @@ namespace ArtNet.Runtime
         [SerializeField] private KeyCode stopKey = KeyCode.S;
 
         [Header("Recording Mode")]
-        [Tooltip("有効時、録画中は軽量サンプルのみ蓄積し、Stop時にAnimationClipを生成します。")]
+        [Tooltip("有効時、録画中は軽量サンプルのみ蓄積し、Stop時にAnimationClipを生成します。\nWhen enabled, only lightweight samples are stored while recording and an AnimationClip is generated when stopped.")]
         [SerializeField] private bool useLowGcRecording = true;
 
-        [Tooltip("低GCモード時の1チャネルあたり初期サンプル容量。")]
+        [Tooltip("低GCモード時の1チャネルあたり初期サンプル容量。\nInitial sample capacity per channel in low-GC mode.")]
         [SerializeField, Min(1)] private int initialSampleCapacityPerChannel = 8;
 
         [Header("Record Targets")]
-        [Tooltip("trueなら受信した全Universeを録画。falseの場合は targetUniverses のみ録画")]
+        [Tooltip("trueなら受信した全Universeを録画。falseの場合はtargetUniversesのみ録画\nWhen true, records every received Universe. When false, records only targetUniverses.")]
         [SerializeField] private bool recordAllUniverses = true;
 
-        [Tooltip("recordAllUniverses=false の時に録画対象にするUniverse一覧")]
+        [Tooltip("recordAllUniverses=falseの時に録画対象にするUniverse一覧\nUniverses to record when recordAllUniverses is false.")]
         [SerializeField] private List<int> targetUniverses = new();
 
         [Header("Save (AnimationClip asset)")]
-        [Tooltip("Assets配下の保存先フォルダ名（例: Record）")]
+        [Tooltip("Assets配下の保存先フォルダ名（例: Record）\nDestination folder under Assets, for example Record.")]
         [SerializeField] private string directoryPath = "Record";
 
-        [Tooltip("生成するAnimationClip名（拡張子不要）")]
+        [Tooltip("生成するAnimationClip名（拡張子不要）\nName of the generated AnimationClip, without the extension.")]
         [SerializeField] private string clipName = "NewArtNetClip";
 
-        [Tooltip("Universe番号をクリップ名に付与（例: NewArtNetClip_U0）")]
+        [Tooltip("Universe番号をクリップ名に付与（例: NewArtNetClip_U0）\nAppends the Universe number to the clip name, for example NewArtNetClip_U0.")]
         [SerializeField] private bool appendUniverseSuffix = true;
 
-        [Tooltip("SetCurveの対象にするコンポーネントの型名（完全修飾名推奨）\n例: ArtNet.Runtime.ArtNetChannels")]
+        [Tooltip("SetCurveの対象にするコンポーネントの型名（完全修飾名推奨）\n例: ArtNet.Runtime.ArtNetChannels\nComponent type name targeted by SetCurve. A fully qualified name is recommended.\nExample: ArtNet.Runtime.ArtNetChannels")]
         [SerializeField] private string channelsComponentTypeName = "ArtNet.Runtime.ArtNetChannels";
 
         [Header("Advanced")]
@@ -65,34 +65,34 @@ namespace ArtNet.Runtime
         [SerializeField] private bool verboseLog = false;
 
         [Header("Curve Recording")]
-        [Tooltip("値が変わった瞬間に「直前キー+新キー」を入れてほぼ瞬時切替にする")]
+        [Tooltip("値が変わった瞬間に「直前キー+新キー」を入れてほぼ瞬時切替にする\nInserts a previous key and a new key at each value change for an almost instantaneous switch.")]
         [SerializeField] private bool useStepKeys = true;
 
-        [Tooltip("ステップ用の微小時間(秒)。0.001 = 1ms")]
+        [Tooltip("ステップ用の微小時間（秒）。0.001 = 1ms\nSmall time interval in seconds used for stepped keys. 0.001 = 1 ms.")]
         [SerializeField, Range(0.0001f, 0.02f)] private float stepEpsilon = 0.001f;
 
-        [Tooltip("小さな揺れを無視する（デッドバンド）。0=無効")]
+        [Tooltip("小さな揺れを無視する（デッドバンド）。0=無効\nIgnores small fluctuations by using a deadband. Set to 0 to disable.")]
         [SerializeField, Range(0, 20)] private int deadbandThreshold = 2;
 
         [Header("Hybrid Recording")]
-        [Tooltip("Pan/Tilt系チャネルのみ線形記録にして、Color/Dimmerはステップ記録を維持")]
+        [Tooltip("Pan/Tilt系チャネルのみ線形記録にして、Color/Dimmerはステップ記録を維持\nRecords only Pan/Tilt channels linearly while keeping Color/Dimmer channels stepped.")]
         [SerializeField] private bool hybridPanTiltLinear = true;
 
-        [Tooltip("DmxFixtureComponentのマッピングからPan/Tiltチャネルを自動検出")]
+        [Tooltip("DMX Fixture ComponentのマッピングからPan/Tiltチャネルを自動検出\nAutomatically detects Pan/Tilt channels from DMX Fixture Component mappings.")]
         [SerializeField] private bool autoDetectPanTiltChannels = true;
 
-        [Tooltip("線形(Pan/Tilt)チャネルにもデッドバンドを適用する")]
+        [Tooltip("線形（Pan/Tilt）チャネルにもデッドバンドを適用する\nAlso applies the deadband to linear Pan/Tilt channels.")]
         [SerializeField] private bool applyDeadbandToLinearChannels = false;
 
-        [Tooltip("自動検出できない場合の線形チャネル(Absolute 1-512)。全Universe共通")]
+        [Tooltip("自動検出できない場合の線形チャネル（Absolute 1-512）。全Universe共通\nLinear channels used when automatic detection is unavailable, as absolute channels 1-512 shared by all Universes.")]
         [SerializeField] private List<int> fallbackLinearChannels = new();
 
         [Header("Curve Tangents (Legacy)")]
-        [Tooltip("保存時に全チャンネルをConstantに変換します（非推奨）。ONにすると挙動が不安定になる場合があります。")]
+        [Tooltip("保存時に全チャンネルをConstantに変換します（非推奨）。ONにすると挙動が不安定になる場合があります。\nConverts all channels to Constant keys when saving. Not recommended; enabling it can cause unstable behavior.")]
         [SerializeField] private bool setCurvesToConstant = false;
 
         [Header("Clip Length")]
-        [Tooltip("複数Universeを保存する際、全Clipの終端時刻を最長Clipに揃える")]
+        [Tooltip("複数Universeを保存する際、全Clipの終端時刻を最長Clipに揃える\nWhen saving multiple Universes, aligns every clip end time to the longest clip.")]
         [SerializeField] private bool normalizeClipEndAcrossUniverses = true;
 
         private readonly Dictionary<int, AnimationCurve[]> _curvesByUniverse = new();

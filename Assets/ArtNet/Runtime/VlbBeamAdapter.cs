@@ -144,7 +144,7 @@ namespace ArtNet.Runtime
 
             if (!applied && !_warnedMissingVlb)
             {
-                Debug.LogWarning("[DmxFixtureComponent] BeamRenderMode is Volumetric Light Beam, but no VolumetricLightBeamHD/SD component was found on target lights. If VLB is not installed, this mode is ignored.", logContext);
+                Debug.LogWarning("[DMX Fixture Component] BeamRenderMode is Volumetric Light Beam, but no VolumetricLightBeamHD/SD component was found on target lights. If VLB is not installed, this mode is ignored.", logContext);
                 _warnedMissingVlb = true;
             }
         }

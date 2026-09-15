@@ -187,7 +187,7 @@ namespace ArtNet.Editor
             EditorGUILayout.ObjectField(prefabStatus.prefab, typeof(GameObject), false);
             if (prefabStatus.fixtureCount == 0)
             {
-                DrawStatusRow("DmxFixtureComponent", StatusLevel.Warning, "No fixture component was found.");
+                DrawStatusRow("DMX Fixture Component", StatusLevel.Warning, "No fixture component was found.");
             }
             else if (prefabStatus.needsSetupTargetLights.Count == 0 && prefabStatus.needsModeUpdateTargetLights.Count == 0 &&
                      prefabStatus.needsUrpPresetFixtureCount == 0)
@@ -235,7 +235,7 @@ namespace ArtNet.Editor
 
             EditorGUILayout.HelpBox(
                 typesAvailable
-                    ? $"Applies VLB {_beamMode} and the URP VLB preset only to the Light objects referenced by DmxFixtureComponent. HD also adds VolumetricCookieHD."
+                    ? $"Applies VLB {_beamMode} and the URP VLB preset only to the Light objects referenced by DMX Fixture Component. HD also adds VolumetricCookieHD."
                     : typeError,
                 MessageType.None);
         }

@@ -18,10 +18,10 @@ namespace ArtNet.Runtime
     public class ArtNetReceiver : MonoBehaviour, IDisposable
     {
         [Header("ArtNet Settings")]
-        [Tooltip("自分のPCのIP / 受信するIP。0.0.0.0 なら全インターフェースで待ち受け")]
+        [Tooltip("自分のPCのIP / 受信するIP。0.0.0.0 なら全インターフェースで待ち受け\nLocal IP address to receive on. Use 0.0.0.0 to listen on all interfaces.")]
         public string host = "0.0.0.0";
 
-        [Tooltip("Art-Net UDP Port (通常 6454)")]
+        [Tooltip("Art-Net UDPポート（通常 6454）\nArt-Net UDP port (normally 6454).")]
         public int port = 6454;
 
         public event Action<ArtNetData> OnDataReceived;
@@ -29,16 +29,16 @@ namespace ArtNet.Runtime
         public bool IsActive => _client != null;
 
         [Header("Logging (Flood Protection)")]
-        [Tooltip("無効パケット（短い/Art-Net以外/長すぎる/Parse失敗）を一定間隔でまとめてログ表示します")]
+        [Tooltip("無効パケット（短い/Art-Net以外/長すぎる/Parse失敗）を一定間隔でまとめてログ表示します\nLogs invalid packets (too short, non-Art-Net, too long, or parse failures) in periodic summaries.")]
         [SerializeField] private bool logInvalidPackets = true;
 
-        [Tooltip("ログをまとめて出す間隔（秒）。短いほどログは増えます")]
+        [Tooltip("ログをまとめて出す間隔（秒）。短いほどログは増えます\nInterval in seconds for aggregated logs. Shorter intervals produce more logs.")]
         [SerializeField, Min(0.1f)] private float invalidPacketLogIntervalSec = 1.0f;
 
-        [Tooltip("ReceiveLoop側（SocketException等）のエラーを一定間隔でまとめてログ表示します")]
+        [Tooltip("ReceiveLoop側（SocketException等）のエラーを一定間隔でまとめてログ表示します\nLogs ReceiveLoop errors, such as SocketException, in periodic summaries.")]
         [SerializeField] private bool logReceiveLoopErrors = true;
 
-        [Tooltip("ReceiveLoopエラーのログ間隔（秒）")]
+        [Tooltip("ReceiveLoopエラーのログ間隔（秒）\nInterval in seconds for ReceiveLoop error logs.")]
         [SerializeField, Min(0.1f)] private float receiveErrorLogIntervalSec = 2.0f;
 
         private UdpClient _client;

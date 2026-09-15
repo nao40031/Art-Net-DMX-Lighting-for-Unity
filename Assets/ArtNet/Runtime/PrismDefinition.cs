@@ -58,17 +58,17 @@ namespace ArtNet.Runtime
         [Min(1)]
         public int facetCount = 1;
 
-        [Tooltip("CookieCompositeではUV上の分散距離、AuxiliaryLightsではAuxiliary Spread Multiplierで角度へ変換されます。")]
+        [Tooltip("CookieCompositeではUV上の分散距離、AuxiliaryLightsではAuxiliary Spread Multiplierで角度へ変換されます。\nIn CookieComposite this is a UV dispersion distance; in AuxiliaryLights it is converted to an angle by Auxiliary Spread Multiplier.")]
         [Range(0f, 1f)]
         public float spread = 0.25f;
 
-        [Tooltip("CookieCompositeで1つ1つのゴボ像の大きさを決めます。")]
+        [Tooltip("CookieCompositeで1つ1つのゴボ像の大きさを決めます。\nSets the size of each individual gobo image in CookieComposite.")]
         [Range(0.05f, 2f)]
         public float facetScale = 0.55f;
 
         public float rotationOffsetDeg = 0f;
 
-        [Tooltip("プリズム時の明るさ補正。1で補正なし。")]
+        [Tooltip("プリズム時の明るさ補正。1で補正なし。\nBrightness compensation while using a prism. A value of 1 applies no compensation.")]
         [Min(0f)]
         public float intensityScale = 1f;
 
