@@ -52,8 +52,20 @@ namespace ArtNet.Editor
         private static void DrawProperty(ref Rect line, SerializedProperty property)
         {
             line.height = EditorGUI.GetPropertyHeight(property, includeChildren: true);
-            EditorGUI.PropertyField(line, property, includeChildren: true);
+            EditorGUI.PropertyField(line, property, NormalizeDisplayContent(property), includeChildren: true);
             line.y += line.height + Gap;
+        }
+
+        private static GUIContent NormalizeDisplayContent(SerializedProperty property)
+        {
+            string displayName = property.displayName
+                .Replace("Dmx", "DMX")
+                .Replace("Hdrp", "HDRP")
+                .Replace("Vlb", "VLB")
+                .Replace("Urp", "URP")
+                .Replace("Hd", "HD")
+                .Replace("Sd", "SD");
+            return new GUIContent(displayName, property.tooltip);
         }
 
         private static void DrawRanges(ref Rect line, SerializedProperty ranges, SerializedProperty element)

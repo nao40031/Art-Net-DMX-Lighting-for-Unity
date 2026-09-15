@@ -38,50 +38,50 @@ namespace ArtNet.Runtime
         public InputMode inputMode = InputMode.LiveOnly;
 
         [Header("Art-Net Source")]
-        [Tooltip("ArtNetReceiver参照。未設定ならシーン内から自動検索します。")]
+        [Tooltip("ArtNetReceiver参照。未設定ならシーン内から自動検索します。\nArtNetReceiver reference. If unset, it is found automatically in the scene.")]
         public ArtNetReceiver receiver;
 
         [Header("Auto Discover")]
-        [Tooltip("OnEnable時にシーン内のDmxFixtureComponentを自動収集して初期化します。")]
+        [Tooltip("OnEnable時にシーン内のDMX Fixture Componentを自動収集して初期化します。\nAutomatically collects and initializes DMX Fixture Components in the scene on OnEnable.")]
         public bool autoDiscoverFixturesOnEnable = true;
 
         [Header("Apply")]
-        [Tooltip("Updateで受信済みUniverseを適用します。受信頻度が高い場合はOFF推奨。")]
+        [Tooltip("Updateで受信済みUniverseを適用します。受信頻度が高い場合はOFF推奨。\nApplies received Universes in Update. Disable this when the receive rate is high.")]
         public bool applyOnUpdate = true;
 
         [Header("Debug")]
-        [Tooltip("受信レートをログ表示します。")]
+        [Tooltip("受信レートをログ表示します。\nLogs the receive rate.")]
         public bool logRxRate = true;
 
         [Range(0.2f, 5f)] public float logRxIntervalSec = 1.0f;
 
-        [Tooltip("適用時に先頭チャンネル値をログ表示します（デバッグ用）。")]
+        [Tooltip("適用時に先頭チャンネル値をログ表示します（デバッグ用）。\nLogs the first channel value when applying data, for debugging.")]
         public bool logApplyHeadChannels = false;
 
         [Header("Auto Addressing (Hierarchy Order)")]
-        [Tooltip("Discover時にaddressingRoot配下のFixtureへstartAddressを自動採番します（Hierarchy順）。")]
+        [Tooltip("Discover時にaddressingRoot配下のFixtureへstartAddressを自動採番します（Hierarchy順）。\nAutomatically assigns start addresses to Fixtures under addressingRoot during discovery, in Hierarchy order.")]
         public bool autoAssignStartAddressOnEnable = false;
 
-        [Tooltip("採番対象の親Transform。未設定ならシーン全体を対象にします。")]
+        [Tooltip("採番対象の親Transform。未設定ならシーン全体を対象にします。\nParent Transform for address assignment. If unset, the entire scene is used.")]
         public Transform addressingRoot;
 
-        [Tooltip("採番開始Universe（usePrefabValueAsBase=false のときのみ使用）。")]
+        [Tooltip("採番開始Universe（usePrefabValueAsBase=falseのときのみ使用）。\nStarting Universe for address assignment. Used only when usePrefabValueAsBase is false.")]
         public int universeStart = 0;
 
-        [Tooltip("採番開始StartAddress（usePrefabValueAsBase=false のときのみ使用）。")]
+        [Tooltip("採番開始StartAddress（usePrefabValueAsBase=falseのときのみ使用）。\nStarting address for address assignment. Used only when usePrefabValueAsBase is false.")]
         [Range(1, 512)] public int startAddressStart = 1;
 
-        [Tooltip("true: 配下先頭Fixtureの現在値(universe/startAddress)を起点に採番します。")]
+        [Tooltip("true: 配下先頭Fixtureの現在値（universe/startAddress）を起点に採番します。\nWhen true, starts assignment from the current universe and startAddress of the first child Fixture.")]
         public bool usePrefabValueAsBase = true;
 
-        [Tooltip("512chを超えたらUniverseを自動で+1して続行します。")]
+        [Tooltip("512chを超えたらUniverseを自動で+1して続行します。\nAutomatically increments the Universe and continues when exceeding 512 channels.")]
         public bool autoIncrementUniverse = true;
 
-        [Tooltip("true: Hierarchy上でActiveなFixtureのみを自動採番対象にします。")]
+        [Tooltip("true: Hierarchy上でActiveなFixtureのみを自動採番対象にします。\nWhen true, only active Fixtures in the Hierarchy are included in automatic address assignment.")]
         public bool autoAssignOnlyActiveInHierarchy = true;
 
         [Header("Bake (Persist in Scene)")]
-        [Tooltip("Editモード採番結果をシーンに保存します（Prefab Overrideを含む）。")]
+        [Tooltip("Editモード採番結果をシーンに保存します（Prefab Overrideを含む）。\nSaves Edit-mode address assignments to the scene, including Prefab overrides.")]
         public bool bakeWritesToScene = true;
 
         // ------------------------------------------------------------
@@ -153,7 +153,7 @@ namespace ArtNet.Runtime
                     int u, off;
                     lock (_lock) { u = _lastUniverse; off = _lastOffset; }
 
-                    Debug.Log($"[DmxRigController] DMX RX: ~{rate:0}/sec  lastUniverse:{u}  offset:{off}");
+                    Debug.Log($"[DMX Rig Controller] DMX RX: ~{rate:0}/sec  lastUniverse:{u}  offset:{off}");
                     _rxCount = 0;
                     _lastRxLogTime = t;
                 }
@@ -257,7 +257,7 @@ namespace ArtNet.Runtime
             var fixtures = FindAllFixtures(includeInactive: true);
             if (fixtures == null || fixtures.Length == 0)
             {
-                Debug.LogWarning("[DmxRigController] No DmxFixtureComponent found in scene.");
+                Debug.LogWarning("[DMX Rig Controller] No DMX Fixture Component found in scene.");
                 return;
             }
 
@@ -294,7 +294,7 @@ namespace ArtNet.Runtime
                 registered++;
             }
 
-            Debug.Log($"[DmxRigController] Discovered fixtures: {fixtures.Length} (registered: {registered})");
+            Debug.Log($"[DMX Rig Controller] Discovered fixtures: {fixtures.Length} (registered: {registered})");
         }
 
         // ------------------------------------------------------------
@@ -316,7 +316,7 @@ namespace ArtNet.Runtime
             }
 
             if (logApplyHeadChannels)
-                Debug.Log($"[DmxRigController] APPLY universe:{universe} fixtures:{list.Count}  CH1..4=({uniBuf[0]},{uniBuf[1]},{uniBuf[2]},{uniBuf[3]})");
+                Debug.Log($"[DMX Rig Controller] APPLY universe:{universe} fixtures:{list.Count}  CH1..4=({uniBuf[0]},{uniBuf[1]},{uniBuf[2]},{uniBuf[3]})");
 
             for (int i = 0; i < list.Count; i++)
             {
@@ -337,12 +337,12 @@ namespace ArtNet.Runtime
             var fixtures = FindAllFixtures(includeInactive: true);
             if (fixtures == null || fixtures.Length == 0)
             {
-                Debug.LogWarning("[DmxRigController] No fixtures found for auto addressing.");
+                Debug.LogWarning("[DMX Rig Controller] No fixtures found for auto addressing.");
                 return;
             }
 
             AutoAssignStartAddresses(fixtures, writeToScene: false);
-            Debug.Log("[DmxRigController] AutoAssignStartAddresses done (Hierarchy Order).");
+            Debug.Log("[DMX Rig Controller] AutoAssignStartAddresses done (Hierarchy Order).");
         }
 
 #if UNITY_EDITOR
@@ -351,19 +351,19 @@ namespace ArtNet.Runtime
         {
             if (Application.isPlaying)
             {
-                Debug.LogWarning("[DmxRigController] BAKE縺ｯEdit繝｢繝ｼ繝牙ｰら畑縺ｧ縺吶１lay繧貞●豁｢縺励※縺九ｉ螳溯｡後＠縺ｦ縺上□縺輔＞縲・", this);
+                Debug.LogWarning("[DMX Rig Controller] BAKEはEditモード専用です。Playモードを停止してから実行してください。 / BAKE is available only in Edit mode. Stop Play mode before running it.", this);
                 return;
             }
 
             var fixtures = FindAllFixtures(includeInactive: true);
             if (fixtures == null || fixtures.Length == 0)
             {
-                Debug.LogWarning("[DmxRigController] No fixtures found for bake auto addressing.", this);
+                Debug.LogWarning("[DMX Rig Controller] No fixtures found for bake auto addressing.", this);
                 return;
             }
 
             AutoAssignStartAddresses(fixtures, writeToScene: true);
-            Debug.Log($"[DmxRigController] Baked StartAddress for {fixtures.Length} fixtures.", this);
+            Debug.Log($"[DMX Rig Controller] Baked StartAddress for {fixtures.Length} fixtures.", this);
         }
 #endif
 
@@ -374,7 +374,7 @@ namespace ArtNet.Runtime
             var fixtures = FindAllFixtures(includeInactive: true);
             if (fixtures == null || fixtures.Length == 0)
             {
-                Debug.LogWarning("[DmxRigController] No fixtures found for restore.");
+                Debug.LogWarning("[DMX Rig Controller] No fixtures found for restore.");
                 return;
             }
 
@@ -388,7 +388,7 @@ namespace ArtNet.Runtime
                 restored++;
             }
 
-            Debug.Log($"[DmxRigController] Restored fixture defaults from prefab: {restored}");
+            Debug.Log($"[DMX Rig Controller] Restored fixture defaults from prefab: {restored}");
         }
 #endif
 
@@ -417,7 +417,7 @@ namespace ArtNet.Runtime
 
             if (targets.Count == 0)
             {
-                Debug.LogWarning("[DmxRigController] No fixtures resolved for auto addressing.");
+                Debug.LogWarning("[DMX Rig Controller] No fixtures resolved for auto addressing.");
                 return;
             }
 
@@ -444,13 +444,13 @@ namespace ArtNet.Runtime
 
                         if (curAddr + chCount - 1 > 512)
                         {
-                            Debug.LogWarning($"[DmxRigController] Address overflow at '{f.name}' (chCount={chCount}) even after universe increment. Stop.");
+                            Debug.LogWarning($"[DMX Rig Controller] Address overflow at '{f.name}' (chCount={chCount}) even after universe increment. Stop.");
                             break;
                         }
                     }
                     else
                     {
-                        Debug.LogWarning($"[DmxRigController] Address overflow at '{f.name}'. autoIncrementUniverse=false, stop.");
+                        Debug.LogWarning($"[DMX Rig Controller] Address overflow at '{f.name}'. autoIncrementUniverse=false, stop.");
                         break;
                     }
                 }

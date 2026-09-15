@@ -17,7 +17,7 @@ namespace ArtNet.Runtime
     public class DmxDebugMonitor : MonoBehaviour
     {
         [Header("Source")]
-        [Tooltip("購読対象の ArtNetReceiver（未設定なら同一GameObjectから自動取得）")]
+        [Tooltip("購読対象のArtNetReceiver（未設定なら同一GameObjectから自動取得）\nArtNetReceiver to subscribe to. If unset, it is obtained automatically from this GameObject.")]
         public ArtNetReceiver receiver;
 
         [Header("Monitor Channels (1-512)")]
@@ -35,20 +35,20 @@ namespace ArtNet.Runtime
         [SerializeField, Range(0, 255)] private int ch5;
 
         [Header("Optional Filter")]
-        [Tooltip("特定Universeのみ処理したい場合に設定。-1 でフィルタ無効")]
+        [Tooltip("特定Universeのみ処理したい場合に設定。-1でフィルタ無効\nSet this to process only one Universe. Use -1 to disable filtering.")]
         public int onlyUniverse = -1;
 
         [Header("Periodic Logging (Flood Protection)")]
-        [Tooltip("一定間隔で受信データを要約ログ表示します（ログ洪水対策あり）")]
+        [Tooltip("一定間隔で受信データを要約ログ表示します（ログ洪水対策あり）\nLogs received-data summaries at a fixed interval, with log-flood protection.")]
         [SerializeField] private bool enablePeriodicLog = false;
 
-        [Tooltip("ログを出す間隔（秒）。例：1.0 で1秒ごと")]
+        [Tooltip("ログを出す間隔（秒）。例：1.0で1秒ごと\nLog interval in seconds. For example, 1.0 logs once per second.")]
         [SerializeField, Min(0.1f)] private float logIntervalSec = 1.0f;
 
-        [Tooltip("受信が無い間隔はログしない（無駄ログ抑制）")]
+        [Tooltip("受信が無い間隔はログしない（無駄ログ抑制）\nDoes not log intervals in which no data was received.")]
         [SerializeField] private bool logOnlyWhenDataArrived = true;
 
-        [Tooltip("ログの先頭にヘッダー（Universe/Length等）を含める")]
+        [Tooltip("ログの先頭にヘッダー（Universe/Length等）を含める\nIncludes a header, such as Universe and Length, at the start of each log.")]
         [SerializeField] private bool includeHeaderInLog = true;
 
         private float _nextLogTime;
@@ -104,7 +104,7 @@ namespace ArtNet.Runtime
         {
             var sb = new StringBuilder(256);
 
-            sb.Append("[DmxDebugMonitor] ");
+            sb.Append("[DMX Debug Monitor] ");
 
             if (includeHeaderInLog)
             {

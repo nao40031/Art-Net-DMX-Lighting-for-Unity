@@ -105,10 +105,10 @@ namespace ArtNet.Runtime
         public DmxRigController rig;
 
         [Header("Sources")]
-        [Tooltip("Auto Discover in Childrenボタンで検索する親Transformです。")]
+        [Tooltip("Auto Discover in Childrenボタンで検索する親Transformです。\nParent Transform searched by the Auto Discover in Children button.")]
         public Transform universeRoot;
 
-        [Tooltip("Timeline Playbackで使用するUniverseとArtNetChannelsの対応表です。")]
+        [Tooltip("Timeline Playbackで使用するUniverseとArtNetChannelsの対応表です。\nMapping between Universes and ArtNetChannels used by Timeline Playback.")]
         public List<UniverseSource> sources = new();
 
         [Header("Playback")]
@@ -117,7 +117,7 @@ namespace ArtNet.Runtime
         public bool enableInEditMode = true;
         public UpdateTiming updateTiming = UpdateTiming.Update;
 
-        [Tooltip("0�Ȃ疈�t���[���B��: 40 �� 40Hz �X�V")]
+        [Tooltip("0の場合は毎フレーム更新。例: 40なら40Hz更新。\nUse 0 to update every frame. For example, 40 updates at 40 Hz.")]
         [Min(0f)] public float sampleRate = 0f;
         [Header("Live Compatibility")]
         [Tooltip("Align playback timing with live input conditions.")]
@@ -128,7 +128,7 @@ namespace ArtNet.Runtime
         public bool applyDefaultSampleRateWhenZero = true;
         [Tooltip("Default live-compatible sample rate (typically 40 or 44).")]
         [Min(1f)] public float defaultLiveSampleRate = 40f;
-        [Tooltip("OnEnable���ɒl������K�p�i�S��0�ł��x�����j")]
+        [Tooltip("OnEnable時に値を強制適用します（全値が0でも適用）。\nForces values to be applied on OnEnable, even when all values are 0.")]
         public bool forceApplyOnEnable = true;
 
         [Tooltip("When false, initial Tick won't inject if channels unchanged (prevents zeroing on start).")]
@@ -183,7 +183,7 @@ namespace ArtNet.Runtime
             ApplyLiveCompatibilitySettings();
             RebuildStates();
             if (_states.Count == 0 && logMissingRig)
-                Debug.LogWarning("[DmxTimelinePlayback] Sources is empty. Add ArtNetChannels to Sources.", this);
+                Debug.LogWarning("[DMX Timeline Playback] Sources is empty. Add ArtNetChannels to Sources.", this);
             if (!Application.isPlaying && enableInEditMode && rig != null)
                 rig.DiscoverAndInitializeAllFixtures();
             _nextSampleTime = 0f;
@@ -349,7 +349,7 @@ namespace ArtNet.Runtime
                 rig = GetComponent<DmxRigController>();
 
             if (rig == null && logMissingRig)
-                Debug.LogWarning("[DmxTimelinePlayback] DmxRigController is missing.", this);
+                Debug.LogWarning("[DMX Timeline Playback] DMX Rig Controller is missing.", this);
         }
 
         private void RebuildStates()
