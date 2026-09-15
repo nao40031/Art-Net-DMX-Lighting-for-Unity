@@ -50,11 +50,51 @@ VLB版Prefabはパッケージ本体に同梱されています。Volumetric Lig
 
 ```text
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/HDRP/VLB/MovingLight_withGobo(MAC Ultra)_VLB_HDRP.prefab
-Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/パーライト/ライト付きPrefab/HDRP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_HDRP.prefab
-Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/パーライト/ライト付きPrefab/URP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_URP.prefab
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/ParLight/Prefab with Lights/HDRP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_HDRP.prefab
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/ParLight/Prefab with Lights/URP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_URP.prefab
 ```
 
 VLBはこのパッケージの依存関係・同梱物ではありません。VLBを導入せずにVLB版Prefabを配置するとMissing Scriptが表示される可能性があります。VLBなしでも、`Prefab/HDRP` のHDRP版PrefabとArt-Net/DMX機能は利用できます。
+
+通常PrefabへVLBを追加する場合は、`Art-Net > VLB > URP Setup` を開きます。Setup TargetへPrefab AssetまたはルートGameObjectを登録し、SD / HDを選択して **Apply VLB SD/HD to Target Lights** を実行してください。
+
+### Beam DMX Sync
+
+`DmxFixtureComponent` の **Beam Render** には、Light / Pseudo Beam / VLBで共通のDMX同期設定があります。現在の **Beam Render Mode** に応じて対象表現へ適用されます。
+
+- **Sync Beam Color To Dmx**: OFFではPrefabに保存された初期色を維持します。ParLight VLB Prefabは暖色初期値を使うためOFFです。
+- **Sync Beam Dimmer To Dmx**: DimmerによるLight・ビーム光量の同期。
+- **Sync Beam Gobo To Dmx** / **Sync Beam Gobo Rotation To Dmx**: Light Cookie、Pseudo Beam、VLB Cookieへのゴボ同期。
+- **Sync Beam Zoom To Dmx**: Spot Angleとビーム形状の同期。
+- **Sync Beam Prism To Dmx**: Pseudo BeamまたはVLBのプリズム表現の同期。Normalモードでは効果はありません。
+
+### Gobo Lens Material Setup
+
+ゴボ付きムービングライトでは、レンズ面へDMXの色・ディマー・ゴボテクスチャ・回転を反映できます。HDRPとURPにはそれぞれ専用の共有マテリアルがあり、実行中のマテリアル差し替えは行いません。必要な場合だけ、Prefabまたはシーン上の灯体を選択して事前セットアップしてください。
+
+1. ゴボ対応の `DmxFixtureComponent` を選択します。
+2. Inspectorの **Lens (ShaderGraph DMX Sync)** を開き、**Lens Gobo** の各設定を確認します。
+3. **Gobo Lens Material Setup** の **Setup Gobo Lens Material** を押します。
+   - 現在のRender Pipelineを自動判定し、HDRPでは `GoboLensSurface_HDRP`、URPでは `GoboLensSurface_URP` を登録済みRendererスロットへ割り当てます。
+   - 元のマテリアルは **Original Material** に保存され、必要に応じて **Restore Original Materials** で戻せます。
+4. **Validate Gobo Lens Setup** を押し、現在のパイプラインに合うマテリアルが設定されていることをConsoleで確認します。
+
+同梱の `MovingLight_withGobo` Prefab（HDRP 3種、URP 4種）はあらかじめ設定済みです。**Lens Material Bindings** に `Assigned Gobo Lens Material` が表示されていれば割り当て済みで、未設定時は `None (Material)` と表示されます。
+
+**Lens Gobo** の主な調整項目:
+
+- **Gobo Lens Emission**: レンズの発光強度。
+- **Gobo Lens Scale**: レンズUV内でのゴボ模様の大きさ。`1` が基準です。
+- **Lens Gobo Blur**: ゴボ模様のぼかし。`0` はシャープで、範囲は `0–0.02` です。
+- **Gobo Lens Horizontal / Vertical Offset**: レンズUV中央を基準にした模様位置の手動調整。
+- **Lens Gobo Rotation Direction**: レンズ面の回転方向。`Normal` は床面投影と同方向、`Reverse` は逆方向です。
+- **Lens Prism Gobo Mode**: プリズム有効時、Facet数・拡散量・プリズム回転に追従して、レンズ面のゴボを縮小コピーします。コピー間隔は **Prism Gobo Spacing Mode**（Manual / Auto）と **Manual Prism Gobo Spacing Scale** の最終倍率に連動します。ONが既定です。OFFでは単一ゴボ表示を維持します。
+- **Lens Aperture Feather**: レンズ開口の端に近づくほどゴボ模様を弱める幅。`0` ではメッシュ境界で明確に見切れます。
+- **Gobo Lens Hotspot Strength**: ゴボ有効時にもレンズ中央へ残すハイライト強度。
+
+#### English summary
+
+Use **Setup Gobo Lens Material** to assign the correct shared lens material for the active HDRP or URP pipeline. The operation is an Editor-time setup only; no material replacement occurs at runtime. Use **Validate Gobo Lens Setup** to verify assignments, and **Restore Original Materials** to revert them. Included `MovingLight_withGobo` prefabs are already configured.
 
 ## 前提
 

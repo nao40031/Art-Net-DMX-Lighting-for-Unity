@@ -949,10 +949,12 @@ MonoBehaviour:
   beamRenderMode: 1
   syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
   beamRenderer: {fileID: 7341186712468150204}
   extraBeamRenderers: []
   syncBeamColorToDmx: 0
   syncBeamDimmerToDmx: 1
+  syncBeamGoboRotationToDmx: 1
   syncBeamPrismToDmx: 1
   syncBeamZoomToDmx: 1
   syncBeamNoiseVolumeToBeam: 1

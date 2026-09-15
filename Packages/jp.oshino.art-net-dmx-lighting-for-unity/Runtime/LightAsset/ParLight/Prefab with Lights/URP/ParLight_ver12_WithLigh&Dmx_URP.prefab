@@ -532,31 +532,13 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 0}
   tiltTransform: {fileID: 0}
-  lensRenderer: {fileID: 6976303601353376417}
-  extraLensRenderers: []
-  syncLensToDmx: 1
-  syncLensColorToDmx: 0
-  syncLensDimmerToDmx: 1
-  lensColorProperty: _DmxColor
-  lensDimmerProperty: _DmxDimmer
-  lensDimmerScale: 1
-  goboWheel: {fileID: 0}
-  syncLightCookieToGobo: 1
-  syncLensGoboToDmx: 1
-  syncBeamGoboToDmx: 1
-  maxGoboRotateDegPerSec: 360
-  enableGoboShake: 1
-  syncGoboRotationToCookieTransform: 1
-  goboCookieRollTransform: {fileID: 0}
-  goboCookieRollAxis: {x: 0, y: 0, z: 1}
-  goboCookieRollOffsetDeg: 0
-  lensGoboTextureProperty: _GoboTexture
-  lensGoboRotationProperty: _GoboRotationDeg
-  lensGoboEnabledProperty: _GoboEnabled
-  beamGoboTextureProperty: _GoboTexture
-  beamGoboRotationProperty: _GoboRotationDeg
-  beamGoboEnabledProperty: _GoboEnabled
   beamRenderMode: 1
+  syncBeamColorToDmx: 0
+  syncBeamDimmerToDmx: 1
+  syncBeamGoboToDmx: 1
+  syncBeamGoboRotationToDmx: 1
+  syncBeamPrismToDmx: 1
+  syncBeamZoomToDmx: 1
   overrideVlbHdIntensityMultiplier: 1
   vlbHdIntensityMultiplier: 0.01
   overrideVlbSdIntensityMultiplier: 1
@@ -565,13 +547,10 @@ MonoBehaviour:
   vlbHdrpExposureWeight: 0
   syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
   _vlbPipelineDefaultsInitialized: 1
   beamRenderer: {fileID: 7341186712468150204}
-  extraBeamRenderers: []
-  syncBeamColorToDmx: 1
-  syncBeamDimmerToDmx: 1
-  syncBeamPrismToDmx: 1
-  syncBeamZoomToDmx: 1
+  extraPseudoBeamRenderers: []
   syncBeamNoiseVolumeToBeam: 1
   beamColorProperty: _DmxColor
   beamDimmerProperty: _DmxDimmer
@@ -617,6 +596,41 @@ MonoBehaviour:
   beamSoftShellIntensity: 0.2
   beamSoftShellEdgeSoftness: 0.9
   beamSoftShellNoiseStrength: 0.25
+  lensRenderer: {fileID: 6976303601353376417}
+  extraLensRenderers: []
+  lensMaterialBindings: []
+  syncLensToDmx: 1
+  syncLensColorToDmx: 0
+  syncLensDimmerToDmx: 1
+  lensColorProperty: _DmxColor
+  lensDimmerProperty: _DmxDimmer
+  lensDimmerScale: 1
+  lensApertureFeather: 0
+  syncLensGoboToDmx: 1
+  lensGoboTextureProperty: _GoboTexture
+  lensGoboRotationProperty: _GoboRotationDeg
+  lensGoboEnabledProperty: _GoboEnabled
+  lensGoboRotationDirection: 0
+  lensGoboShakeDirection: 0
+  lensPrismGoboMode: 1
+  legacyUseDedicatedGoboLensShader: 0
+  goboLensEmission: 2
+  goboLensScale: 1
+  goboLensBlur: 0
+  goboLensHorizontalOffset: 0
+  goboLensVerticalOffset: 0
+  goboLensHotspotStrength: 0.35
+  goboWheel: {fileID: 0}
+  syncLightCookieToGobo: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 0}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
+  beamGoboTextureProperty: _GoboTexture
+  beamGoboRotationProperty: _GoboRotationDeg
+  beamGoboEnabledProperty: _GoboEnabled
   syncZoomToLight: 1
   minOuterSpotAngle: 5
   maxOuterSpotAngle: 50
@@ -638,8 +652,8 @@ MonoBehaviour:
   auxiliaryIntensityScale: 1
   auxiliaryVolumetricIntensityScale: 1
   prismBrightnessDistribution: 1
-  prismZoomCorrection: 0
-  prismGoboSpacingScale: 1
+  prismGoboSpacingMode: 0
+  manualPrismGoboSpacingScale: 1
   prismGoboScaleVlb: 1
   auxiliaryLightShadows: 0
   prismCookieShader: {fileID: 0}
@@ -649,7 +663,7 @@ MonoBehaviour:
   halogenBeamOnDelay: 0
   halogenBeamOffDelay: 0
   halogenBeamRiseTime: 0.5
-  halogenBeamFallTime: 0.5
+  halogenBeamFallTime: 0.8
   panRangeDeg: 540
   tiltRangeDeg: 270
   pipelineMode: 1

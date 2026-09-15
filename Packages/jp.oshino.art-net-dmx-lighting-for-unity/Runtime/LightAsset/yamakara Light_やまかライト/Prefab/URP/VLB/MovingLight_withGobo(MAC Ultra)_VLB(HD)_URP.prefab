@@ -389,7 +389,7 @@ PrefabInstance:
     - target: {fileID: -7823613260035186992, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
+      objectReference: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
     - target: {fileID: 919132149155446097, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
       propertyPath: m_Name
       value: MovingLight_withGobo(MAC Ultra)_VLB(HD)_URP
@@ -473,6 +473,11 @@ MonoBehaviour:
   lensRenderer: {fileID: 0}
   extraLensRenderers:
   - {fileID: 2523771333444109262}
+  lensMaterialBindings:
+  - renderer: {fileID: 2523771333444109262}
+    materialSlot: 0
+    originalMaterial: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
+    goboLensMaterial: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
   syncLensToDmx: 1
   syncLensColorToDmx: 1
   syncLensDimmerToDmx: 1
@@ -492,6 +497,8 @@ MonoBehaviour:
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
   lensGoboEnabledProperty: _GoboEnabled
+  lensGoboRotationDirection: 0
+  lensPrismGoboMode: 1
   beamGoboTextureProperty: _GoboTexture
   beamGoboRotationProperty: _GoboRotationDeg
   beamGoboEnabledProperty: _GoboEnabled
