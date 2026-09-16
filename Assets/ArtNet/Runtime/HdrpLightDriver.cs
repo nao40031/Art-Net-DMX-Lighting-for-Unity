@@ -37,7 +37,12 @@ namespace ArtNet.Runtime
         private Light _light;
         private HDAdditionalLightData _hd;
         private Color _initialColor;
+        private float _initialIntensity;
+        private Texture _initialCookie;
+        private Vector2 _initialSpotAngles;
         private bool _hasInitialColor;
+
+        public float InitialIntensity => _hasInitialColor ? _initialIntensity : (_light != null ? _light.intensity : 0f);
 
         public void Initialize(Light targetLight)
         {
@@ -49,6 +54,9 @@ namespace ArtNet.Runtime
             if (_light != null && !_hasInitialColor)
             {
                 _initialColor = _light.color;
+                _initialIntensity = _light.intensity;
+                _initialCookie = _light.cookie;
+                _initialSpotAngles = new Vector2(_light.spotAngle, _light.innerSpotAngle);
                 _hasInitialColor = true;
             }
         }
@@ -58,7 +66,7 @@ namespace ArtNet.Runtime
             if (_light == null) return;
 
             float d = ApplyCurve(state.lightDimmer01);
-            float intensity = d * maxIntensity;
+            float intensity = state.forceLightOff ? 0f : (state.syncLightDimmerToDmx ? d * maxIntensity : _initialIntensity);
             Texture cookie = state.goboEnabled ? state.goboTexture : Texture2D.whiteTexture;
 
             _light.color = state.syncLightColorToDmx ? state.color : _initialColor;
@@ -67,26 +75,57 @@ namespace ArtNet.Runtime
             {
                 try
                 {
-                    _hd.SetIntensity(intensity, ToLightUnit(unit));
-                    _hd.SetCookie(cookie);
-                    if (state.zoomEnabled)
+                    if (state.forceLightOff || state.syncLightDimmerToDmx)
+                        _hd.SetIntensity(intensity, ToLightUnit(unit));
+                    if (state.syncLightGoboToDmx)
+                        _hd.SetCookie(cookie);
+                    else
+                        _hd.SetCookie(_initialCookie != null ? _initialCookie : Texture2D.whiteTexture);
+                    if (state.syncLightZoomToDmx && state.zoomEnabled)
                     {
                         _hd.SetSpotAngle(Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f));
                         _hd.innerSpotPercent = Mathf.Clamp(state.innerSpotPercent, 0f, 100f);
                     }
+                    else if (!state.syncLightZoomToDmx)
+                    {
+                        _hd.SetSpotAngle(_initialSpotAngles.x);
+                        _hd.innerSpotPercent = _initialSpotAngles.x > 0f
+                            ? _initialSpotAngles.y / _initialSpotAngles.x * 100f
+                            : 0f;
+                    }
                 }
                 catch
                 {
-                    _light.intensity = intensity;
-                    _light.cookie = state.goboEnabled ? state.goboTexture : null;
-                    ApplyGenericZoom(state);
+                    if (state.forceLightOff || state.syncLightDimmerToDmx)
+                        _light.intensity = intensity;
+                    if (state.syncLightGoboToDmx)
+                        _light.cookie = state.goboEnabled ? state.goboTexture : null;
+                    else
+                        _light.cookie = _initialCookie;
+                    if (state.syncLightZoomToDmx)
+                        ApplyGenericZoom(state);
+                    else
+                    {
+                        _light.spotAngle = _initialSpotAngles.x;
+                        _light.innerSpotAngle = _initialSpotAngles.y;
+                    }
                 }
             }
             else
             {
-                _light.intensity = intensity;
-                _light.cookie = state.goboEnabled ? state.goboTexture : null;
-                ApplyGenericZoom(state);
+                if (state.forceLightOff || state.syncLightDimmerToDmx)
+                    _light.intensity = intensity;
+                if (state.syncLightGoboToDmx)
+                    _light.cookie = state.goboEnabled ? state.goboTexture : null;
+                else
+                    _light.cookie = _initialCookie;
+                if (state.syncLightZoomToDmx)
+                    ApplyGenericZoom(state);
+                else
+                {
+                    _light.spotAngle = _initialSpotAngles.x;
+                    _light.innerSpotAngle = _initialSpotAngles.y;
+                }
             }
         }
 

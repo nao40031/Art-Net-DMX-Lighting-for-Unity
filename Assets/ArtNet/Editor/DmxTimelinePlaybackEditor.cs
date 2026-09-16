@@ -6,7 +6,9 @@
  */
 
 using ArtNet.Runtime;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace ArtNet.Editor
@@ -18,7 +20,34 @@ namespace ArtNet.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            DrawDefaultInspector();
+
+            var script = serializedObject.FindProperty("m_Script");
+            var rig = serializedObject.FindProperty("rig");
+            var universeRoot = serializedObject.FindProperty("universeRoot");
+            var sources = serializedObject.FindProperty("sources");
+
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.PropertyField(script);
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Target", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(rig);
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Sources", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(universeRoot);
+            EditorGUILayout.PropertyField(sources, includeChildren: true);
+            serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.HelpBox(
+                "Scans active ArtNetChannels components under Universe Root and replaces Sources only when every Universe number is valid and unique.",
+                MessageType.Info);
+
+            if (GUILayout.Button("Auto Discover in Children"))
+                DiscoverSourcesInChildren();
+
+            serializedObject.Update();
+            DrawPropertiesExcluding(serializedObject, "m_Script", "rig", "universeRoot", "sources");
             serializedObject.ApplyModifiedProperties();
 
             EditorGUILayout.Space(8f);
@@ -36,6 +65,42 @@ namespace ArtNet.Editor
                 if (GUILayout.Button("Apply Timeline Playback"))
                     ApplyTimelinePlaybackPreset();
             }
+        }
+
+        private void DiscoverSourcesInChildren()
+        {
+            const string undoName = "Auto Discover Timeline Universe Sources";
+            var messages = new List<string>();
+            bool allSucceeded = true;
+
+            foreach (var obj in targets)
+            {
+                var playback = obj as DmxTimelinePlayback;
+                if (playback == null) continue;
+
+                Undo.RecordObject(playback, undoName);
+                var result = playback.DiscoverSourcesInChildren();
+                allSucceeded &= result.succeeded;
+
+                if (result.succeeded)
+                {
+                    if (PrefabUtility.IsPartOfPrefabInstance(playback))
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(playback);
+
+                    EditorUtility.SetDirty(playback);
+                    var scene = playback.gameObject.scene;
+                    if (scene.IsValid() && scene.isLoaded && !Application.isPlaying)
+                        EditorSceneManager.MarkSceneDirty(scene);
+                }
+
+                messages.Add($"{playback.gameObject.name}\n{result.BuildMessage()}");
+            }
+
+            serializedObject.Update();
+            EditorUtility.DisplayDialog(
+                allSucceeded ? "ArtNet Universe Sources Registered" : "ArtNet Universe Source Discovery",
+                string.Join("\n\n", messages),
+                "OK");
         }
 
         private void ApplyLiveRecordPreset()

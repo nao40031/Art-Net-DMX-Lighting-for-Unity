@@ -14,12 +14,23 @@ namespace ArtNet.Runtime
         public float lightDimmer01;
         public float lensDimmer01;
         public Color color;
-        // Sync Beam Color To DMX の値。実ライトもPseudo Beamと同じ設定に従う。
+        // Sync Beam * To DMX の値。実ライト、Pseudo Beam、VLBは同じ設定に従う。
         public bool syncLightColorToDmx;
+        public bool syncLightDimmerToDmx;
+        public bool syncLightGoboToDmx;
+        public bool syncLightGoboRotationToDmx;
+        public bool syncLightZoomToDmx;
+        public bool syncBeamPrismToDmx;
+        // Prism auxiliary rendering can replace the primary light even when Dimmer sync is disabled.
+        public bool forceLightOff;
         public bool goboEnabled;
         public Texture goboTexture;
         public float goboRotationDeg;
         public Vector2 goboOffsetUv;
+        // Kept separate so the lens can choose the visual direction of shake
+        // without changing the floor projection or beam state.
+        public float goboShakeRotationOffsetDeg;
+        public Vector2 goboShakeOffsetUv;
         public Vector2 beamShakeAngleDeg;
         public bool zoomEnabled;
         public float outerSpotAngleDeg;

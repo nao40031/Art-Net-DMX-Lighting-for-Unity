@@ -53,119 +53,8 @@ namespace ArtNet.Runtime
         public Transform panTransform;
         public Transform tiltTransform;
 
-
         // ------------------------------------------------------------
-        // Lens (ShaderGraph DMX Sync)
-        // ------------------------------------------------------------
-
-        [Header("Lens (ShaderGraph DMX Sync)")]
-        [Tooltip("レンズ面のRenderer。ShaderGraph側に _DmxColor(Color) / _DmxDimmer(Float) がある前提です。\nRenderer for the lens surface. The Shader Graph must provide _DmxColor (Color) and _DmxDimmer (Float).")]
-        [SerializeField] private Renderer lensRenderer;
-
-        [Tooltip("レンズが複数Rendererに分かれる場合の追加登録（任意）。\nOptional additional Renderers when the lens is split across multiple Renderers.")]
-        [SerializeField] private Renderer[] extraLensRenderers;
-
-        [Tooltip("レンズへDMX同期を行います。\nSynchronizes DMX data to the lens.")]
-        [InspectorName("Sync Lens To DMX")]
-        [SerializeField] private bool syncLensToDmx = true;
-        [InspectorName("Sync Lens Color To DMX")]
-        [SerializeField] private bool syncLensColorToDmx = true;
-        [InspectorName("Sync Lens Dimmer To DMX")]
-        [SerializeField] private bool syncLensDimmerToDmx = true;
-
-        [Tooltip("ShaderGraphのColorプロパティ名（例: _DmxColor）。\nShader Graph Color property name, for example _DmxColor.")]
-        [SerializeField] private string lensColorProperty = "_DmxColor";
-
-        [Tooltip("ShaderGraphのFloatプロパティ名（例: _DmxDimmer）。\nShader Graph Float property name, for example _DmxDimmer.")]
-        [SerializeField] private string lensDimmerProperty = "_DmxDimmer";
-
-        [Tooltip("Dimmer（0-1）に掛ける倍率。レンズの明るさ調整用。\nMultiplier applied to Dimmer (0-1), used to adjust lens brightness.")]
-        [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
-
-        [Tooltip("レンズ開口の端で模様を弱める幅。0はメッシュ境界で明確に見切れます。\nWidth used to soften the pattern at the lens aperture edge. At 0, it is sharply clipped at the mesh boundary.")]
-        [FormerlySerializedAs("goboLensEdgeFeather")]
-        [SerializeField, Range(0f, 0.5f)] private float lensApertureFeather = 0f;
-
-        [Header("Lens Gobo")]
-        [Tooltip("レンズ表現へゴボを同期します。\nSynchronizes the gobo to the lens representation.")]
-        [InspectorName("Sync Lens Gobo To DMX")]
-        [SerializeField] private bool syncLensGoboToDmx = true;
-
-        [Tooltip("レンズ用ゴボTextureプロパティ名。\nGobo Texture property name for the lens.")]
-        [SerializeField] private string lensGoboTextureProperty = "_GoboTexture";
-
-        [Tooltip("レンズ用ゴボ回転プロパティ名。\nGobo rotation property name for the lens.")]
-        [SerializeField] private string lensGoboRotationProperty = "_GoboRotationDeg";
-
-        [Tooltip("レンズ用ゴボ有効プロパティ名。\nGobo enabled property name for the lens.")]
-        [SerializeField] private string lensGoboEnabledProperty = "_GoboEnabled";
-
-        [Tooltip("有効時、ゴボ対応HDRPレンズシェーダーへ実行時に切り替えます。既存のレンズMeshとDMX同期は維持されます。\nWhen enabled, switches to an HDRP lens shader that supports gobos at runtime. Existing lens Mesh and DMX synchronization are retained.")]
-        [SerializeField] private bool useDedicatedGoboLensShader = true;
-
-        [Tooltip("レンズ上のゴボ発光の強さ。HDRP Exposure設定に応じて調整してください。\nGobo emission intensity on the lens. Adjust it for the HDRP Exposure settings.")]
-        [SerializeField, Min(0f)] private float goboLensEmission = 2f;
-
-        [Tooltip("レンズ内におけるゴボの大きさ。1が基準サイズです。\nGobo size within the lens. A value of 1 is the reference size.")]
-        [SerializeField, Range(0.1f, 3f)] private float goboLensScale = 1f;
-
-        [Tooltip("レンズ上のゴボ模様全体のぼかし幅。0はシャープです。\nOverall blur width of the gobo pattern on the lens. A value of 0 is sharp.")]
-        [InspectorName("Lens Gobo Blur")]
-        [SerializeField, Range(0f, 0.02f)] private float goboLensBlur = 0f;
-
-        [Tooltip("レンズ面UVの中央からの左右オフセット。ゴボShakeの移動量へ加算されます。\nHorizontal offset from the center of the lens UV. Added to the gobo Shake movement.")]
-        [SerializeField, Range(-1f, 1f)] private float goboLensHorizontalOffset = 0f;
-
-        [Tooltip("レンズ面UVの中央からの上下オフセット。ゴボShakeの移動量へ加算されます。\nVertical offset from the center of the lens UV. Added to the gobo Shake movement.")]
-        [SerializeField, Range(-1f, 1f)] private float goboLensVerticalOffset = 0f;
-
-        [Tooltip("ゴボ有効時にも残すレンズ中央のハイライト強度。\nCenter-highlight intensity retained on the lens while a gobo is enabled.")]
-        [SerializeField, Min(0f)] private float goboLensHotspotStrength = 0.35f;
-
-        // ------------------------------------------------------------
-        // Gobo
-        // ------------------------------------------------------------
-
-        [Header("Gobo")]
-        [Tooltip("DMX値とゴボテクスチャを対応付ける定義。\nDefinition that maps DMX values to gobo Textures.")]
-        [SerializeField] private GoboWheelDefinition goboWheel;
-
-        [Tooltip("ライトのcookieへゴボを同期します。\nSynchronizes the gobo to the Light cookie.")]
-        [SerializeField] private bool syncLightCookieToGobo = true;
-
-        [Tooltip("ビーム表現へゴボを同期します。\nSynchronizes the gobo to the beam representation.")]
-        [InspectorName("Sync Beam Gobo To DMX")]
-        [SerializeField] private bool syncBeamGoboToDmx = true;
-
-        [Tooltip("GoboRotation=255のときの角速度（deg/sec）。\nAngular velocity at GoboRotation = 255, in degrees per second.")]
-        [SerializeField, Min(0f)] private float maxGoboRotateDegPerSec = 360f;
-
-        [Tooltip("Gobo WheelのShake範囲をゴボ回転角の往復揺れとして反映します。\nApplies the Gobo Wheel Shake range as an oscillation of the gobo rotation angle.")]
-        [SerializeField] private bool enableGoboShake = true;
-
-        [Tooltip("ゴボ回転をLight Cookie用Transformのロール回転へ同期します。\nSynchronizes gobo rotation to the roll rotation of the Light Cookie Transform.")]
-        [SerializeField] private bool syncGoboRotationToCookieTransform = true;
-
-        [Tooltip("Light Cookieを回転させるTransform。通常はSpot Light本体のTransformを指定します。\nTransform used to rotate the Light Cookie. Normally assign the Spot Light Transform.")]
-        [SerializeField] private Transform goboCookieRollTransform;
-
-        [Tooltip("Cookie Transformを回転させるローカル軸。通常はZ軸です。\nLocal axis used to rotate the Cookie Transform. Normally this is the Z axis.")]
-        [SerializeField] private Vector3 goboCookieRollAxis = Vector3.forward;
-
-        [Tooltip("Cookie Transformへ加算する固定ロール角度補正（deg）。\nFixed roll-angle correction in degrees added to the Cookie Transform.")]
-        [SerializeField] private float goboCookieRollOffsetDeg = 0f;
-
-        [Tooltip("ビーム用ゴボTextureプロパティ名。\nGobo Texture property name for the beam.")]
-        [SerializeField] private string beamGoboTextureProperty = "_GoboTexture";
-
-        [Tooltip("ビーム用ゴボ回転プロパティ名。\nGobo rotation property name for the beam.")]
-        [SerializeField] private string beamGoboRotationProperty = "_GoboRotationDeg";
-
-        [Tooltip("ビーム用ゴボ有効プロパティ名。\nGobo enabled property name for the beam.")]
-        [SerializeField] private string beamGoboEnabledProperty = "_GoboEnabled";
-
-        // ------------------------------------------------------------
-        // Pseudo Beam (for Volumetrics OFF)
+        // Beam Render
         // ------------------------------------------------------------
 
         public enum BeamRenderMode
@@ -175,10 +64,42 @@ namespace ArtNet.Runtime
             VolumetricLightBeam
         }
 
+        public enum LensGoboRotationDirection
+        {
+            Normal = 0,
+            Reverse = 1
+        }
+
+        public enum LensGoboShakePositionDirection
+        {
+            Normal = 0,
+            Reverse = 1
+        }
+
+        public enum LensGoboShakeRotationDirection
+        {
+            Normal = 0,
+            Reverse = 1
+        }
+
         [Header("Beam Render")]
         [Tooltip("照明ビームの描画方式。VLBのHD/SDはPrefabに付与されたコンポーネントで自動判定します。\nRendering method for the lighting beam. VLB HD or SD is detected automatically from components on the Prefab.")]
         [SerializeField] private BeamRenderMode beamRenderMode = BeamRenderMode.Normal;
 
+        [Header("Beam DMX Sync")]
+        [Tooltip("Beam Render Modeに応じて、Unity Light、VLB、またはPseudo BeamへのDMX連動を有効にします。\nEnables DMX synchronization for Unity Light, VLB, or Pseudo Beam according to Beam Render Mode.")]
+        [InspectorName("Sync Beam Color To DMX")]
+        [SerializeField] private bool syncBeamColorToDmx = true;
+        [InspectorName("Sync Beam Dimmer To DMX")]
+        [SerializeField] private bool syncBeamDimmerToDmx = true;
+        [InspectorName("Sync Beam Gobo To DMX")]
+        [SerializeField] private bool syncBeamGoboToDmx = true;
+        [InspectorName("Sync Beam Gobo Rotation To DMX")]
+        [SerializeField] private bool syncBeamGoboRotationToDmx = true;
+        [InspectorName("Sync Beam Prism To DMX")]
+        [SerializeField] private bool syncBeamPrismToDmx = true;
+        [InspectorName("Sync Beam Zoom To DMX")]
+        [SerializeField] private bool syncBeamZoomToDmx = true;
         [Header("VLB Overrides")]
         [Tooltip("有効時、VolumetricLightBeamHDのIntensity Multiplierをこの値で上書きします。\nWhen enabled, overrides VolumetricLightBeamHD Intensity Multiplier with this value.")]
         [SerializeField] private bool overrideVlbHdIntensityMultiplier = true;
@@ -197,6 +118,7 @@ namespace ArtNet.Runtime
 
         [SerializeField, HideInInspector] private bool syncPseudoBeamToDmx = false;
         [SerializeField, HideInInspector] private bool _beamRenderModeMigrated;
+        [SerializeField, HideInInspector] private bool _beamSyncSettingsMigrated;
         [SerializeField, HideInInspector] private bool _vlbPipelineDefaultsInitialized;
 
         [Header("Pseudo Beam Shader")]
@@ -204,23 +126,21 @@ namespace ArtNet.Runtime
         [InspectorName("Pseudo Beam Renderer")]
         [SerializeField] private Renderer beamRenderer;
 
-        [Tooltip("Pseudo Beam Shader用Rendererが複数ある場合の追加Renderer。VLBモードでは使用しません。\nAdditional Renderers for the Pseudo Beam Shader. Not used in VLB mode.")]
-        [InspectorName("Extra Pseudo Beam Renderers")]
-        [SerializeField] private Renderer[] extraBeamRenderers;
+        [Tooltip("Pseudo Beam Shader用Rendererが複数ある場合の追加Renderer。VLBモードでは使用しません。\nAdditional renderers used when the Pseudo Beam Shader spans multiple renderers. Not used in VLB mode.")]
+        [UnityEngine.Serialization.FormerlySerializedAs("extraBeamRenderers")]
+        [SerializeField] private Renderer[] extraPseudoBeamRenderers;
 
-        [InspectorName("Sync Pseudo Beam Color To DMX")]
-        [SerializeField] private bool syncBeamColorToDmx = true;
-        [InspectorName("Sync Pseudo Beam Dimmer To DMX")]
-        [SerializeField] private bool syncBeamDimmerToDmx = true;
-        [InspectorName("Sync Pseudo Beam Prism To DMX")]
-        [SerializeField] private bool syncBeamPrismToDmx = true;
-        [InspectorName("Sync Pseudo Beam Zoom To DMX")]
-        [SerializeField] private bool syncBeamZoomToDmx = true;
-        [InspectorName("Sync Pseudo Beam Noise Volume To Beam")]
-        [SerializeField] private bool syncBeamNoiseVolumeToBeam = true;
+        // ------------------------------------------------------------
+        // Pseudo Beam Shader Properties
+        // ------------------------------------------------------------
 
         private enum BeamNoiseVolumeScrollSpace { Local, World }
         private enum BeamNoiseVolumeScrollAxis { X, Y, Z }
+
+        [Header("Pseudo Beam Shader Properties")]
+        [Tooltip("Pseudo Beam Shaderの3DノイズTexture・強度・スクロール設定を反映します。Unity LightとVLBには影響しません。\nApplies the 3D noise texture, strength, and scrolling settings to the Pseudo Beam Shader. Unity Light and VLB are unaffected.")]
+        [InspectorName("Sync Pseudo Beam Noise Volume To Beam")]
+        [SerializeField] private bool syncBeamNoiseVolumeToBeam = true;
 
         [Tooltip("ビームマテリアルのColorプロパティ名。例: _DmxColor / _BaseColor\nColor property name on the beam Material. Example: _DmxColor / _BaseColor.")]
         [InspectorName("Pseudo Beam Color Property")]
@@ -400,12 +320,156 @@ namespace ArtNet.Runtime
         [SerializeField, Range(0f, 1f)] private float beamSoftShellNoiseStrength = 0.25f;
 
         // ------------------------------------------------------------
+        // Lens (ShaderGraph DMX Sync)
+        // ------------------------------------------------------------
+
+        [Header("Lens (ShaderGraph DMX Sync)")]
+        [Tooltip("レンズ面のRenderer。ShaderGraph側に _DmxColor(Color) / _DmxDimmer(Float) がある前提です。\nRenderer for the lens surface. The Shader Graph must provide _DmxColor (Color) and _DmxDimmer (Float).")]
+        [SerializeField] private Renderer lensRenderer;
+
+        [Tooltip("レンズが複数Rendererに分かれる場合の追加登録（任意）。\nOptional additional Renderers when the lens is split across multiple Renderers.")]
+        [SerializeField] private Renderer[] extraLensRenderers;
+
+        [Serializable]
+        private sealed class LensMaterialBinding
+        {
+            [Tooltip("ゴボレンズ用マテリアルを適用するRenderer。\nRenderer to which the gobo lens material is applied.")]
+            public Renderer renderer;
+
+            [Tooltip("対象マテリアルのスロット番号。\nTarget material slot index.")]
+            [Min(0)] public int materialSlot;
+
+            [HideInInspector] public Material originalMaterial;
+            [HideInInspector] public Material goboLensMaterial;
+        }
+
+        [Tooltip("事前セットアップ済みのゴボレンズ用マテリアルスロット。Setup Gobo Lens Materialで登録します。\nPreconfigured gobo lens material slots registered by Setup Gobo Lens Material.")]
+        [SerializeField] private List<LensMaterialBinding> lensMaterialBindings = new();
+
+        [Tooltip("レンズへDMX同期を行います。\nSynchronizes DMX data to the lens.")]
+        [SerializeField] private bool syncLensToDmx = true;
+        [SerializeField] private bool syncLensColorToDmx = true;
+        [SerializeField] private bool syncLensDimmerToDmx = true;
+
+        [Tooltip("ShaderGraphのColorプロパティ名（例: _DmxColor）。\nShader Graph Color property name, for example _DmxColor.")]
+        [SerializeField] private string lensColorProperty = "_DmxColor";
+
+        [Tooltip("ShaderGraphのFloatプロパティ名（例: _DmxDimmer）。\nShader Graph Float property name, for example _DmxDimmer.")]
+        [SerializeField] private string lensDimmerProperty = "_DmxDimmer";
+
+        [Tooltip("Dimmer（0-1）に掛ける倍率。レンズの明るさ調整用。\nMultiplier applied to Dimmer (0-1), used to adjust lens brightness.")]
+        [SerializeField, Min(0f)] private float lensDimmerScale = 1.0f;
+
+        [Tooltip("レンズ開口の端で模様を弱める幅。0はメッシュ境界で明確に見切れます。\nWidth used to soften the pattern at the lens aperture edge. At 0, it is sharply clipped at the mesh boundary.")]
+        [FormerlySerializedAs("goboLensEdgeFeather")]
+        [SerializeField, Range(0f, 0.5f)] private float lensApertureFeather = 0f;
+
+        [Header("Lens Gobo")]
+        [Tooltip("レンズ表現へゴボを同期します。\nSynchronizes the gobo to the lens representation.")]
+        [SerializeField] private bool syncLensGoboToDmx = true;
+
+        [Tooltip("DMX Zoomに応じてレンズ面のゴボサイズを同期します。\nSynchronizes the gobo size on the lens surface with DMX Zoom.")]
+        [InspectorName("Sync Lens Gobo Zoom To DMX")]
+        [SerializeField] private bool syncLensGoboZoomToDmx = true;
+
+        [Tooltip("レンズ用ゴボTextureプロパティ名。\nGobo Texture property name for the lens.")]
+        [SerializeField] private string lensGoboTextureProperty = "_GoboTexture";
+
+        [Tooltip("レンズ用ゴボ回転プロパティ名。\nGobo rotation property name for the lens.")]
+        [SerializeField] private string lensGoboRotationProperty = "_GoboRotationDeg";
+
+        [Tooltip("レンズ用ゴボ有効プロパティ名。\nGobo enabled property name for the lens.")]
+        [SerializeField] private string lensGoboEnabledProperty = "_GoboEnabled";
+
+        [Tooltip("レンズ面のゴボ回転方向。Normalは床面投影と同方向、Reverseは逆方向です。\nGobo rotation direction on the lens surface. Normal matches the floor projection direction; Reverse uses the opposite direction.")]
+        [SerializeField] private LensGoboRotationDirection lensGoboRotationDirection = LensGoboRotationDirection.Normal;
+
+        [Tooltip("レンズ面のゴボ位置シェイク方向。Normalは床面投影と同方向、Reverseは逆方向です。\nGobo position shake direction on the lens surface. Normal matches the floor projection direction; Reverse uses the opposite direction.")]
+        [FormerlySerializedAs("lensGoboShakeDirection")]
+        [SerializeField] private LensGoboShakePositionDirection lensGoboShakePositionDirection = LensGoboShakePositionDirection.Normal;
+
+        [Tooltip("レンズ面のゴボ回転シェイク方向。Normalは床面投影と同方向、Reverseは逆方向です。\nGobo rotation shake direction on the lens surface. Normal matches the floor projection direction; Reverse uses the opposite direction.")]
+        [SerializeField] private LensGoboShakeRotationDirection lensGoboShakeRotationDirection = LensGoboShakeRotationDirection.Normal;
+
+        [Tooltip("プリズム有効時、レンズ面のゴボをFacet数に応じて複製します。\nDuplicates the gobo on the lens surface according to the facet count while the prism is enabled.")]
+        [SerializeField] private bool lensPrismGoboMode = true;
+
+        [FormerlySerializedAs("useDedicatedGoboLensShader")]
+        [SerializeField, HideInInspector] private bool legacyUseDedicatedGoboLensShader;
+
+        [Tooltip("レンズ上のゴボ発光の強さ。HDRP Exposure設定に応じて調整してください。\nGobo emission intensity on the lens. Adjust it for the HDRP Exposure settings.")]
+        [SerializeField, Min(0f)] private float goboLensEmission = 2f;
+
+        [Tooltip("レンズ内におけるゴボの大きさ。1が基準サイズです。\nGobo size within the lens. A value of 1 is the reference size.")]
+        [SerializeField, Range(0.1f, 3f)] private float goboLensScale = 1f;
+
+        [Tooltip("DMX ZoomがNarrowのときにGobo Lens Scaleへ掛ける倍率。\nMultiplier applied to Gobo Lens Scale when DMX Zoom is Narrow.")]
+        [InspectorName("Lens Gobo Zoom Narrow Scale")]
+        [SerializeField, Range(0.01f, 3f)] private float goboLensZoomNarrowScale = 0.5f;
+
+        [Tooltip("DMX ZoomがWideのときにGobo Lens Scaleへ掛ける倍率。\nMultiplier applied to Gobo Lens Scale when DMX Zoom is Wide.")]
+        [InspectorName("Lens Gobo Zoom Wide Scale")]
+        [SerializeField, Range(0.01f, 3f)] private float goboLensZoomWideScale = 1f;
+
+        [Tooltip("レンズ上のゴボ模様全体のぼかし幅。0はシャープです。\nOverall blur width of the gobo pattern on the lens. A value of 0 is sharp.")]
+        [InspectorName("Lens Gobo Blur")]
+        [SerializeField, Range(0f, 0.02f)] private float goboLensBlur = 0f;
+
+        [Tooltip("レンズ面UVの中央からの左右オフセット。ゴボShakeの移動量へ加算されます。\nHorizontal offset from the center of the lens UV. Added to the gobo Shake movement.")]
+        [SerializeField, Range(-1f, 1f)] private float goboLensHorizontalOffset = 0f;
+
+        [Tooltip("レンズ面UVの中央からの上下オフセット。ゴボShakeの移動量へ加算されます。\nVertical offset from the center of the lens UV. Added to the gobo Shake movement.")]
+        [SerializeField, Range(-1f, 1f)] private float goboLensVerticalOffset = 0f;
+
+        [Tooltip("ゴボ有効時にも残すレンズ中央のハイライト強度。\nCenter-highlight intensity retained on the lens while a gobo is enabled.")]
+        [SerializeField, Min(0f)] private float goboLensHotspotStrength = 0.35f;
+
+        // ------------------------------------------------------------
+        // Gobo
+        // ------------------------------------------------------------
+
+        [Header("Gobo")]
+        [Tooltip("DMX値とゴボテクスチャを対応付ける定義。\nDefinition that maps DMX values to gobo Textures.")]
+        [SerializeField] private GoboWheelDefinition goboWheel;
+
+        [Tooltip("ライトのcookieへゴボを同期します。\nSynchronizes the gobo to the Light cookie.")]
+        [SerializeField, HideInInspector] private bool syncLightCookieToGobo = true;
+
+        [Tooltip("GoboRotation=255のときの角速度（deg/sec）。\nAngular velocity at GoboRotation = 255, in degrees per second.")]
+        [SerializeField, Min(0f)] private float maxGoboRotateDegPerSec = 360f;
+
+        [Tooltip("Gobo WheelのShake範囲をゴボ回転角の往復揺れとして反映します。\nApplies the Gobo Wheel Shake range as an oscillation of the gobo rotation angle.")]
+        [SerializeField] private bool enableGoboShake = true;
+
+        [Tooltip("ゴボ回転をLight Cookie用Transformのロール回転へ同期します。\nSynchronizes gobo rotation to the roll rotation of the Light Cookie Transform.")]
+        [SerializeField, HideInInspector] private bool syncGoboRotationToCookieTransform = true;
+
+        [Tooltip("Light Cookieを回転させるTransform。通常はSpot Light本体のTransformを指定します。\nTransform used to rotate the Light Cookie. Normally assign the Spot Light Transform.")]
+        [SerializeField] private Transform goboCookieRollTransform;
+
+        [Tooltip("Cookie Transformを回転させるローカル軸。通常はZ軸です。\nLocal axis used to rotate the Cookie Transform. Normally this is the Z axis.")]
+        [SerializeField] private Vector3 goboCookieRollAxis = Vector3.forward;
+
+        [Tooltip("Cookie Transformへ加算する固定ロール角度補正（deg）。\nFixed roll-angle correction in degrees added to the Cookie Transform.")]
+        [SerializeField] private float goboCookieRollOffsetDeg = 0f;
+
+        [Tooltip("ビーム用ゴボTextureプロパティ名。\nGobo Texture property name for the beam.")]
+        [SerializeField] private string beamGoboTextureProperty = "_GoboTexture";
+
+        [Tooltip("ビーム用ゴボ回転プロパティ名。\nGobo rotation property name for the beam.")]
+        [SerializeField] private string beamGoboRotationProperty = "_GoboRotationDeg";
+
+        [Tooltip("ビーム用ゴボ有効プロパティ名。\nGobo enabled property name for the beam.")]
+        [SerializeField] private string beamGoboEnabledProperty = "_GoboEnabled";
+
+
+        // ------------------------------------------------------------
         // Zoom
         // ------------------------------------------------------------
 
         [Header("Zoom")]
         [Tooltip("DMXのZoom値をLightのOuter Spot Angleへ同期します。\nSynchronizes the DMX Zoom value to the Light Outer Spot Angle.")]
-        [SerializeField] private bool syncZoomToLight = true;
+        [SerializeField, HideInInspector] private bool syncZoomToLight = true;
 
         [Tooltip("Zoom最小時のOuter Spot Angle。\nOuter Spot Angle at minimum Zoom.")]
         [SerializeField, Range(0.1f, 179f)] private float minOuterSpotAngle = 5f;
@@ -494,18 +558,21 @@ namespace ArtNet.Runtime
         [Tooltip("プリズム時の明るさ分散量。0で分散なし、1でFacet数に応じて完全分散します。\nAmount of brightness distribution while using a prism. 0 applies no distribution; 1 distributes fully according to the Facet count.")]
         [SerializeField, Range(0f, 1f)] private float prismBrightnessDistribution = 1f;
 
-        private enum PrismZoomCorrectionMode
+        private enum PrismGoboSpacingMode
         {
-            Off,
-            Auto,
-            Custom
+            Manual = 0,
+            Auto = 1
         }
 
-        [Tooltip("プリズム分割されたゴボ同士の距離をZoomに連動して補正します。Offは補正なし、AutoはSpot Angleから自動補正、Customは下の倍率をそのまま使います。\nCorrects the distance between prism-split gobos according to Zoom. Off applies no correction, Auto derives it from Spot Angle, and Custom uses the multiplier below directly.")]
-        [SerializeField] private PrismZoomCorrectionMode prismZoomCorrection = PrismZoomCorrectionMode.Off;
+        [Tooltip("プリズム分割されたゴボ同士の距離の決め方。Manualは下の倍率を使用し、AutoはDMX ZoomのSpot Angleから自動補正します。\nDetermines the spacing between prism-split gobos. Manual uses the multiplier below; Auto adjusts it from the DMX Zoom Spot Angle.")]
+        [InspectorName("Prism Gobo Spacing Mode")]
+        [FormerlySerializedAs("prismZoomCorrection")]
+        [SerializeField] private PrismGoboSpacingMode prismGoboSpacingMode = PrismGoboSpacingMode.Manual;
 
-        [Tooltip("プリズム分割されたゴボ同士の距離倍率。AutoではZoom補正後の倍率、Customでは直接の距離倍率として使用します。\nDistance multiplier between prism-split gobos. Auto applies it after Zoom correction; Custom uses it directly.")]
-        [SerializeField, Range(0f, 3f)] private float prismGoboSpacingScale = 1f;
+        [Tooltip("Prism Gobo Spacing ModeがManualの場合に使う、プリズム分割されたゴボ同士の距離倍率。\nSpacing multiplier between prism-split gobos when Prism Gobo Spacing Mode is Manual.")]
+        [InspectorName("Manual Prism Gobo Spacing Scale")]
+        [FormerlySerializedAs("prismGoboSpacingScale")]
+        [SerializeField, Range(0f, 3f)] private float manualPrismGoboSpacingScale = 1f;
 
         [Tooltip("VLBのプリズム時に、各ゴボ投影の外形サイズをSpot Angleで調整します。1で通常のSpot Lightに合わせた基準サイズです。\nAdjusts the outline size of each gobo projection by Spot Angle when using a VLB prism. A value of 1 matches the standard Spot Light size.")]
         [InspectorName("Prism Gobo Scale (VLB)")]
@@ -559,9 +626,12 @@ namespace ArtNet.Runtime
         private int _goboLensBlurId;
         private int _lensApertureFeatherId;
         private int _goboLensHotspotStrengthId;
+        private int _lensPrismGoboModeId;
+        private int _lensPrismFacetCountId;
+        private int _lensPrismSpreadId;
+        private int _lensPrismGoboSpacingScaleId;
+        private int _lensPrismRotationId;
         private bool _lensPropertyIdsReady;
-        private Material _dedicatedGoboLensMaterial;
-        private Shader _dedicatedGoboLensShader;
 
         private MaterialPropertyBlock _beamMpb;
         private int _beamColorId;
@@ -592,6 +662,19 @@ namespace ArtNet.Runtime
         private int _beamNoiseVolumeOffsetId;
         private int _beamNoiseVolumeScrollDirectionId;
         private bool _beamPropertyIdsReady;
+
+        private struct PseudoBeamShape
+        {
+            public float length;
+            public float startRadius;
+            public float endRadius;
+        }
+
+        // PrismPseudoBeamCone is mutated at runtime for DMX Zoom. Keep the Prefab
+        // values separately so disabling Zoom sync can restore the original cone.
+        private readonly Dictionary<PrismPseudoBeamCone, PseudoBeamShape> _pseudoBeamBaseShapes =
+            new Dictionary<PrismPseudoBeamCone, PseudoBeamShape>();
+
         [Header("Pan/Tilt Range (degrees)")]
         public float panRangeDeg = 540f;
         public float tiltRangeDeg = 270f;
@@ -820,9 +903,9 @@ namespace ArtNet.Runtime
         private int _lastPrismRotatedCookieSize = -1;
         private int _lastGoboOffsetCookieSize = -1;
         private readonly List<PrismAuxiliaryLight> _prismAuxiliaryLights = new();
+        private readonly Dictionary<Light, Transform> _prismAuxRoots = new();
         private readonly List<PrismPseudoBeamFacet> _prismPseudoBeamFacets = new();
         private VlbBeamAdapter _vlbBeamAdapter;
-        private Transform _prismAuxRoot;
         private Transform _prismPseudoBeamRoot;
         private Transform _singlePseudoBeamSoftShell;
         private PrismPseudoBeamCone _singlePseudoBeamSoftCone;
@@ -837,6 +920,7 @@ namespace ArtNet.Runtime
 
         private class PrismAuxiliaryLight
         {
+            public Light sourceLight;
             public Transform directionPivot;
             public Transform cookieRollPivot;
             public Light light;
@@ -878,6 +962,9 @@ namespace ArtNet.Runtime
         private readonly Dictionary<ElementKey, ElementBinding> _elementMap = new();
         private readonly Dictionary<WheelKey, GoboWheelDefinition> _goboWheelMap = new();
         private readonly Dictionary<Light, Color> _directLightInitialColors = new();
+        private readonly Dictionary<Light, float> _directLightInitialIntensities = new();
+        private readonly Dictionary<Light, Texture> _directLightInitialCookies = new();
+        private readonly Dictionary<Light, Vector2> _directLightInitialSpotAngles = new();
         private bool _usesElementMode;
         [SerializeField] private string _activeProfileLabel;
         [SerializeField] private string _activeModeLabel;
@@ -1030,13 +1117,13 @@ namespace ArtNet.Runtime
             beamRenderer = found[0];
             if (found.Count > 1)
             {
-                extraBeamRenderers = new Renderer[found.Count - 1];
+                extraPseudoBeamRenderers = new Renderer[found.Count - 1];
                 for (int i = 1; i < found.Count; i++)
-                    extraBeamRenderers[i - 1] = found[i];
+                    extraPseudoBeamRenderers[i - 1] = found[i];
             }
             else
             {
-                extraBeamRenderers = Array.Empty<Renderer>();
+                extraPseudoBeamRenderers = Array.Empty<Renderer>();
             }
         }
 
@@ -1058,6 +1145,8 @@ namespace ArtNet.Runtime
         private void OnEnable()
         {
             MigrateLegacyBeamRenderMode();
+            MigrateLegacyBeamSyncSettings();
+            MigrateLegacyPrismGoboSpacingMode();
             ResolveAll(Application.isPlaying);
 
             if (Application.isPlaying)
@@ -1070,6 +1159,8 @@ namespace ArtNet.Runtime
         private void OnValidate()
         {
             MigrateLegacyBeamRenderMode();
+            MigrateLegacyBeamSyncSettings();
+            MigrateLegacyPrismGoboSpacingMode();
             InitializeVlbPipelineDefaultsIfNeeded();
             if (!autoResolveOnValidate) return;
             ResolveAll(allowAutoAddDriver: false);
@@ -1098,6 +1189,27 @@ namespace ArtNet.Runtime
 
             syncPseudoBeamToDmx = beamRenderMode == BeamRenderMode.PseudoBeamShader;
             _beamRenderModeMigrated = true;
+        }
+
+        private void MigrateLegacyBeamSyncSettings()
+        {
+            if (_beamSyncSettingsMigrated)
+                return;
+
+            // Older Prefabs had separate switches for Light Cookie and Pseudo Beam.
+            // A shared setting must not enable a DMX effect that was previously disabled.
+            syncBeamGoboToDmx &= syncLightCookieToGobo;
+            syncBeamGoboRotationToDmx = syncBeamGoboRotationToDmx && syncGoboRotationToCookieTransform;
+            syncBeamZoomToDmx &= syncZoomToLight;
+            _beamSyncSettingsMigrated = true;
+        }
+
+        private void MigrateLegacyPrismGoboSpacingMode()
+        {
+            // Old values were Off=0, Auto=1, Custom=2. Both Off and Custom map
+            // to Manual in the simplified two-mode model; their Scale value is kept.
+            if ((int)prismGoboSpacingMode > (int)PrismGoboSpacingMode.Auto)
+                prismGoboSpacingMode = PrismGoboSpacingMode.Manual;
         }
 
         [ContextMenu("Apply VLB Pipeline Defaults")]
@@ -1424,6 +1536,11 @@ namespace ArtNet.Runtime
             foreach (var light in targets)
             {
                 if (light == null) continue;
+
+                // Capture before the first DMX frame can suppress the primary light
+                // for Prism. Auxiliary prism lights need these values when a Sync
+                // Beam switch is disabled.
+                CaptureInitialLightState(light);
 
                 bool detectedHdrp = false;
 #if HAS_HDRP
@@ -2849,7 +2966,6 @@ namespace ArtNet.Runtime
         private void ApplyLightAndLens(float lightDim01, float lensDim01, Color rgb)
         {
             var state = BuildRenderState(lightDim01, lensDim01, rgb);
-            ApplyPrismAuxiliaryLights(state);
 
             var driverState = state;
             bool suppressPrimaryLight = ShouldSuppressPrimaryLightForAuxiliaryOnly() ||
@@ -2857,6 +2973,7 @@ namespace ArtNet.Runtime
             if (suppressPrimaryLight)
             {
                 driverState.lightDimmer01 = 0f;
+                driverState.forceLightOff = true;
                 driverState.goboEnabled = false;
                 driverState.goboTexture = null;
             }
@@ -2865,7 +2982,7 @@ namespace ArtNet.Runtime
                 driverState.goboEnabled = false;
                 driverState.goboTexture = null;
             }
-            if (!syncLightCookieToGobo)
+            if (!syncBeamGoboToDmx)
             {
                 driverState.goboEnabled = false;
                 driverState.goboTexture = null;
@@ -2890,6 +3007,9 @@ namespace ArtNet.Runtime
                 ApplyDirectToLights(driverState);
             }
 
+            // Prism facets must use the primary lights after their Sync Beam settings have
+            // been applied, otherwise they retain the previous DMX colour/intensity/zoom.
+            ApplyPrismAuxiliaryLights(state);
             ApplyPrimaryVolumetricForAlternativeBeamModes(suppressPrimaryLight);
             ApplyVlbBeamDmx(state);
             ApplyLensDmx(state);
@@ -2938,15 +3058,25 @@ namespace ArtNet.Runtime
             {
                 var l = targets[i];
                 if (l == null) continue;
-                if (!_directLightInitialColors.TryGetValue(l, out var initialColor))
-                {
-                    initialColor = l.color;
-                    _directLightInitialColors[l] = initialColor;
-                }
+                CaptureInitialLightState(l);
+                Color initialColor = _directLightInitialColors[l];
+                float initialIntensity = _directLightInitialIntensities[l];
+                Texture initialCookie = _directLightInitialCookies[l];
+                Vector2 initialSpotAngles = _directLightInitialSpotAngles[l];
 
                 l.color = state.syncLightColorToDmx ? state.color : initialColor;
-                l.intensity = state.lightDimmer01 * 10f;
-                l.cookie = state.goboEnabled ? state.goboTexture : null;
+                l.intensity = state.forceLightOff ? 0f : (state.syncLightDimmerToDmx ? state.lightDimmer01 * 10f : initialIntensity);
+                l.cookie = state.syncLightGoboToDmx ? (state.goboEnabled ? state.goboTexture : null) : initialCookie;
+                if (state.syncLightZoomToDmx && state.zoomEnabled)
+                {
+                    l.spotAngle = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+                    l.innerSpotAngle = l.spotAngle * Mathf.Clamp01(state.innerSpotPercent / 100f);
+                }
+                else if (!state.syncLightZoomToDmx)
+                {
+                    l.spotAngle = initialSpotAngles.x;
+                    l.innerSpotAngle = initialSpotAngles.y;
+                }
             }
         }
 
@@ -2977,6 +3107,11 @@ namespace ArtNet.Runtime
             _goboLensBlurId = Shader.PropertyToID("_GoboLensBlur");
             _lensApertureFeatherId = Shader.PropertyToID("_LensApertureFeather");
             _goboLensHotspotStrengthId = Shader.PropertyToID("_GoboLensHotspotStrength");
+            _lensPrismGoboModeId = Shader.PropertyToID("_LensPrismGoboMode");
+            _lensPrismFacetCountId = Shader.PropertyToID("_LensPrismFacetCount");
+            _lensPrismSpreadId = Shader.PropertyToID("_LensPrismSpread");
+            _lensPrismGoboSpacingScaleId = Shader.PropertyToID("_LensPrismGoboSpacingScale");
+            _lensPrismRotationId = Shader.PropertyToID("_LensPrismRotationDeg");
             if (_lensMpb == null) _lensMpb = new MaterialPropertyBlock();
             _lensPropertyIdsReady = true;
         }
@@ -2986,20 +3121,15 @@ namespace ArtNet.Runtime
             if (!syncLensToDmx) return;
             if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx) return;
 
-            // Renderer未設定なら何もしない
-            if (lensRenderer == null && (extraLensRenderers == null || extraLensRenderers.Length == 0))
+            bool hasMaterialBindings = lensMaterialBindings != null && lensMaterialBindings.Count > 0;
+
+            // Binding未設定の既存Prefabでは、従来のRenderer指定へフォールバックする。
+            if (!hasMaterialBindings && lensRenderer == null && (extraLensRenderers == null || extraLensRenderers.Length == 0))
                 return;
 
             EnsureLensPropertyIds();
 
             if (_lensMpb == null) return;
-
-            EnsureDedicatedGoboLensMaterial(lensRenderer);
-            if (extraLensRenderers != null)
-            {
-                for (int i = 0; i < extraLensRenderers.Length; i++)
-                    EnsureDedicatedGoboLensMaterial(extraLensRenderers[i]);
-            }
 
             float d = Mathf.Clamp01(state.lensDimmer01) * Mathf.Max(0f, lensDimmerScale);
 
@@ -3012,80 +3142,64 @@ namespace ArtNet.Runtime
             if (syncLensGoboToDmx)
             {
                 _lensMpb.SetTexture(_lensGoboTextureId, state.goboEnabled && state.goboTexture != null ? state.goboTexture : Texture2D.whiteTexture);
-                _lensMpb.SetFloat(_lensGoboRotationId, state.goboRotationDeg);
+                float baseGoboRotationDeg = state.goboRotationDeg - state.goboShakeRotationOffsetDeg;
+                float lensBaseGoboRotationDeg = lensGoboRotationDirection == LensGoboRotationDirection.Reverse
+                    ? baseGoboRotationDeg
+                    : -baseGoboRotationDeg;
+                float lensShakeRotationDeg = lensGoboShakeRotationDirection == LensGoboShakeRotationDirection.Reverse
+                    ? -state.goboShakeRotationOffsetDeg
+                    : state.goboShakeRotationOffsetDeg;
+                float lensGoboRotationDeg = lensBaseGoboRotationDeg + lensShakeRotationDeg;
+                Vector2 lensGoboShakeOffsetUv = lensGoboShakePositionDirection == LensGoboShakePositionDirection.Reverse
+                    ? state.goboShakeOffsetUv
+                    : -state.goboShakeOffsetUv;
+                _lensMpb.SetFloat(_lensGoboRotationId, lensGoboRotationDeg);
                 _lensMpb.SetFloat(_lensGoboEnabledId, state.goboEnabled ? 1f : 0f);
                 _lensMpb.SetVector(_lensGoboOffsetId, new Vector4(
-                    state.goboOffsetUv.x + goboLensHorizontalOffset,
-                    state.goboOffsetUv.y + goboLensVerticalOffset,
+                    lensGoboShakeOffsetUv.x + goboLensHorizontalOffset,
+                    lensGoboShakeOffsetUv.y + goboLensVerticalOffset,
                     0f,
                     0f));
                 _lensMpb.SetFloat(_goboLensInfluenceId, 1f);
                 _lensMpb.SetFloat(_goboLensEmissionId, Mathf.Max(0f, goboLensEmission));
-                _lensMpb.SetFloat(_goboLensScaleId, Mathf.Max(0.01f, goboLensScale));
+                _lensMpb.SetFloat(_goboLensScaleId, GetLensGoboScale(state));
                 _lensMpb.SetFloat(_goboLensBlurId, Mathf.Clamp(goboLensBlur, 0f, 0.02f));
                 _lensMpb.SetFloat(_lensApertureFeatherId, Mathf.Clamp(lensApertureFeather, 0f, 0.5f));
                 _lensMpb.SetFloat(_goboLensHotspotStrengthId, Mathf.Max(0f, goboLensHotspotStrength));
+                _lensMpb.SetFloat(_lensPrismGoboModeId, lensPrismGoboMode && state.prismEnabled ? 1f : 0f);
+                _lensMpb.SetFloat(_lensPrismFacetCountId, Mathf.Clamp(state.prismFacetCount, 1, 8));
+                _lensMpb.SetFloat(_lensPrismSpreadId, Mathf.Clamp01(state.prismSpread));
+                _lensMpb.SetFloat(_lensPrismGoboSpacingScaleId, GetPrismGoboSpacingScale(state));
+                _lensMpb.SetFloat(_lensPrismRotationId, state.prismRotationDeg);
+            }
+
+            if (hasMaterialBindings)
+            {
+                for (int i = 0; i < lensMaterialBindings.Count; i++)
+                {
+                    var binding = lensMaterialBindings[i];
+                    if (binding == null || binding.renderer == null || binding.materialSlot < 0)
+                        continue;
+
+                    var materials = binding.renderer.sharedMaterials;
+                    if (materials == null || binding.materialSlot >= materials.Length)
+                        continue;
+
+                    binding.renderer.SetPropertyBlock(_lensMpb, binding.materialSlot);
+                }
+                return;
             }
 
             if (lensRenderer != null)
-            {
                 lensRenderer.SetPropertyBlock(_lensMpb);
-            }
 
             if (extraLensRenderers != null)
             {
                 for (int i = 0; i < extraLensRenderers.Length; i++)
                 {
                     var r = extraLensRenderers[i];
-                    if (r == null) continue;
-                    r.SetPropertyBlock(_lensMpb);
+                    if (r != null) r.SetPropertyBlock(_lensMpb);
                 }
-            }
-        }
-
-        private void EnsureDedicatedGoboLensMaterial(Renderer renderer)
-        {
-            if (!useDedicatedGoboLensShader || !Application.isPlaying || renderer == null)
-                return;
-
-            if (_dedicatedGoboLensShader == null)
-                _dedicatedGoboLensShader = Shader.Find("ArtNet/HDRP/Gobo Lens Surface");
-
-            if (_dedicatedGoboLensShader == null)
-                return;
-
-            if (_dedicatedGoboLensMaterial == null)
-            {
-                _dedicatedGoboLensMaterial = new Material(_dedicatedGoboLensShader)
-                {
-                    name = $"{name} Gobo Lens (Runtime)"
-                };
-            }
-
-            var materials = renderer.sharedMaterials;
-            bool needsAssignment = materials == null || materials.Length == 0;
-            if (!needsAssignment)
-            {
-                for (int i = 0; i < materials.Length; i++)
-                {
-                    if (materials[i] != _dedicatedGoboLensMaterial)
-                    {
-                        needsAssignment = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!needsAssignment)
-                return;
-
-            if (materials == null || materials.Length == 0)
-                renderer.sharedMaterial = _dedicatedGoboLensMaterial;
-            else
-            {
-                for (int i = 0; i < materials.Length; i++)
-                    materials[i] = _dedicatedGoboLensMaterial;
-                renderer.sharedMaterials = materials;
             }
         }
 
@@ -3160,15 +3274,16 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx && !syncBeamPrismToDmx && !syncBeamNoiseVolumeToBeam)
+            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx && !syncBeamPrismToDmx && !syncBeamZoomToDmx && !syncBeamNoiseVolumeToBeam)
             {
                 DisablePrismPseudoBeamFacets();
                 DisableSinglePseudoBeamSoftShell();
                 SetTemplateBeamRenderersEnabled(true);
+                RestorePseudoBeamBaseShapes();
                 return;
             }
 
-            if (beamRenderer == null && (extraBeamRenderers == null || extraBeamRenderers.Length == 0))
+            if (beamRenderer == null && (extraPseudoBeamRenderers == null || extraPseudoBeamRenderers.Length == 0))
             {
                 DisableSinglePseudoBeamSoftShell();
                 return;
@@ -3189,10 +3304,10 @@ namespace ArtNet.Runtime
             ApplyPseudoBeamRenderer(beamRenderer, state, 1f, false);
             ApplySinglePseudoBeamSoftShell(state);
 
-            if (extraBeamRenderers != null)
+            if (extraPseudoBeamRenderers != null)
             {
-                for (int i = 0; i < extraBeamRenderers.Length; i++)
-                    ApplyPseudoBeamRenderer(extraBeamRenderers[i], state, 1f, false);
+                for (int i = 0; i < extraPseudoBeamRenderers.Length; i++)
+                    ApplyPseudoBeamRenderer(extraPseudoBeamRenderers[i], state, 1f, false);
             }
         }
 
@@ -3208,7 +3323,7 @@ namespace ArtNet.Runtime
             if (_vlbBeamAdapter == null)
                 _vlbBeamAdapter = new VlbBeamAdapter();
 
-            _vlbBeamAdapter.Apply(targets, state, syncLightCookieToGobo, BuildVlbOverrides(), this);
+            _vlbBeamAdapter.Apply(targets, state, syncBeamGoboToDmx, BuildVlbOverrides(), this);
         }
 
         private void DisableVlbBeam()
@@ -3261,6 +3376,17 @@ namespace ArtNet.Runtime
                 _beamMpb.SetFloat(_beamPrismSpreadId, Mathf.Max(0f, state.prismSpread));
                 _beamMpb.SetFloat(_beamPrismRotationId, state.prismRotationDeg);
                 _beamMpb.SetFloat(_beamPrismIntensityId, Mathf.Max(0f, state.prismIntensityScale));
+            }
+            else
+            {
+                // The shared material keeps a reduced prism intensity as a tuning default.
+                // When DMX prism sync is disabled, explicitly restore the unprismed beam
+                // instead of inheriting that reduced intensity through the property block.
+                _beamMpb.SetFloat(_beamPrismEnabledId, 0f);
+                _beamMpb.SetFloat(_beamPrismFacetCountId, 1f);
+                _beamMpb.SetFloat(_beamPrismSpreadId, 0f);
+                _beamMpb.SetFloat(_beamPrismRotationId, 0f);
+                _beamMpb.SetFloat(_beamPrismIntensityId, 1f);
             }
             if (!softShell && renderer is MeshRenderer meshRenderer)
                 UpdatePseudoBeamTemplateShape(meshRenderer, state);
@@ -3417,17 +3543,48 @@ namespace ArtNet.Runtime
             if (cone == null || templateFilter == null)
                 return templateFilter != null ? templateFilter.sharedMesh : null;
 
-            if (!syncBeamZoomToDmx)
+            PseudoBeamShape baseShape = GetPseudoBeamBaseShape(cone);
+            if (!syncBeamZoomToDmx || !state.zoomEnabled)
+            {
+                cone.SetRuntimeShape(baseShape.length, baseShape.startRadius, baseShape.endRadius);
                 return templateFilter.sharedMesh;
+            }
 
-            float length = Mathf.Max(0.01f, cone.Length);
-            float startRadius = Mathf.Max(0f, cone.StartRadius);
+            float length = baseShape.length;
+            float startRadius = baseShape.startRadius;
             float maxRadius = Mathf.Max(beamZoomMinEndRadius, beamZoomMaxEndRadius);
             float outer = GetPseudoBeamOuterSpotAngle(state);
             float endRadius = Mathf.Tan(outer * 0.5f * Mathf.Deg2Rad) * length * Mathf.Max(0f, beamZoomRadiusScale);
             endRadius = Mathf.Clamp(endRadius, Mathf.Max(0.001f, beamZoomMinEndRadius), maxRadius);
             cone.SetRuntimeShape(length, startRadius, endRadius);
             return templateFilter.sharedMesh;
+        }
+
+        private PseudoBeamShape GetPseudoBeamBaseShape(PrismPseudoBeamCone cone)
+        {
+            if (cone == null)
+                return new PseudoBeamShape { length = 1f, startRadius = 0.01f, endRadius = 1f };
+
+            if (_pseudoBeamBaseShapes.TryGetValue(cone, out PseudoBeamShape shape))
+                return shape;
+
+            shape = new PseudoBeamShape
+            {
+                length = Mathf.Max(0.01f, cone.Length),
+                startRadius = Mathf.Max(0f, cone.StartRadius),
+                endRadius = Mathf.Max(0.001f, cone.EndRadius)
+            };
+            _pseudoBeamBaseShapes[cone] = shape;
+            return shape;
+        }
+
+        private void RestorePseudoBeamBaseShapes()
+        {
+            foreach (var pair in _pseudoBeamBaseShapes)
+            {
+                if (pair.Key != null)
+                    pair.Key.SetRuntimeShape(pair.Value.length, pair.Value.startRadius, pair.Value.endRadius);
+            }
         }
 
         private float GetPseudoBeamOuterSpotAngle(FixtureRenderState state)
@@ -3664,11 +3821,11 @@ namespace ArtNet.Runtime
             if (beamRenderer != null)
                 beamRenderer.enabled = enabled;
 
-            if (extraBeamRenderers != null)
+            if (extraPseudoBeamRenderers != null)
             {
-                for (int i = 0; i < extraBeamRenderers.Length; i++)
+                for (int i = 0; i < extraPseudoBeamRenderers.Length; i++)
                 {
-                    var r = extraBeamRenderers[i];
+                    var r = extraPseudoBeamRenderers[i];
                     if (r != null)
                         r.enabled = enabled;
                 }
@@ -3716,10 +3873,12 @@ namespace ArtNet.Runtime
         {
             float goboRotationDeg = GetDisplayGoboRotationDeg();
             Vector2 goboOffsetUv = GetDisplayGoboOffsetUv();
+            float goboShakeRotationOffsetDeg = ShouldApplyCurrentGoboShake() ? _goboShakeOffsetDeg : 0f;
+            Vector2 goboShakeOffsetUv = ShouldApplyCurrentGoboShake() ? _goboShakePositionOffsetUv : Vector2.zero;
             bool goboEnabled = _goboEnabled && _goboTexture != null;
             Texture goboTextureForRender = _goboTexture;
 
-            if (ShouldUsePrismCookieComposite())
+            if (syncBeamPrismToDmx && syncBeamGoboToDmx && ShouldUsePrismCookieComposite())
             {
                 Texture source = goboEnabled ? _goboTexture : Texture2D.whiteTexture;
                 Texture composite = GetPrismCompositeCookie(source, goboRotationDeg, GetDisplayPrismRotationDeg(), goboOffsetUv);
@@ -3729,6 +3888,8 @@ namespace ArtNet.Runtime
                     goboTextureForRender = composite;
                     goboRotationDeg = 0f;
                     goboOffsetUv = Vector2.zero;
+                    goboShakeRotationOffsetDeg = 0f;
+                    goboShakeOffsetUv = Vector2.zero;
                 }
             }
             return new FixtureRenderState
@@ -3737,15 +3898,22 @@ namespace ArtNet.Runtime
                 lensDimmer01 = lensDim01,
                 color = rgb,
                 syncLightColorToDmx = syncBeamColorToDmx,
+                syncLightDimmerToDmx = syncBeamDimmerToDmx,
+                syncLightGoboToDmx = syncBeamGoboToDmx,
+                syncLightGoboRotationToDmx = syncBeamGoboRotationToDmx,
+                syncLightZoomToDmx = syncBeamZoomToDmx,
+                syncBeamPrismToDmx = syncBeamPrismToDmx,
                 goboEnabled = goboEnabled && goboTextureForRender != null,
                 goboTexture = goboTextureForRender,
                 goboRotationDeg = goboRotationDeg,
                 goboOffsetUv = goboOffsetUv,
+                goboShakeRotationOffsetDeg = goboShakeRotationOffsetDeg,
+                goboShakeOffsetUv = goboShakeOffsetUv,
                 beamShakeAngleDeg = GetDisplayBeamShakeAngleDeg(),
-                zoomEnabled = _zoomEnabled,
+                zoomEnabled = syncBeamZoomToDmx && _zoomEnabled,
                 outerSpotAngleDeg = _zoomOuterSpotAngleDeg,
                 innerSpotPercent = _zoomInnerSpotPercent,
-                prismEnabled = IsPrismDrawingEnabled(),
+                prismEnabled = syncBeamPrismToDmx && IsPrismDrawingEnabled(),
                 prismFacetCount = _prismFacetCount,
                 prismSpread = _prismSpread,
                 prismRotationDeg = GetDisplayPrismRotationDeg(),
@@ -3770,9 +3938,27 @@ namespace ArtNet.Runtime
             return ShouldApplyCurrentGoboShake() ? _goboShakeBeamAngleOffsetDeg : Vector2.zero;
         }
 
+        private float GetLensGoboScale(FixtureRenderState state)
+        {
+            float scale = Mathf.Max(0.01f, goboLensScale);
+            if (!syncLensGoboZoomToDmx || !state.zoomEnabled)
+                return scale;
+
+            float min = Mathf.Clamp(minOuterSpotAngle, 0.1f, 179f);
+            float max = Mathf.Clamp(maxOuterSpotAngle, 0.1f, 179f);
+            float zoom01 = max > min
+                ? Mathf.InverseLerp(min, max, state.outerSpotAngleDeg)
+                : 0.5f;
+            float zoomScale = Mathf.Lerp(
+                Mathf.Max(0.01f, goboLensZoomNarrowScale),
+                Mathf.Max(0.01f, goboLensZoomWideScale),
+                zoom01);
+            return scale * zoomScale;
+        }
+
         private void UpdateZoomTargetsFromDmx(bool hasZoom, float zoom01, bool usesRangeMapping)
         {
-            if (!syncZoomToLight || !hasZoom)
+            if (!syncBeamZoomToDmx || !hasZoom)
             {
                 _zoomEnabled = false;
                 return;
@@ -3966,8 +4152,11 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            if (!syncGoboRotationToCookieTransform)
+            if (!syncBeamGoboToDmx || !syncBeamGoboRotationToDmx)
+            {
+                RestoreGoboCookieRollTransform();
                 return;
+            }
 
             if (goboCookieRollTransform == null)
             {
@@ -4093,22 +4282,25 @@ namespace ArtNet.Runtime
 
         private bool ShouldUsePrismAuxiliaryLights()
         {
-            return IsPrismDrawingEnabled();
+            // ProjectionAndShaderBeam combines physical Cookie projections with
+            // Pseudo Beam facets. The physical auxiliary lights are what project
+            // the prism gobo onto floors and walls, so all prism draw modes need them.
+            return syncBeamPrismToDmx && IsPrismDrawingEnabled();
         }
 
         private bool ShouldSuppressPrimaryLightForAuxiliaryOnly()
         {
-            return IsPrismDrawingEnabled();
+            return syncBeamPrismToDmx && IsPrismDrawingEnabled();
         }
 
         private bool ShouldSuppressPrimaryGoboForVlbPrism()
         {
-            return IsPrismDrawingEnabled() && IsVlbBeamRenderMode();
+            return syncBeamPrismToDmx && IsPrismDrawingEnabled() && IsVlbBeamRenderMode();
         }
 
         private bool ShouldPrismOwnGoboCookieRotation()
         {
-            return IsPrismDrawingEnabled();
+            return syncBeamPrismToDmx && IsPrismDrawingEnabled();
         }
 
         private bool IsPrismDrawingEnabled()
@@ -4378,52 +4570,83 @@ namespace ArtNet.Runtime
 
         private void ApplyPrismAuxiliaryLights(FixtureRenderState state)
         {
-            if (!ShouldUsePrismAuxiliaryLights())
+            if (!state.prismEnabled || !ShouldUsePrismAuxiliaryLights())
             {
                 DisablePrismAuxiliaryLights();
                 return;
             }
 
-            int count = Mathf.Clamp(_prismFacetCount, 1, Mathf.Max(1, maxPrismAuxiliaryFacets));
-            EnsurePrismAuxiliaryLights(count);
-
-            Transform sourceTransform = targetLight != null ? targetLight.transform : transform;
-            if (_prismAuxRoot != null && sourceTransform != null)
-            {
-                _prismAuxRoot.position = sourceTransform.position;
-                _prismAuxRoot.rotation = sourceTransform.rotation;
-            }
-
-            float prismRotationDeg = GetDisplayPrismRotationDeg();
-            float goboRotationDeg = GetDisplayGoboRotationDeg();
-                float spreadDeg = Mathf.Max(0f, _prismSpread * auxiliarySpreadMultiplierDeg * GetPrismGoboSpacingScale(state));
-            var rotationMode = ResolveAuxiliaryCookieRotationMode();
-            Texture sourceCookie = _goboEnabled && _goboTexture != null ? _goboTexture : Texture2D.whiteTexture;
-            Texture cookie = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
-                ? GetOffsetGoboCookie(sourceCookie, state.goboOffsetUv)
-                : GetRotatedGoboCookie(sourceCookie, goboRotationDeg, state.goboOffsetUv);
-
+            int count = Mathf.Clamp(state.prismFacetCount, 1, Mathf.Max(1, maxPrismAuxiliaryFacets));
+            var sources = GatherTargetLights();
             for (int i = 0; i < _prismAuxiliaryLights.Count; i++)
             {
                 var aux = _prismAuxiliaryLights[i];
-                bool active = i < count;
-                if (aux?.directionPivot != null)
-                    aux.directionPivot.gameObject.SetActive(active);
-
-                if (!active || aux == null || aux.light == null)
+                if (aux == null || sources.Contains(aux.sourceLight))
                     continue;
 
-                float angle = ((360f * i) / count) + prismRotationDeg;
-                float angleRad = angle * Mathf.Deg2Rad;
-                float xDeg = Mathf.Sin(angleRad) * spreadDeg;
-                float yDeg = Mathf.Cos(angleRad) * spreadDeg;
+                if (aux.directionPivot != null)
+                    aux.directionPivot.gameObject.SetActive(false);
+                if (aux.light != null)
+                    aux.light.enabled = false;
+                DisablePrismAuxiliaryVlb(aux);
+            }
 
-                aux.directionPivot.localRotation = Quaternion.Euler(xDeg + state.beamShakeAngleDeg.x, yDeg + state.beamShakeAngleDeg.y, 0f);
-                aux.cookieRollPivot.localRotation = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
-                    ? Quaternion.AngleAxis(goboRotationDeg + goboCookieRollOffsetDeg, Vector3.forward)
-                    : Quaternion.identity;
+            for (int sourceIndex = 0; sourceIndex < sources.Count; sourceIndex++)
+            {
+                Light source = sources[sourceIndex];
+                if (source == null)
+                    continue;
 
-                ApplyPrismAuxiliaryLightState(aux, state, cookie, count);
+                EnsurePrismAuxiliaryLights(source, count);
+                if (_prismAuxRoots.TryGetValue(source, out var root) && root != null)
+                {
+                    root.position = source.transform.position;
+                    root.rotation = source.transform.rotation;
+                }
+
+                float prismRotationDeg = state.prismRotationDeg;
+                float goboRotationDeg = state.syncLightGoboRotationToDmx ? state.goboRotationDeg : 0f;
+                Vector2 goboOffsetUv = state.syncLightGoboRotationToDmx ? state.goboOffsetUv : Vector2.zero;
+                float spreadDeg = Mathf.Max(0f, state.prismSpread * auxiliarySpreadMultiplierDeg * GetPrismGoboSpacingScale(state));
+                var rotationMode = ResolveAuxiliaryCookieRotationMode();
+                Texture cookie = null;
+                if (state.syncLightGoboToDmx)
+                {
+                    Texture sourceCookie = state.goboEnabled && state.goboTexture != null
+                        ? state.goboTexture
+                        : Texture2D.whiteTexture;
+                    cookie = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
+                        ? GetOffsetGoboCookie(sourceCookie, goboOffsetUv)
+                        : GetRotatedGoboCookie(sourceCookie, goboRotationDeg, goboOffsetUv);
+                }
+
+                int facetIndex = 0;
+                for (int i = 0; i < _prismAuxiliaryLights.Count; i++)
+                {
+                    var aux = _prismAuxiliaryLights[i];
+                    if (aux == null || aux.sourceLight != source)
+                        continue;
+
+                    bool active = facetIndex < count;
+                    facetIndex++;
+                    if (aux.directionPivot != null)
+                        aux.directionPivot.gameObject.SetActive(active);
+
+                    if (!active || aux.light == null)
+                        continue;
+
+                    float angle = ((360f * (facetIndex - 1)) / count) + prismRotationDeg;
+                    float angleRad = angle * Mathf.Deg2Rad;
+                    float xDeg = Mathf.Sin(angleRad) * spreadDeg;
+                    float yDeg = Mathf.Cos(angleRad) * spreadDeg;
+
+                    aux.directionPivot.localRotation = Quaternion.Euler(xDeg + state.beamShakeAngleDeg.x, yDeg + state.beamShakeAngleDeg.y, 0f);
+                    aux.cookieRollPivot.localRotation = rotationMode == AuxiliaryCookieRotationMode.TransformRoll
+                        ? Quaternion.AngleAxis(goboRotationDeg + goboCookieRollOffsetDeg, Vector3.forward)
+                        : Quaternion.identity;
+
+                    ApplyPrismAuxiliaryLightState(aux, source, state, cookie, count);
+                }
             }
         }
 
@@ -4551,27 +4774,39 @@ namespace ArtNet.Runtime
 
 #endif
 
-        private void EnsurePrismAuxiliaryLights(int count)
+        private void EnsurePrismAuxiliaryLights(Light source, int count)
         {
+            if (source == null)
+                return;
+
             count = Mathf.Clamp(count, 1, Mathf.Max(1, maxPrismAuxiliaryFacets));
 
-            if (_prismAuxRoot == null)
+            if (!_prismAuxRoots.TryGetValue(source, out var root) || root == null)
             {
-                var root = new GameObject("PrismAuxRoot");
-                root.hideFlags = HideFlags.DontSave;
-                _prismAuxRoot = root.transform;
-                _prismAuxRoot.SetParent(transform, false);
+                var rootObject = new GameObject($"PrismAuxRoot_{source.GetInstanceID()}");
+                rootObject.hideFlags = HideFlags.DontSave;
+                root = rootObject.transform;
+                root.SetParent(transform, false);
+                _prismAuxRoots[source] = root;
             }
 
-            while (_prismAuxiliaryLights.Count < count)
-                _prismAuxiliaryLights.Add(CreatePrismAuxiliaryLight(_prismAuxiliaryLights.Count));
+            int existing = 0;
+            for (int i = 0; i < _prismAuxiliaryLights.Count; i++)
+                if (_prismAuxiliaryLights[i]?.sourceLight == source)
+                    existing++;
+
+            while (existing < count)
+            {
+                _prismAuxiliaryLights.Add(CreatePrismAuxiliaryLight(source, root, existing));
+                existing++;
+            }
         }
 
-        private PrismAuxiliaryLight CreatePrismAuxiliaryLight(int index)
+        private PrismAuxiliaryLight CreatePrismAuxiliaryLight(Light source, Transform root, int index)
         {
             var directionGo = new GameObject($"FacetDirectionPivot_{index}");
             directionGo.hideFlags = HideFlags.DontSave;
-            directionGo.transform.SetParent(_prismAuxRoot, false);
+            directionGo.transform.SetParent(root, false);
 
             var rollGo = new GameObject($"CookieRollPivot_{index}");
             rollGo.hideFlags = HideFlags.DontSave;
@@ -4587,12 +4822,13 @@ namespace ArtNet.Runtime
 
 #if HAS_HDRP
             HDAdditionalLightData hd = null;
-            if (targetLight != null && targetLight.GetComponent<HDAdditionalLightData>() != null)
+            if (source != null && source.GetComponent<HDAdditionalLightData>() != null)
                 hd = lightGo.AddComponent<HDAdditionalLightData>();
 #endif
 
             return new PrismAuxiliaryLight
             {
+                sourceLight = source,
                 directionPivot = directionGo.transform,
                 cookieRollPivot = rollGo.transform,
                 light = light,
@@ -4621,32 +4857,22 @@ namespace ArtNet.Runtime
 
         private float GetPrismGoboSpacingScale(FixtureRenderState state)
         {
-            float customScale = Mathf.Max(0f, prismGoboSpacingScale);
+            if (prismGoboSpacingMode == PrismGoboSpacingMode.Manual)
+                return Mathf.Max(0f, manualPrismGoboSpacingScale);
 
-            switch (prismZoomCorrection)
-            {
-                case PrismZoomCorrectionMode.Auto:
-                    if (!state.zoomEnabled)
-                        return customScale;
+            if (!state.zoomEnabled)
+                return 1f;
 
-                    float currentAngle = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
-                    float minAngle = Mathf.Clamp(minOuterSpotAngle, 0.1f, 179f);
-                    float maxAngle = Mathf.Clamp(maxOuterSpotAngle, 0.1f, 179f);
-                    float referenceAngle = Mathf.Clamp((minAngle + maxAngle) * 0.5f, 0.1f, 179f);
-                    float currentFootprint = Mathf.Tan(currentAngle * 0.5f * Mathf.Deg2Rad);
-                    float referenceFootprint = Mathf.Max(0.0001f, Mathf.Tan(referenceAngle * 0.5f * Mathf.Deg2Rad));
-                    return Mathf.Max(0f, currentFootprint / referenceFootprint * customScale);
-
-                case PrismZoomCorrectionMode.Custom:
-                    return customScale;
-
-                case PrismZoomCorrectionMode.Off:
-                default:
-                    return 1f;
-            }
+            float currentAngle = Mathf.Clamp(state.outerSpotAngleDeg, 0.1f, 179f);
+            float minAngle = Mathf.Clamp(minOuterSpotAngle, 0.1f, 179f);
+            float maxAngle = Mathf.Clamp(maxOuterSpotAngle, 0.1f, 179f);
+            float referenceAngle = Mathf.Clamp((minAngle + maxAngle) * 0.5f, 0.1f, 179f);
+            float currentFootprint = Mathf.Tan(currentAngle * 0.5f * Mathf.Deg2Rad);
+            float referenceFootprint = Mathf.Max(0.0001f, Mathf.Tan(referenceAngle * 0.5f * Mathf.Deg2Rad));
+            return Mathf.Max(0f, currentFootprint / referenceFootprint);
         }
 
-        private void ApplyPrismAuxiliaryLightState(PrismAuxiliaryLight aux, FixtureRenderState state, Texture cookie, int facetCount)
+        private void ApplyPrismAuxiliaryLightState(PrismAuxiliaryLight aux, Light source, FixtureRenderState state, Texture cookie, int facetCount)
         {
             if (aux == null || aux.light == null)
                 return;
@@ -4659,20 +4885,27 @@ namespace ArtNet.Runtime
             bool projectionOnly = IsProjectionOnlyPrismMode();
             float maxIntensity = hasHdrp ? hdrpMaxIntensity : genericMaxIntensity;
             float perFacetScale = auxiliaryIntensityScale * Mathf.Max(0f, _prismIntensityScale) * GetPrismBrightnessDistributionScale(facetCount);
-            float intensity = Mathf.Clamp01(state.lightDimmer01) * maxIntensity * perFacetScale;
+            // The primary driver has already applied the common Sync Beam switches.
+            // When Dimmer sync is disabled, use its captured prefab intensity instead of DMX.
+            float sourceIntensity = state.syncLightDimmerToDmx
+                ? Mathf.Clamp01(state.lightDimmer01) * maxIntensity
+                : GetPrismSourceInitialIntensity(source, maxIntensity);
+            float intensity = sourceIntensity * perFacetScale;
+            Color color = source != null ? source.color : Color.white;
+            float cookieContribution = state.syncLightDimmerToDmx ? Mathf.Clamp01(state.lightDimmer01) : 1f;
 
             light.enabled = true;
             light.type = LightType.Spot;
-            light.color = state.color;
+            light.color = color;
             light.intensity = intensity;
             light.cookie = cookie;
             light.shadows = (!projectionOnly && auxiliaryLightShadows) ? LightShadows.Soft : LightShadows.None;
 
-            if (targetLight != null)
+            if (source != null)
             {
-                light.range = targetLight.range;
-                light.cullingMask = targetLight.cullingMask;
-                light.renderingLayerMask = targetLight.renderingLayerMask;
+                light.range = source.range;
+                light.cullingMask = source.cullingMask;
+                light.renderingLayerMask = source.renderingLayerMask;
             }
 
             if (state.zoomEnabled)
@@ -4683,11 +4916,11 @@ namespace ArtNet.Runtime
                 light.spotAngle = outer;
                 light.innerSpotAngle = outer * inner01;
             }
-            else if (targetLight != null)
+            else if (source != null)
             {
                 float spotAngleScale = GetVlbPrismGoboSpotAngleScale(state);
-                float baseOuter = Mathf.Clamp(targetLight.spotAngle, 0.1f, 179f);
-                float inner01 = Mathf.Clamp01(targetLight.innerSpotAngle / baseOuter);
+                float baseOuter = Mathf.Clamp(source.spotAngle, 0.1f, 179f);
+                float inner01 = Mathf.Clamp01(source.innerSpotAngle / baseOuter);
                 float outer = Mathf.Clamp(baseOuter * spotAngleScale, 0.1f, 179f);
                 light.spotAngle = outer;
                 light.innerSpotAngle = outer * inner01;
@@ -4696,7 +4929,7 @@ namespace ArtNet.Runtime
 #if HAS_HDRP
             if (aux.hd != null)
             {
-                aux.hd.SetColor(state.color);
+                aux.hd.SetColor(color);
                 aux.hd.intensity = intensity;
                 aux.hd.SetCookie(cookie != null ? cookie : Texture2D.whiteTexture);
                 float volumetricDimmer = IsVlbBeamRenderMode() || (projectionOnly && disableAuxiliaryVolumetricInProjectionOnly)
@@ -4709,29 +4942,66 @@ namespace ArtNet.Runtime
                     aux.hd.SetSpotAngle(Mathf.Clamp(state.outerSpotAngleDeg * spotAngleScale, 0.1f, 179f));
                     aux.hd.innerSpotPercent = Mathf.Clamp(state.innerSpotPercent, 0f, 100f);
                 }
-                else if (targetLight != null)
+                else if (source != null)
                 {
                     float spotAngleScale = GetVlbPrismGoboSpotAngleScale(state);
-                    float baseOuter = Mathf.Clamp(targetLight.spotAngle, 0.1f, 179f);
-                    float inner01 = Mathf.Clamp01(targetLight.innerSpotAngle / baseOuter);
+                    float baseOuter = Mathf.Clamp(source.spotAngle, 0.1f, 179f);
+                    float inner01 = Mathf.Clamp01(source.innerSpotAngle / baseOuter);
                     aux.hd.SetSpotAngle(Mathf.Clamp(baseOuter * spotAngleScale, 0.1f, 179f));
                     aux.hd.innerSpotPercent = inner01 * 100f;
                 }
 
-                if (targetLight != null)
-                    aux.hd.range = targetLight.range;
+                if (source != null)
+                    aux.hd.range = source.range;
             }
 #endif
 
-            ApplyPrismAuxiliaryVlbState(aux, state, cookie);
+            ApplyPrismAuxiliaryVlbState(aux, source, state, cookie, cookieContribution);
         }
 
-        private void ApplyPrismAuxiliaryVlbState(PrismAuxiliaryLight aux, FixtureRenderState state, Texture cookie)
+        private float GetPrismSourceInitialIntensity(Light source, float fallback)
+        {
+            if (source == null)
+                return fallback;
+
+            var generic = source.GetComponent<GenericLightDriver>();
+            if (generic != null)
+                return generic.InitialIntensity;
+
+#if HAS_HDRP
+            var hdrp = source.GetComponent<HdrpLightDriver>();
+            if (hdrp != null)
+                return hdrp.InitialIntensity;
+#endif
+
+            CaptureInitialLightState(source);
+            return _directLightInitialIntensities[source];
+        }
+
+        private void CaptureInitialLightState(Light light)
+        {
+            if (light == null)
+                return;
+
+            if (!_directLightInitialColors.ContainsKey(light))
+                _directLightInitialColors[light] = light.color;
+            if (!_directLightInitialIntensities.ContainsKey(light))
+                _directLightInitialIntensities[light] = light.intensity;
+            if (!_directLightInitialCookies.ContainsKey(light))
+                _directLightInitialCookies[light] = light.cookie;
+            if (!_directLightInitialSpotAngles.ContainsKey(light))
+                _directLightInitialSpotAngles[light] = new Vector2(light.spotAngle, light.innerSpotAngle);
+        }
+
+        private void ApplyPrismAuxiliaryVlbState(PrismAuxiliaryLight aux, Light source, FixtureRenderState state, Texture cookie, float cookieContribution)
         {
             if (aux == null || aux.light == null)
                 return;
 
-            if (!IsVlbBeamRenderMode())
+            // SD keeps its native SD beam and never receives transient HD components.
+            // VLB prefabs may use ProjectionAndShaderBeam as their stored Prism preset;
+            // this is a Pseudo Beam-specific distinction, so do not suppress VLB facets.
+            if (!IsVlbBeamRenderMode() || source == null || VlbBeamAdapter.GetHd(source.gameObject) == null)
             {
                 DisablePrismAuxiliaryVlb(aux);
                 return;
@@ -4742,19 +5012,19 @@ namespace ArtNet.Runtime
                 return;
 
             var overrides = BuildVlbOverrides();
-            var template = targetLight != null ? VlbBeamAdapter.GetHd(targetLight.gameObject) : null;
+            var template = VlbBeamAdapter.GetHd(source.gameObject);
             VlbBeamAdapter.ApplyPrismHd(aux.vlbHd, aux.light, template, overrides);
 
             if (aux.vlbCookieHd != null)
             {
-                bool hasCookie = syncLightCookieToGobo && state.goboEnabled && cookie != null;
-                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, state.lightDimmer01, GetTemplateVlbCookieScale());
+                bool hasCookie = syncBeamGoboToDmx && state.goboEnabled && cookie != null;
+                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, cookieContribution, GetTemplateVlbCookieScale(source));
             }
         }
 
-        private Vector2 GetTemplateVlbCookieScale()
+        private Vector2 GetTemplateVlbCookieScale(Light source)
         {
-            var template = targetLight != null ? VlbBeamAdapter.GetCookieHd(targetLight.gameObject) : null;
+            var template = source != null ? VlbBeamAdapter.GetCookieHd(source.gameObject) : null;
             if (template != null)
                 return VlbBeamAdapter.GetCookieScale(template);
             return Vector2.one;
@@ -4819,12 +5089,13 @@ namespace ArtNet.Runtime
                 _prismCookieMaterial = null;
             }
 
-            if (_prismAuxRoot != null)
+            foreach (var root in _prismAuxRoots.Values)
             {
-                DestroyUnityObject(_prismAuxRoot.gameObject);
-                _prismAuxRoot = null;
+                if (root != null)
+                    DestroyUnityObject(root.gameObject);
             }
 
+            _prismAuxRoots.Clear();
             _prismAuxiliaryLights.Clear();
         }
 

@@ -26,9 +26,11 @@ namespace ArtNet.Runtime
         public string name;
 
         [Range(0, 255)]
+        [InspectorName("DMX Min")]
         public int dmxMin = 0;
 
         [Range(0, 255)]
+        [InspectorName("DMX Max")]
         public int dmxMax = 0;
 
         public PrismRangeType type = PrismRangeType.Select;
@@ -48,9 +50,11 @@ namespace ArtNet.Runtime
         public string name;
 
         [Range(0, 255)]
+        [InspectorName("DMX Min")]
         public int dmxMin = 0;
 
         [Range(0, 255)]
+        [InspectorName("DMX Max")]
         public int dmxMax = 255;
 
         public bool isOpen = false;

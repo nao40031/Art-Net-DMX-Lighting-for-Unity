@@ -38,6 +38,14 @@ namespace ArtNet.Runtime
             public Component hd;
             public Component sd;
             public Component cookieHd;
+            public bool hasCookieHdBaseline;
+            public bool cookieHdEnabled;
+            public object cookieHdTexture;
+            public object cookieHdChannel;
+            public float cookieHdContribution;
+            public float cookieHdRotation;
+            public Vector2 cookieHdTranslation;
+            public Vector2 cookieHdScale;
         }
 
         public static bool IsVlbAvailable => VlbReflection.IsAvailable;
@@ -223,6 +231,18 @@ namespace ArtNet.Runtime
                 entry.sd = VlbReflection.GetComponent(entry.light.gameObject, VlbReflection.SdType);
             if (entry.cookieHd == null)
                 entry.cookieHd = GetCookieHd(entry.light.gameObject);
+
+            if (entry.cookieHd != null && !entry.hasCookieHdBaseline)
+            {
+                entry.cookieHdEnabled = entry.cookieHd is Behaviour behaviour && behaviour.enabled;
+                entry.cookieHdTexture = VlbReflection.GetObject(entry.cookieHd, "cookieTexture");
+                entry.cookieHdChannel = VlbReflection.GetObject(entry.cookieHd, "channel");
+                entry.cookieHdContribution = VlbReflection.GetFloat(entry.cookieHd, "contribution", 0f);
+                entry.cookieHdRotation = VlbReflection.GetFloat(entry.cookieHd, "rotation", 0f);
+                entry.cookieHdTranslation = VlbReflection.GetVector2(entry.cookieHd, "translation", Vector2.zero);
+                entry.cookieHdScale = VlbReflection.GetVector2(entry.cookieHd, "scale", Vector2.one);
+                entry.hasCookieHdBaseline = true;
+            }
         }
 
         private static void ApplyHd(Entry entry, FixtureRenderState state, bool syncCookie, Overrides overrides)
@@ -233,6 +253,12 @@ namespace ArtNet.Runtime
             if (entry.cookieHd == null)
                 return;
 
+            if (!syncCookie)
+            {
+                RestoreCookieHdBaseline(entry);
+                return;
+            }
+
             bool hasCookie = syncCookie && state.goboEnabled && state.goboTexture != null;
             float prismGoboScale = state.vlbPrismGoboScale > 0f
                 ? Mathf.Clamp(state.vlbPrismGoboScale, 0.1f, 3f)
@@ -241,9 +267,25 @@ namespace ArtNet.Runtime
             float cookieScale = CookieScaleToMatchUnitySpotLight / visualScale;
             ApplyPrismCookieHd(entry.cookieHd, hasCookie, state.goboTexture, state.lightDimmer01, hasCookie ? Vector2.one * cookieScale : Vector2.one);
             if (hasCookie)
-                VlbReflection.SetFloat(entry.cookieHd, "rotation", state.goboRotationDeg);
+                VlbReflection.SetFloat(entry.cookieHd, "rotation", state.syncLightGoboRotationToDmx ? state.goboRotationDeg : 0f);
             if (hasCookie)
-                VlbReflection.SetVector2(entry.cookieHd, "translation", state.goboOffsetUv);
+                VlbReflection.SetVector2(entry.cookieHd, "translation", state.syncLightGoboRotationToDmx ? state.goboOffsetUv : Vector2.zero);
+        }
+
+        private static void RestoreCookieHdBaseline(Entry entry)
+        {
+            if (entry.cookieHd == null || !entry.hasCookieHdBaseline)
+                return;
+
+            if (entry.cookieHd is Behaviour behaviour)
+                behaviour.enabled = entry.cookieHdEnabled;
+            VlbReflection.SetObject(entry.cookieHd, "cookieTexture", entry.cookieHdTexture);
+            VlbReflection.SetObject(entry.cookieHd, "channel", entry.cookieHdChannel);
+            VlbReflection.SetFloat(entry.cookieHd, "contribution", entry.cookieHdContribution);
+            VlbReflection.SetFloat(entry.cookieHd, "rotation", entry.cookieHdRotation);
+            VlbReflection.SetVector2(entry.cookieHd, "translation", entry.cookieHdTranslation);
+            VlbReflection.SetVector2(entry.cookieHd, "scale", entry.cookieHdScale);
+            VlbReflection.Invoke(entry.cookieHd, "UpdateAfterManualPropertyChange");
         }
 
         private static void ApplySd(Entry entry, Overrides overrides)
@@ -252,9 +294,17 @@ namespace ArtNet.Runtime
                 behaviour.enabled = true;
             Disable(entry.cookieHd);
 
+            // SD and HD must both inherit the active Light color, intensity and cone.
+            // Reflection keeps this optional when a VLB version does not expose a member.
+            VlbReflection.SetBool(entry.sd, "colorFromLight", true);
+            VlbReflection.SetBool(entry.sd, "useIntensityFromAttachedLightSpot", true);
+            VlbReflection.SetBool(entry.sd, "useSpotAngleFromAttachedLightSpot", true);
+            VlbReflection.SetObject(entry.sd, "color", entry.light.color);
+
             if (overrides.overrideSdIntensityMultiplier)
                 VlbReflection.SetFloat(entry.sd, "intensityMultiplier", Mathf.Max(0f, overrides.sdIntensityMultiplier));
 
+            VlbReflection.Invoke(entry.sd, "AssignPropertiesFromAttachedSpotLight");
             VlbReflection.Invoke(entry.sd, "UpdateAfterManualPropertyChange");
         }
 
@@ -348,6 +398,22 @@ namespace ArtNet.Runtime
                 var member = GetMember(component.GetType(), name);
                 object value = GetValue(component, member);
                 return value is Vector2 vector ? vector : fallback;
+            }
+
+            public static float GetFloat(Component component, string name, float fallback)
+            {
+                if (component == null)
+                    return fallback;
+
+                object value = GetValue(component, GetMember(component.GetType(), name));
+                return value is float number ? number : fallback;
+            }
+
+            public static object GetObject(Component component, string name)
+            {
+                return component == null
+                    ? null
+                    : GetValue(component, GetMember(component.GetType(), name));
             }
 
             private static void SetValue(Component component, string name, object value)
