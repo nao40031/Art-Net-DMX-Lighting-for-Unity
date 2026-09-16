@@ -71,13 +71,18 @@ public class MovingLightPrefabReplacerWindow : EditorWindow
 
         if (!CanRun())
         {
-            EditorGUILayout.HelpBox("Prefab Asset（Project上の.prefab）を指定してください。", MessageType.Info);
+            EditorGUILayout.HelpBox(
+                "Prefab Asset（Project上の.prefab）を指定してください。\n" +
+                "Assign a Prefab Asset (.prefab file in the Project window).",
+                MessageType.Info);
         }
 
         EditorGUILayout.Space(4);
         EditorGUILayout.HelpBox(
             "注意：置換は既存GameObjectを削除して新規Prefabインスタンスを生成します。\n" +
-            "他スクリプトからの参照がある場合は参照が切れます（必要なら別方式にします）。",
+            "他スクリプトからの参照がある場合は参照が切れます（必要なら別方式にします）。\n\n" +
+            "Warning: Replacement deletes the existing GameObject and creates a new Prefab instance.\n" +
+            "References from other scripts will be lost; use a different approach when those references must be preserved.",
             MessageType.Warning);
     }
 

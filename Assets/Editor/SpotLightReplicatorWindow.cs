@@ -78,13 +78,18 @@ public class SpotLightReplicatorWindow : EditorWindow
 
         if (!CanRun())
         {
-            EditorGUILayout.HelpBox("Template MovingLight を指定してください。", MessageType.Info);
+            EditorGUILayout.HelpBox(
+                "Template MovingLight を指定してください。\n" +
+                "Assign the Template MovingLight.",
+                MessageType.Info);
         }
 
         EditorGUILayout.Space(4);
         EditorGUILayout.HelpBox(
             "テンプレの 'Spot Light' GameObject を丸ごと複製します（HDRPの追加コンポーネントも含まれるので安全）。\n" +
-            "Mount Path が違う場合は、あなたの階層に合わせて変更してください。",
+            "Mount Path が違う場合は、あなたの階層に合わせて変更してください。\n\n" +
+            "Duplicates the template's entire 'Spot Light' GameObject, including its additional HDRP components.\n" +
+            "If the Mount Path differs, change it to match your hierarchy.",
             MessageType.None);
     }
 
