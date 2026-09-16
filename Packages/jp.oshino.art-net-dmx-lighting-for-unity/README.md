@@ -96,6 +96,24 @@ VLBはこのパッケージの依存関係・同梱物ではありません。VL
 
 Use **Setup Gobo Lens Material** to assign the correct shared lens material for the active HDRP or URP pipeline. The operation is an Editor-time setup only; no material replacement occurs at runtime. Use **Validate Gobo Lens Setup** to verify assignments, and **Restore Original Materials** to revert them. Included `MovingLight_withGobo` prefabs are already configured.
 
+## Editor Tools
+
+### Generic Prefab Replacer
+
+`Tools > Generic > Replace Targets With Template...` は、シーン内の対象をPrefab Assetまたはシーン上のテンプレートへ一括置換します。名前の連番またはRoot配下の条件で対象を抽出でき、必要に応じて子Transformのローカル位置・回転・スケールを引き継げます。
+
+置換処理は元のGameObjectを削除して新しいインスタンスを生成するため、他のComponentやシーンオブジェクトから参照されている場合は参照が切れる可能性があります。実行前にシーンを保存し、置換結果を確認してください。
+
+**English:** Use `Tools > Generic > Replace Targets With Template...` to replace matching scene objects with a Prefab Asset or scene template. The operation deletes the original objects, so references from other objects may be lost.
+
+### MagicQ Calibration CSV Exporter
+
+Hierarchyで灯体または親オブジェクトを選択し、`Tools > MagicQ > Export MagicQ Calibration CSV...` を実行すると、UnityのTransform情報をMagicQ向けCSVへ出力できます。座標スケール、Z反転、World/Local回転、並び順、デフォルトのManufacturer・Model・Modeを出力前に変更できます。
+
+初期値の `Betopper`、`LM70S`、`9ch` はサンプル値です。使用する灯体に合わせてExportウィンドウで変更してください。設定はEditorPrefsへ保存されます。
+
+**English:** Select fixtures or their parent in the Hierarchy, then use `Tools > MagicQ > Export MagicQ Calibration CSV...`. The default `Betopper`, `LM70S`, and `9ch` values are editable examples and are saved in EditorPrefs.
+
 ## 前提
 
 - Unity 6000.0以降

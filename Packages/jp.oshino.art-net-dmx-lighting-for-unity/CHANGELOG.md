@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add the Generic Prefab Replacer editor tool for configurable scene-object replacement.
+- Add the MagicQ calibration CSV exporter with bilingual Japanese and English guidance.
+
 ## 0.2.1
 
 - Rename the light asset root from `Runtime/LightAsset/やまかライト` to `Runtime/LightAsset/yamakara Light_やまかライト`.
