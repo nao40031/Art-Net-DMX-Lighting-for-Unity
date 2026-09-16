@@ -178,7 +178,7 @@ MonoBehaviour:
   spotAngleFromLight: 1
   spotAngle: 40.300014
   spotAngleMultiplier: 1.3
-  coneRadiusStart: 0.01
+  coneRadiusStart: 0.015
   shaderAccuracy: 0
   geomMeshType: 0
   geomCustomSides: 18
@@ -389,7 +389,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
     - target: {fileID: 919132149155446097, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
       propertyPath: m_Name
-      value: MovingLight_withGobo(MAC Ultra)_VLB_URP
+      value: MovingLight_withGobo(MAC Ultra)_VLB(SD)_URP
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -467,39 +467,13 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 1013826615945173212}
   tiltTransform: {fileID: 3456986391419752059}
-  lensRenderer: {fileID: 0}
-  extraLensRenderers:
-  - {fileID: 2523771333444109262}
-  lensMaterialBindings:
-  - renderer: {fileID: 2523771333444109262}
-    materialSlot: 0
-    originalMaterial: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
-    goboLensMaterial: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
-  syncLensToDmx: 1
-  syncLensColorToDmx: 1
-  syncLensDimmerToDmx: 1
-  lensColorProperty: _DmxColor
-  lensDimmerProperty: _DmxDimmer
-  lensDimmerScale: 1
-  goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}
-  syncLightCookieToGobo: 1
-  syncLensGoboToDmx: 1
-  syncBeamGoboToDmx: 1
-  maxGoboRotateDegPerSec: 360
-  enableGoboShake: 1
-  syncGoboRotationToCookieTransform: 1
-  goboCookieRollTransform: {fileID: 2415676272866749}
-  goboCookieRollAxis: {x: 0, y: 0, z: 1}
-  goboCookieRollOffsetDeg: 0
-  lensGoboTextureProperty: _GoboTexture
-  lensGoboRotationProperty: _GoboRotationDeg
-  lensGoboEnabledProperty: _GoboEnabled
-  lensGoboRotationDirection: 0
-  lensPrismGoboMode: 1
-  beamGoboTextureProperty: _GoboTexture
-  beamGoboRotationProperty: _GoboRotationDeg
-  beamGoboEnabledProperty: _GoboEnabled
   beamRenderMode: 2
+  syncBeamColorToDmx: 1
+  syncBeamDimmerToDmx: 1
+  syncBeamGoboToDmx: 1
+  syncBeamGoboRotationToDmx: 1
+  syncBeamPrismToDmx: 1
+  syncBeamZoomToDmx: 1
   overrideVlbHdIntensityMultiplier: 1
   vlbHdIntensityMultiplier: 0.00001
   overrideVlbSdIntensityMultiplier: 1
@@ -508,13 +482,10 @@ MonoBehaviour:
   vlbHdrpExposureWeight: 0
   syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
   _vlbPipelineDefaultsInitialized: 1
   beamRenderer: {fileID: 1632846662148736556}
-  extraBeamRenderers: []
-  syncBeamColorToDmx: 1
-  syncBeamDimmerToDmx: 1
-  syncBeamPrismToDmx: 1
-  syncBeamZoomToDmx: 1
+  extraPseudoBeamRenderers: []
   syncBeamNoiseVolumeToBeam: 1
   beamColorProperty: _DmxColor
   beamDimmerProperty: _DmxDimmer
@@ -560,6 +531,50 @@ MonoBehaviour:
   beamSoftShellIntensity: 0.2
   beamSoftShellEdgeSoftness: 0.9
   beamSoftShellNoiseStrength: 0.25
+  lensRenderer: {fileID: 0}
+  extraLensRenderers:
+  - {fileID: 2523771333444109262}
+  lensMaterialBindings:
+  - renderer: {fileID: 2523771333444109262}
+    materialSlot: 0
+    originalMaterial: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
+    goboLensMaterial: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
+  syncLensToDmx: 1
+  syncLensColorToDmx: 1
+  syncLensDimmerToDmx: 1
+  lensColorProperty: _DmxColor
+  lensDimmerProperty: _DmxDimmer
+  lensDimmerScale: 1
+  lensApertureFeather: 0
+  syncLensGoboToDmx: 1
+  syncLensGoboZoomToDmx: 1
+  lensGoboTextureProperty: _GoboTexture
+  lensGoboRotationProperty: _GoboRotationDeg
+  lensGoboEnabledProperty: _GoboEnabled
+  lensGoboRotationDirection: 0
+  lensGoboShakePositionDirection: 0
+  lensGoboShakeRotationDirection: 0
+  lensPrismGoboMode: 1
+  legacyUseDedicatedGoboLensShader: 0
+  goboLensEmission: 2
+  goboLensScale: 1
+  goboLensZoomNarrowScale: 0.5
+  goboLensZoomWideScale: 1
+  goboLensBlur: 0
+  goboLensHorizontalOffset: 0
+  goboLensVerticalOffset: 0
+  goboLensHotspotStrength: 0.35
+  goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}
+  syncLightCookieToGobo: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 2415676272866749}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
+  beamGoboTextureProperty: _GoboTexture
+  beamGoboRotationProperty: _GoboRotationDeg
+  beamGoboEnabledProperty: _GoboEnabled
   syncZoomToLight: 1
   minOuterSpotAngle: 5
   maxOuterSpotAngle: 50
@@ -581,8 +596,8 @@ MonoBehaviour:
   auxiliaryIntensityScale: 1
   auxiliaryVolumetricIntensityScale: 1
   prismBrightnessDistribution: 1
-  prismZoomCorrection: 0
-  prismGoboSpacingScale: 1
+  prismGoboSpacingMode: 0
+  manualPrismGoboSpacingScale: 1
   prismGoboScaleVlb: 1
   auxiliaryLightShadows: 0
   prismCookieShader: {fileID: 0}

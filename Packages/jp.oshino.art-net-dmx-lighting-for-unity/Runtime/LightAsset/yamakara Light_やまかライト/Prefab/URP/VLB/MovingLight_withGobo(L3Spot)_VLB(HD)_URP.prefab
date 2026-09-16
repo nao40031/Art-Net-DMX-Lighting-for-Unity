@@ -122,6 +122,7 @@ GameObject:
   - component: {fileID: 5615845126080219335}
   - component: {fileID: 5655910163745881014}
   - component: {fileID: 5471896934191145920}
+  - component: {fileID: 6204344955144956004}
   m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
@@ -240,7 +241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92b0a6142b2b0b449a62558873544363, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pluginVersion: -1
+  pluginVersion: 20208
   m_ColorFromLight: 1
   m_ColorMode: 0
   m_ColorFlat: {r: 0.8513686, g: 0.8913955, b: 1, a: 1}
@@ -280,14 +281,14 @@ MonoBehaviour:
   m_HDRPExposureWeight: 0
   m_SpotAngle: 31.000013
   m_SpotAngleMultiplier: 1
-  m_ConeRadiusStart: 0.1
+  m_ConeRadiusStart: 0.015
   m_Scalable: 1
   m_FallOffStart: 0
   m_FallOffEnd: 12.87
   m_FallOffEndMultiplier: 1
   m_AttenuationEquation: 1
   m_SideSoftness: 1
-  m_RaymarchingQualityID: -1
+  m_RaymarchingQualityID: 647570373
   m_JitteringFactor: 0
   m_JitteringFrameRate: 60
   m_JitteringLerpRange:
@@ -318,6 +319,29 @@ MonoBehaviour:
   m_Translation: {x: 0, y: 0}
   m_Rotation: 0
   m_Scale: {x: 1, y: 1}
+--- !u!114 &6204344955144956004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1001 &3488826918228270366
 PrefabInstance:
   m_ObjectHideFlags: 0
