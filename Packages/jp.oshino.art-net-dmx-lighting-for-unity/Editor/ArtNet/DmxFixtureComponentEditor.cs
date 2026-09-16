@@ -69,7 +69,8 @@ namespace ArtNet.Editor
             EditorGUILayout.Space(6f);
             EditorGUILayout.LabelField("Gobo Lens Material Setup", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Setup Gobo Lens Material は、現在のRender Pipeline（HDRP / URP）を一度だけ判定し、登録済みの各Rendererスロットへ対応する共有マテリアルを割り当てます。再生中の差し替えは行いません。",
+                "Setup Gobo Lens Material は、現在のRender Pipeline（HDRP / URP）を一度だけ判定し、登録済みの各Rendererスロットへ対応する共有マテリアルを割り当てます。再生中の差し替えは行いません。\n" +
+                "Setup Gobo Lens Material detects the current Render Pipeline (HDRP / URP) once and assigns the corresponding shared material to each registered Renderer slot. Materials are not replaced during Play Mode.",
                 MessageType.Info);
 
             var bindings = serializedObject.FindProperty("lensMaterialBindings");
@@ -177,7 +178,7 @@ namespace ArtNet.Editor
             var material = FindGoboLensMaterialForCurrentPipeline(out string expectedShaderName);
             if (material == null)
             {
-                Debug.LogError("Gobo Lens Material Setup: 現在のRender Pipelineに対応する共有マテリアルが見つかりません。HDRPまたはURPを有効にし、UPMパッケージを再importしてください。");
+                Debug.LogError("Gobo Lens Material Setup: 現在のRender Pipelineに対応する共有マテリアルが見つかりません。HDRPまたはURPを有効にし、UPMパッケージを再importしてください。\nNo shared material compatible with the current Render Pipeline was found. Enable HDRP or URP and reimport the UPM package.");
                 return;
             }
 
@@ -196,7 +197,7 @@ namespace ArtNet.Editor
                     int slot = binding.FindPropertyRelative("materialSlot").intValue;
                     if (renderer == null || slot < 0 || renderer.sharedMaterials == null || slot >= renderer.sharedMaterials.Length)
                     {
-                        Debug.LogWarning($"Gobo Lens Material Setup: {targets[targetIndex].name} のBinding {i} はRendererまたはMaterial Slotが無効です。", targets[targetIndex]);
+                        Debug.LogWarning($"Gobo Lens Material Setup: {targets[targetIndex].name} のBinding {i} はRendererまたはMaterial Slotが無効です。\nBinding {i} on {targets[targetIndex].name} has an invalid Renderer or Material Slot.", targets[targetIndex]);
                         continue;
                     }
 
@@ -216,7 +217,7 @@ namespace ArtNet.Editor
                 EditorUtility.SetDirty(targets[targetIndex]);
                 PrefabUtility.RecordPrefabInstancePropertyModifications(targets[targetIndex]);
             }
-            Debug.Log($"Gobo Lens Material Setup: {configured} slot(s) に {expectedShaderName} を割り当てました。");
+            Debug.Log($"Gobo Lens Material Setup: {configured} slot(s) に {expectedShaderName} を割り当てました。\nAssigned {expectedShaderName} to {configured} slot(s).");
         }
 
         private static void MigrateLegacyLensRenderersToBindings(SerializedObject targetObject, SerializedProperty bindings)
@@ -266,7 +267,7 @@ namespace ArtNet.Editor
                 EditorUtility.SetDirty(targets[targetIndex]);
                 PrefabUtility.RecordPrefabInstancePropertyModifications(targets[targetIndex]);
             }
-            Debug.Log($"Gobo Lens Material Setup: {restored} slot(s) を元のマテリアルへ戻しました。");
+            Debug.Log($"Gobo Lens Material Setup: {restored} slot(s) を元のマテリアルへ戻しました。\nRestored {restored} slot(s) to their original materials.");
         }
 
         private void ValidateGoboLensSetupForTargets()
@@ -274,7 +275,7 @@ namespace ArtNet.Editor
             var expectedMaterial = FindGoboLensMaterialForCurrentPipeline(out string expectedShaderName);
             if (expectedMaterial == null)
             {
-                Debug.LogError("Gobo Lens Material Setup: 現在のRender Pipelineに対応する共有マテリアルが見つかりません。");
+                Debug.LogError("Gobo Lens Material Setup: 現在のRender Pipelineに対応する共有マテリアルが見つかりません。\nNo shared material compatible with the current Render Pipeline was found.");
                 return;
             }
 
@@ -286,7 +287,7 @@ namespace ArtNet.Editor
                 if (bindings == null || bindings.arraySize == 0)
                 {
                     invalid++;
-                    Debug.LogWarning($"Gobo Lens Material Setup: {targets[targetIndex].name} にLens Material Bindingがありません。", targets[targetIndex]);
+                    Debug.LogWarning($"Gobo Lens Material Setup: {targets[targetIndex].name} にLens Material Bindingがありません。\n{targets[targetIndex].name} has no Lens Material Binding.", targets[targetIndex]);
                     continue;
                 }
                 for (int i = 0; i < bindings.arraySize; i++)
@@ -299,11 +300,11 @@ namespace ArtNet.Editor
                     else
                     {
                         invalid++;
-                        Debug.LogWarning($"Gobo Lens Material Setup: {targets[targetIndex].name} のBinding {i} は {expectedShaderName} を参照していません。", targets[targetIndex]);
+                        Debug.LogWarning($"Gobo Lens Material Setup: {targets[targetIndex].name} のBinding {i} は {expectedShaderName} を参照していません。\nBinding {i} on {targets[targetIndex].name} does not reference {expectedShaderName}.", targets[targetIndex]);
                     }
                 }
             }
-            Debug.Log($"Gobo Lens Material Setup: 検証完了。Valid: {valid}, Invalid: {invalid}。");
+            Debug.Log($"Gobo Lens Material Setup: 検証完了。Valid: {valid}, Invalid: {invalid}。\nValidation complete. Valid: {valid}, Invalid: {invalid}.");
         }
 
         private void DrawVlbDefaultsButton()
