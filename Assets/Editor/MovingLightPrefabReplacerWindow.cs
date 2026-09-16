@@ -26,7 +26,10 @@ public class MovingLightPrefabReplacerWindow : EditorWindow
     [Tooltip("ログを出す")]
     [SerializeField] private bool logDetails = true;
 
+    // Legacy tool retained for backward compatibility. Use GenericPrefabReplacerWindow instead.
+#if ARTNET_ENABLE_LEGACY_MOVING_LIGHT_REPLACER
     [MenuItem("Tools/MovingLight/Replace With Prefab...")]
+#endif
     public static void Open()
     {
         var w = GetWindow<MovingLightPrefabReplacerWindow>("MovingLight Prefab Replacer");
