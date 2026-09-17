@@ -49,7 +49,6 @@ https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp
 VLB版Prefabはパッケージ本体に同梱されています。以下のPrefabにはVLB SD / HDと必要な設定があらかじめ適用済みです。Volumetric Light Beam（VLB）を正規の配布元から導入済みのプロジェクトでは、そのままシーンへ配置して使用できます。
 
 ```text
-Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/HDRP/VLB/MovingLight_withGobo(MAC Ultra)_VLB_HDRP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(MAC Ultra)_VLB(SD)_URP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(MAC Ultra)_VLB(HD)_URP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(L3Spot)_VLB(SD)_URP.prefab
@@ -60,7 +59,7 @@ Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/ParLight/Prefab with 
 
 VLBはこのパッケージの依存関係・同梱物ではありません。VLBを導入せずにVLB版Prefabを配置するとMissing Scriptが表示される可能性があります。VLBなしでも、`Prefab/HDRP` のHDRP版PrefabとArt-Net/DMX機能は利用できます。
 
-通常Prefabや独自Prefabへ新たにVLBを追加する場合だけ、`Art-Net > VLB > URP Setup` を使用します。Setup TargetへPrefab AssetまたはルートGameObjectを登録し、SD / HDを選択して **Apply VLB SD/HD to Target Lights** を実行してください。上記のVLB版Prefabに対して、この操作を行う必要はありません。
+通常Prefabや独自Prefabへ新たにVLBを追加する場合だけ、使用中のRender Pipelineに対応する `Art-Net > VLB > HDRP Setup` または `Art-Net > VLB > URP Setup` を使用します。Setup TargetへPrefab AssetまたはルートGameObjectを登録し、SD / HDを選択して **Apply VLB SD/HD to Target Lights** を実行してください。HDRP SetupはVLB ConfigとHDRP Assetの割り当てを確認し、HDRP向けのVLB強度・Exposure初期値を適用します。上記のVLB版Prefabに対して、この操作を行う必要はありません。
 
 ### Beam DMX Sync
 
