@@ -49,6 +49,7 @@ https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp
 VLB版Prefabはパッケージ本体に同梱されています。以下のPrefabにはVLB SD / HDと必要な設定があらかじめ適用済みです。Volumetric Light Beam（VLB）を正規の配布元から導入済みのプロジェクトでは、そのままシーンへ配置して使用できます。
 
 ```text
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/HDRP/VLB/MovingLight_withGobo(MAC Ultra)_VLB_HDRP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(MAC Ultra)_VLB(SD)_URP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(MAC Ultra)_VLB(HD)_URP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(L3Spot)_VLB(SD)_URP.prefab
