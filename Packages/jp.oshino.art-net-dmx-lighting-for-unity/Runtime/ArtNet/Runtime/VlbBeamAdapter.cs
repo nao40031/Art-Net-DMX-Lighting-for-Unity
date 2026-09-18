@@ -327,17 +327,20 @@ namespace ArtNet.Runtime
                 behaviour.enabled = true;
             Disable(entry.cookieHd);
 
-            // SD and HD must both inherit the active Light color, intensity and cone.
-            // Reflection keeps this optional when a VLB version does not expose a member.
+            // SD uses the native VLB SD property names. The HD-specific
+            // use*FromAttachedLightSpot properties are not the SD API and therefore
+            // do not make SD intensity follow the DMX-driven Light.
             VlbReflection.SetBool(entry.sd, "colorFromLight", true);
-            VlbReflection.SetBool(entry.sd, "useIntensityFromAttachedLightSpot", true);
-            VlbReflection.SetBool(entry.sd, "useSpotAngleFromAttachedLightSpot", true);
+            VlbReflection.SetBool(entry.sd, "intensityFromLight", true);
+            VlbReflection.SetBool(entry.sd, "spotAngleFromLight", true);
+            VlbReflection.SetBool(entry.sd, "fallOffEndFromLight", true);
             VlbReflection.SetObject(entry.sd, "color", entry.light.color);
 
             if (overrides.overrideSdIntensityMultiplier)
                 VlbReflection.SetFloat(entry.sd, "intensityMultiplier", Mathf.Max(0f, overrides.sdIntensityMultiplier));
 
-            VlbReflection.Invoke(entry.sd, "AssignPropertiesFromAttachedSpotLight");
+            // Keep the runtime values in sync after changing the SD properties above.
+            VlbReflection.Invoke(entry.sd, "UpdateAfterManualPropertyChange");
             // SD has no cookie support. Its native homogeneous beam can still represent the
             // circular aperture geometrically, without changing the Light or projected gobo.
             if (state.irisEnabled)
