@@ -4,6 +4,7 @@ Shader "ArtNet/Pseudo Beam"
     {
         [Header(DMX_Input)] _DmxColor ("Color", Color) = (1, 1, 1, 1)
         _DmxDimmer ("Dimmer", Float) = 1
+        _IrisShape ("Iris", Vector) = (1,0.01,0,0)
 
         [Header(Beam_Shape)] _BeamIntensity ("Intensity", Float) = 1
         _BeamLength ("Length", Float) = 10
@@ -74,6 +75,8 @@ Shader "ArtNet/Pseudo Beam"
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+            #include "IrisMask.hlsl"
+            float4 _IrisShape;
 
             struct Attributes
             {
@@ -138,6 +141,9 @@ Shader "ArtNet/Pseudo Beam"
             Varyings vert(Attributes input)
             {
                 Varyings output;
+                // Narrow only the visible beam mesh; projection angle and gobo magnification stay unchanged.
+                if (_IrisShape.x < 0.99999)
+                    input.positionOS.xy *= max(0.000001, IrisBoundary(atan2(input.positionOS.y, input.positionOS.x), _IrisShape));
                 output.positionCS = UnityObjectToClipPos(input.positionOS);
                 output.uv = input.uv;
                 float3 positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
@@ -175,6 +181,7 @@ Shader "ArtNet/Pseudo Beam"
             float SampleGobo(float2 uv)
             {
                 float2 centered = uv - 0.5;
+                centered *= _IrisShape.x;
                 float rad = radians(-_GoboRotationDeg);
                 float s = sin(rad);
                 float c = cos(rad);
@@ -193,6 +200,7 @@ Shader "ArtNet/Pseudo Beam"
             {
                 float angle = uv.x * 6.28318530718 + radians(-_GoboRotationDeg);
                 float2 dir = float2(cos(angle), sin(angle));
+                dir *= _IrisShape.x;
                 float2 center = 0.5 + _GoboOffset.xy;
                 float s1 = tex2D(_GoboTexture, center + dir * 0.12).r;
                 float s2 = tex2D(_GoboTexture, center + dir * 0.24).r;
@@ -227,6 +235,7 @@ Shader "ArtNet/Pseudo Beam"
             {
                 float2 uv = input.uv;
                 float dimmer = saturate(_DmxDimmer);
+                dimmer *= step(0.000001, _IrisShape.x);
                 float prismEnabled = saturate(_DmxPrismEnabled);
                 float facetCount = clamp(round(_DmxPrismFacetCount), 1.0, 8.0);
                 float spread = max(0.0, _DmxPrismSpread);

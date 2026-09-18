@@ -22,7 +22,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace ArtNet.Runtime
 {
     [DisallowMultipleComponent]
-    public class DmxFixtureComponent : MonoBehaviour
+    public partial class DmxFixtureComponent : MonoBehaviour
     {
         // ------------------------------------------------------------
         // Basic
@@ -1168,6 +1168,7 @@ namespace ArtNet.Runtime
 
         private void OnDisable()
         {
+            ReleaseIris();
             RestorePrimaryVolumetricDefaults();
             DisablePrismAuxiliaryLights();
             DisableVlbBeam();
@@ -1175,6 +1176,7 @@ namespace ArtNet.Runtime
 
         private void OnDestroy()
         {
+            ReleaseIris();
             RestorePrimaryVolumetricDefaults();
             ReleasePrismResources();
         }
@@ -1257,6 +1259,7 @@ namespace ArtNet.Runtime
 
         private void Update()
         {
+            UpdateIris();
             UpdatePanTiltMotion();
             UpdateGoboMotion();
             UpdatePrismMotion();
@@ -1307,6 +1310,7 @@ namespace ArtNet.Runtime
 
         public void ResolveMapping()
         {
+            ReleaseIris();
             _relativeMap.Clear();
             _elementMap.Clear();
             _goboWheelMap.Clear();
@@ -1937,6 +1941,7 @@ namespace ArtNet.Runtime
 
         private void ApplyElementMode(int[] universe512)
         {
+            ReadIris(universe512);
             if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
                 TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
             {
@@ -2003,6 +2008,7 @@ namespace ArtNet.Runtime
 
         private void ApplyElementMode(byte[] universe512)
         {
+            ReadIris(universe512);
             if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
                 TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
             {
@@ -2795,6 +2801,7 @@ namespace ArtNet.Runtime
 
         private void PerformReset()
         {
+            _iris.Reset();
             if (panTransform != null) panTransform.localRotation = _panBaseLocalRot;
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
 
@@ -3010,6 +3017,7 @@ namespace ArtNet.Runtime
             // Prism facets must use the primary lights after their Sync Beam settings have
             // been applied, otherwise they retain the previous DMX colour/intensity/zoom.
             ApplyPrismAuxiliaryLights(state);
+            ApplyPrimaryIris(state);
             ApplyPrimaryVolumetricForAlternativeBeamModes(suppressPrimaryLight);
             ApplyVlbBeamDmx(state);
             ApplyLensDmx(state);
@@ -3119,7 +3127,7 @@ namespace ArtNet.Runtime
         private void ApplyLensDmx(FixtureRenderState state)
         {
             if (!syncLensToDmx) return;
-            if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx) return;
+            if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx && !state.irisEnabled && _irisRenderers.Count == 0) return;
 
             bool hasMaterialBindings = lensMaterialBindings != null && lensMaterialBindings.Count > 0;
 
@@ -3135,6 +3143,8 @@ namespace ArtNet.Runtime
 
             // 共通のMPBに値をセットし、各Rendererに適用
             _lensMpb.Clear();
+            _lensMpb.SetVector(IrisShapeId, state.irisEnabled ? state.irisShape : new Vector4(1, 0, 0, 0));
+            _lensMpb.SetFloat(IrisLensInfluenceId, state.irisEnabled && ActiveIrisProfile != null ? ActiveIrisProfile.lensInfluence : 0);
             if (syncLensColorToDmx)
                 _lensMpb.SetColor(_lensColorId, state.color);
             if (syncLensDimmerToDmx)
@@ -3186,19 +3196,27 @@ namespace ArtNet.Runtime
                         continue;
 
                     binding.renderer.SetPropertyBlock(_lensMpb, binding.materialSlot);
+                    if (state.irisEnabled) _irisRenderers.Add((binding.renderer, binding.materialSlot));
                 }
                 return;
             }
 
             if (lensRenderer != null)
+            {
                 lensRenderer.SetPropertyBlock(_lensMpb);
+                if (state.irisEnabled) _irisRenderers.Add((lensRenderer, -1));
+            }
 
             if (extraLensRenderers != null)
             {
                 for (int i = 0; i < extraLensRenderers.Length; i++)
                 {
                     var r = extraLensRenderers[i];
-                    if (r != null) r.SetPropertyBlock(_lensMpb);
+                    if (r != null)
+                    {
+                        r.SetPropertyBlock(_lensMpb);
+                        if (state.irisEnabled) _irisRenderers.Add((r, -1));
+                    }
                 }
             }
         }
@@ -3274,7 +3292,7 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            if (!syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx && !syncBeamPrismToDmx && !syncBeamZoomToDmx && !syncBeamNoiseVolumeToBeam)
+            if (!state.irisEnabled && _irisRenderers.Count == 0 && !syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx && !syncBeamPrismToDmx && !syncBeamZoomToDmx && !syncBeamNoiseVolumeToBeam)
             {
                 DisablePrismPseudoBeamFacets();
                 DisableSinglePseudoBeamSoftShell();
@@ -3358,6 +3376,7 @@ namespace ArtNet.Runtime
             d = Mathf.Max(Mathf.Clamp01(beamDimmerFloor), d);
 
             _beamMpb.Clear();
+            _beamMpb.SetVector(IrisShapeId, state.irisEnabled ? state.irisShape : new Vector4(1, 0, 0, 0));
             if (syncBeamColorToDmx)
                 _beamMpb.SetColor(_beamColorId, state.color);
             if (syncBeamDimmerToDmx)
@@ -3401,6 +3420,7 @@ namespace ArtNet.Runtime
             }
 
             renderer.SetPropertyBlock(_beamMpb);
+            if (state.irisEnabled) _irisRenderers.Add((renderer, -1));
         }
 
         private void ApplyPseudoBeamNoiseVolumeProperties(Renderer renderer, FixtureRenderState state)
@@ -3895,6 +3915,8 @@ namespace ArtNet.Runtime
             return new FixtureRenderState
             {
                 lightDimmer01 = lightDim01,
+                irisEnabled = syncIrisToDmx && _iris.Active && ActiveIrisProfile != null,
+                irisShape = IrisShape,
                 lensDimmer01 = lensDim01,
                 color = rgb,
                 syncLightColorToDmx = syncBeamColorToDmx,
@@ -4878,6 +4900,7 @@ namespace ArtNet.Runtime
                 return;
 
             Light light = aux.light;
+            cookie = ApplyIrisCookie(light, cookie, state);
             bool hasHdrp = false;
 #if HAS_HDRP
             hasHdrp = aux.hd != null;
@@ -5017,8 +5040,8 @@ namespace ArtNet.Runtime
 
             if (aux.vlbCookieHd != null)
             {
-                bool hasCookie = syncBeamGoboToDmx && state.goboEnabled && cookie != null;
-                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, cookieContribution, GetTemplateVlbCookieScale(source));
+                bool hasCookie = (state.irisEnabled || (syncBeamGoboToDmx && state.goboEnabled)) && cookie != null;
+                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, state.irisEnabled ? 1f : cookieContribution, GetTemplateVlbCookieScale(source));
             }
         }
 

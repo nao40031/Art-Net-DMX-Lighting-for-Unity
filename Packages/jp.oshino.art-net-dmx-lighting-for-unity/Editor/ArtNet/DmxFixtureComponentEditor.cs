@@ -24,7 +24,18 @@ namespace ArtNet.Editor
             bool enterChildren = true;
             while (property.NextVisible(enterChildren))
             {
+                if (ShouldDrawIrisBefore(property.propertyPath))
+                    DrawIrisSection();
+
                 if (property.propertyPath == "lensMaterialBindings")
+                {
+                    enterChildren = false;
+                    continue;
+                }
+
+                // Iris is rendered explicitly below Prism so its visual order is stable,
+                // independent of partial-class field serialization order.
+                if (IsIrisProperty(property.propertyPath))
                 {
                     enterChildren = false;
                     continue;
@@ -52,6 +63,34 @@ namespace ArtNet.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
+        private static bool ShouldDrawIrisBefore(string propertyPath)
+        {
+            return propertyPath == "lightResponseMode";
+        }
+
+        private static bool IsIrisProperty(string propertyPath)
+        {
+            return propertyPath == "syncIrisToDmx" || propertyPath == "irisProfile" || propertyPath == "irisInstance";
+        }
+
+        private void DrawIrisSection()
+        {
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Iris (all light / beam modes)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("syncIrisToDmx"),
+                new GUIContent("Sync Iris To DMX", "DMXでアイリスを制御します。\nControls the iris from DMX."));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("irisProfile"),
+                new GUIContent("Iris Profile", "Fixture DefinitionのIris Profileを上書きします。\nOverrides the Iris Profile from the Fixture Definition."));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("irisInstance"),
+                new GUIContent("Iris Instance", "複数のIris属性を使う場合の番号です。\nInstance number when multiple Iris attributes are defined."));
+            EditorGUILayout.HelpBox(
+                "IrisはFixture DefinitionのIris ProfileとChannel Elementsで設定します（このコンポーネントで上書き可能）。\n" +
+                "Zoomと異なりゴボの倍率を変えず外周を遮ります。VLB HDはCookie合成、SDは円形ビームの幅で再現します。\n\n" +
+                "Configure Iris in the Fixture Definition with an Iris Profile and Channel Elements (the component override above is optional).\n" +
+                "Unlike Zoom, Iris masks the outer area without changing gobo magnification. VLB HD uses Cookie composition; SD approximates it with beam width.",
+                MessageType.Info);
+        }
+
         private static GUIContent CreateDisplayContent(SerializedProperty property)
         {
             string displayName = property.displayName
@@ -70,6 +109,7 @@ namespace ArtNet.Editor
             EditorGUILayout.LabelField("Gobo Lens Material Setup", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "Setup Gobo Lens Material は、現在のRender Pipeline（HDRP / URP）を一度だけ判定し、登録済みの各Rendererスロットへ対応する共有マテリアルを割り当てます。再生中の差し替えは行いません。\n" +
+                "\n" +
                 "Setup Gobo Lens Material detects the current Render Pipeline (HDRP / URP) once and assigns the corresponding shared material to each registered Renderer slot. Materials are not replaced during Play Mode.",
                 MessageType.Info);
 

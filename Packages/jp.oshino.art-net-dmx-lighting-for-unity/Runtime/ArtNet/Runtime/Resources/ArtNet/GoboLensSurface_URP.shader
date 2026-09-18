@@ -6,6 +6,8 @@ Shader "ArtNet/URP/Gobo Lens Surface"
         _DmxDimmer ("DMX Dimmer", Range(0, 1)) = 1
         _GoboTexture ("Gobo Texture", 2D) = "white" {}
         _GoboEnabled ("Gobo Enabled", Float) = 0
+        _IrisShape ("Iris", Vector) = (1,0.01,0,0)
+        _IrisLensInfluence ("Iris Influence", Range(0,1)) = 0
         _GoboRotationDeg ("Gobo Rotation", Float) = 0
         _GoboOffset ("Gobo Offset", Vector) = (0, 0, 0, 0)
         _GoboLensInfluence ("Gobo Influence", Range(0, 1)) = 1
@@ -40,6 +42,7 @@ Shader "ArtNet/URP/Gobo Lens Surface"
             #pragma fragment Frag
             #pragma target 3.5
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "IrisMask.hlsl"
 
             TEXTURE2D(_GoboTexture);
             SAMPLER(sampler_GoboTexture);
@@ -48,6 +51,8 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 float4 _DmxColor;
                 float _DmxDimmer;
                 float _GoboEnabled;
+                float4 _IrisShape;
+                float _IrisLensInfluence;
                 float _GoboRotationDeg;
                 float4 _GoboOffset;
                 float _GoboLensInfluence;
@@ -150,6 +155,7 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 float3 lensColor = _DmxColor.rgb * brightness * goboMask;
                 lensColor *= max(0.0, _GoboLensEmission);
                 lensColor += _DmxColor.rgb * saturate(_DmxDimmer) * fresnel * max(0.0, _GoboLensFresnelStrength);
+                lensColor *= lerp(1.0, IrisTransmission(lensUv, _IrisShape), saturate(_IrisLensInfluence));
                 return half4(lensColor, 1.0);
             }
             ENDHLSL

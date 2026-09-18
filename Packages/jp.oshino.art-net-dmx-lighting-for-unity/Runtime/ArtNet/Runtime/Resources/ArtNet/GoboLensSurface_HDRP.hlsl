@@ -3,11 +3,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 
 TEXTURE2D(_GoboTexture);
+#include "IrisMask.hlsl"
 SAMPLER(sampler_GoboTexture);
 
 CBUFFER_START(UnityPerMaterial)
 float4 _DmxColor;
 float _DmxDimmer;
+float4 _IrisShape;
+float _IrisLensInfluence;
 float _GoboEnabled;
 float _GoboRotationDeg;
 float4 _GoboOffset;
@@ -118,6 +121,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = lensColor * max(0.0, _GoboLensEmission);
     builtinData.emissiveColor += _DmxColor.rgb * saturate(_DmxDimmer) * fresnel * max(0.0, _GoboLensFresnelStrength);
     float3 emissiveRcpExposure = builtinData.emissiveColor * GetInverseCurrentExposureMultiplier();
+    float iris = lerp(1.0, IrisTransmission(lensUv, _IrisShape), saturate(_IrisLensInfluence));
+    surfaceData.color *= iris;
+    builtinData.emissiveColor *= iris;
+    emissiveRcpExposure *= iris;
     builtinData.emissiveColor = lerp(emissiveRcpExposure, builtinData.emissiveColor, _EmissiveExposureWeight);
 
     ApplyDebugToBuiltinData(builtinData);
