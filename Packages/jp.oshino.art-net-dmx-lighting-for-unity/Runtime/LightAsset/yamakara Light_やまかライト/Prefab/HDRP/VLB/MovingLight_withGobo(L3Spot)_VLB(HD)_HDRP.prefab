@@ -1,5 +1,114 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1923514221646774544
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 600169257745171110}
+  - component: {fileID: 156411823721913709}
+  - component: {fileID: 4482813867887613412}
+  - component: {fileID: 7073997841309793363}
+  m_Layer: 0
+  m_Name: PseudoBeam
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &600169257745171110
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1923514221646774544}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.067}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8876304756517623177}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &156411823721913709
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1923514221646774544}
+  m_Mesh: {fileID: 0}
+--- !u!23 &4482813867887613412
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1923514221646774544}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a38ab1dc7e8043a89c962c3d48a65072, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &7073997841309793363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1923514221646774544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b69a7c420d4a4f60a42d9fd93d9ee1f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  length: 10
+  startRadius: 0.02
+  endRadius: 2.04
+  segments: 32
+  capStart: 0
+  capEnd: 0
+  generateOnAwake: 1
+  rebuildInEditMode: 1
+  assignMaterialOnRebuild: 1
+  material: {fileID: 2100000, guid: a38ab1dc7e8043a89c962c3d48a65072, type: 2}
 --- !u!1 &7960800072310362778
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,6 +519,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2415676272866749}
+    - targetCorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 600169257745171110}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       insertIndex: -1
@@ -491,11 +603,11 @@ MonoBehaviour:
   vlbSdIntensityMultiplier: 0.01
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
-  syncPseudoBeamToDmx: 0
+  syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
   _beamSyncSettingsMigrated: 1
   _vlbPipelineDefaultsInitialized: 1
-  beamRenderer: {fileID: 0}
+  beamRenderer: {fileID: 4482813867887613412}
   extraPseudoBeamRenderers: []
   syncBeamNoiseVolumeToBeam: 1
   beamColorProperty: _DmxColor
