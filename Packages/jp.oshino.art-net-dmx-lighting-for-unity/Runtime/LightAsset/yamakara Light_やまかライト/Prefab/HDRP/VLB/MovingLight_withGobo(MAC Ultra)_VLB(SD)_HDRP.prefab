@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2415676272866749}
   - component: {fileID: 5435452863099544097}
   - component: {fileID: 7965137842066642395}
+  - component: {fileID: 1555806051967644497}
   m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
@@ -240,6 +241,94 @@ MonoBehaviour:
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
   m_ObsoleteContactShadows: 0
+--- !u!114 &1555806051967644497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b69c542c9a8f4f44a3123e3fa103d13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pluginVersion: 20209
+  colorFromLight: 1
+  colorMode: 0
+  color: {r: 0.8513686, g: 0.8913955, b: 1, a: 1}
+  colorGradient:
+    serializedVersion: 2
+    key0: {r: 1, g: 1, b: 1, a: 1}
+    key1: {r: 1, g: 1, b: 1, a: 1}
+    key2: {r: 0, g: 0, b: 0, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 65535
+    ctime2: 0
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 2
+    m_NumAlphaKeys: 2
+  intensityFromLight: 1
+  intensityModeAdvanced: 0
+  intensityInside: 108.98832
+  intensityOutside: 108.98832
+  intensityMultiplier: 0.01
+  hdrpExposureWeight: 0
+  blendingMode: 0
+  spotAngleFromLight: 1
+  spotAngle: 40.300014
+  spotAngleMultiplier: 1.3
+  coneRadiusStart: 0.01
+  shaderAccuracy: 0
+  geomMeshType: 0
+  geomCustomSides: 18
+  geomCustomSegments: 5
+  skewingLocalForwardDirection: {x: 0, y: 0, z: 1}
+  clippingPlaneTransform: {fileID: 0}
+  geomCap: 0
+  attenuationEquation: 1
+  attenuationCustomBlending: 0.5
+  fallOffStart: 0
+  fallOffEnd: 12.87
+  fallOffEndFromLight: 1
+  fallOffEndMultiplier: 1
+  depthBlendDistance: 2
+  cameraClippingDistance: 0.5
+  glareFrontal: 0.5
+  glareBehind: 0.5
+  fresnelPow: 8
+  noiseMode: 0
+  noiseIntensity: 0.5
+  noiseScaleUseGlobal: 1
+  noiseScaleLocal: 0.5
+  noiseVelocityUseGlobal: 1
+  noiseVelocityLocal: {x: 0.07, y: 0.18, z: 0.05}
+  dimensions: 0
+  tiltFactor: {x: 0, y: 0}
+  _TrackChangesDuringPlaytime: 0
+  _SortingLayerID: 0
+  _SortingOrder: 0
+  _FadeOutBegin: -150
+  _FadeOutEnd: -200
 --- !u!1 &8326611248887339198
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,7 +508,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 39be37df3c67434d9b913c3383464161, type: 2}
     - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: m_Name
-      value: MovingLight_withGobo(MAC Ultra)
+      value: MovingLight_withGobo(MAC Ultra)_VLB(SD)_HDRP
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -498,6 +587,70 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 1013826615945173212}
   tiltTransform: {fileID: 3456986391419752059}
+  beamRenderMode: 2
+  syncBeamColorToDmx: 1
+  syncBeamDimmerToDmx: 1
+  syncBeamGoboToDmx: 1
+  syncBeamGoboRotationToDmx: 1
+  syncBeamPrismToDmx: 1
+  syncBeamZoomToDmx: 1
+  overrideVlbHdIntensityMultiplier: 1
+  vlbHdIntensityMultiplier: 0.00001
+  overrideVlbSdIntensityMultiplier: 1
+  vlbSdIntensityMultiplier: 0.01
+  overrideVlbHdrpExposureWeight: 1
+  vlbHdrpExposureWeight: 0
+  syncPseudoBeamToDmx: 1
+  _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
+  _vlbPipelineDefaultsInitialized: 1
+  beamRenderer: {fileID: 1632846662148736556}
+  extraPseudoBeamRenderers: []
+  syncBeamNoiseVolumeToBeam: 1
+  beamColorProperty: _DmxColor
+  beamDimmerProperty: _DmxDimmer
+  beamPrismEnabledProperty: _DmxPrismEnabled
+  beamPrismFacetCountProperty: _DmxPrismFacetCount
+  beamPrismSpreadProperty: _DmxPrismSpread
+  beamPrismRotationProperty: _DmxPrismRotation
+  beamPrismIntensityProperty: _DmxPrismIntensity
+  beamLengthProperty: _BeamLength
+  beamStartRadiusProperty: _BeamStartRadius
+  beamEndRadiusProperty: _BeamEndRadius
+  beamNoiseVolume: {fileID: 0}
+  beamNoiseVolumeEnabled: 0
+  beamNoiseVolumeStrength: 1
+  beamNoiseVolumeGoboScale: 1
+  beamNoiseVolumePrismRotationScale: 0
+  beamNoiseVolumeScale: 1
+  beamNoiseVolumeRadialScale: 4
+  beamNoiseVolumeLengthScale: 12
+  beamNoiseVolumeSpeed: 0.1
+  beamNoiseVolumeContrast: 1
+  beamNoiseVolumeOffset: {x: 0, y: 0, z: 0}
+  beamNoiseVolumeScrollSpace: 0
+  beamNoiseVolumeScrollAxis: 2
+  beamNoiseVolumeScrollReverse: 0
+  beamNoiseVolumeProperty: _BeamNoiseVolume
+  beamNoiseVolumeEnabledProperty: _BeamNoiseVolumeEnabled
+  beamNoiseVolumeStrengthProperty: _BeamNoiseVolumeStrength
+  beamNoiseVolumeScaleProperty: _BeamNoiseVolumeScale
+  beamNoiseVolumeRadialScaleProperty: _BeamNoiseVolumeRadialScale
+  beamNoiseVolumeLengthScaleProperty: _BeamNoiseVolumeLengthScale
+  beamNoiseVolumeSpeedProperty: _BeamNoiseVolumeSpeed
+  beamNoiseVolumeContrastProperty: _BeamNoiseVolumeContrast
+  beamNoiseVolumeOffsetProperty: _BeamNoiseVolumeOffset
+  beamNoiseVolumeScrollDirectionProperty: _BeamNoiseVolumeScrollDirection
+  beamDimmerScale: 1
+  beamDimmerFloor: 0
+  beamZoomRadiusScale: 1
+  beamZoomMinEndRadius: 0.01
+  beamZoomMaxEndRadius: 25
+  enableBeamSoftShell: 0
+  beamSoftShellRadiusScale: 1.35
+  beamSoftShellIntensity: 0.2
+  beamSoftShellEdgeSoftness: 0.9
+  beamSoftShellNoiseStrength: 0.25
   lensRenderer: {fileID: 0}
   extraLensRenderers:
   - {fileID: 2523771333444109262}
@@ -512,38 +665,36 @@ MonoBehaviour:
   lensColorProperty: _DmxColor
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
-  goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}
-  syncLightCookieToGobo: 1
+  lensApertureFeather: 0
   syncLensGoboToDmx: 1
-  syncBeamGoboToDmx: 1
-  maxGoboRotateDegPerSec: 360
-  syncGoboRotationToCookieTransform: 1
-  goboCookieRollTransform: {fileID: 2415676272866749}
-  goboCookieRollAxis: {x: 0, y: 0, z: 1}
-  goboCookieRollOffsetDeg: 0
+  syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
   lensGoboEnabledProperty: _GoboEnabled
   lensGoboRotationDirection: 0
+  lensGoboShakePositionDirection: 0
+  lensGoboShakeRotationDirection: 0
   lensPrismGoboMode: 1
+  legacyUseDedicatedGoboLensShader: 0
+  goboLensEmission: 2
+  goboLensScale: 1
+  goboLensZoomNarrowScale: 0.5
+  goboLensZoomWideScale: 1
+  goboLensBlur: 0
+  goboLensHorizontalOffset: 0
+  goboLensVerticalOffset: 0
+  goboLensHotspotStrength: 0.35
+  goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}
+  syncLightCookieToGobo: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 2415676272866749}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
   beamGoboTextureProperty: _GoboTexture
   beamGoboRotationProperty: _GoboRotationDeg
   beamGoboEnabledProperty: _GoboEnabled
-  syncPseudoBeamToDmx: 1
-  beamRenderer: {fileID: 1632846662148736556}
-  extraBeamRenderers: []
-  syncBeamColorToDmx: 1
-  syncBeamDimmerToDmx: 1
-  syncBeamPrismToDmx: 1
-  beamColorProperty: _DmxColor
-  beamDimmerProperty: _DmxDimmer
-  beamPrismEnabledProperty: _DmxPrismEnabled
-  beamPrismFacetCountProperty: _DmxPrismFacetCount
-  beamPrismSpreadProperty: _DmxPrismSpread
-  beamPrismRotationProperty: _DmxPrismRotation
-  beamPrismIntensityProperty: _DmxPrismIntensity
-  beamDimmerScale: 1
-  beamDimmerFloor: 0
   syncZoomToLight: 1
   minOuterSpotAngle: 5
   maxOuterSpotAngle: 50
@@ -563,6 +714,11 @@ MonoBehaviour:
   maxPrismAuxiliaryFacets: 8
   auxiliarySpreadMultiplierDeg: 10
   auxiliaryIntensityScale: 1
+  auxiliaryVolumetricIntensityScale: 1
+  prismBrightnessDistribution: 1
+  prismGoboSpacingMode: 0
+  manualPrismGoboSpacingScale: 1
+  prismGoboScaleVlb: 1
   auxiliaryLightShadows: 0
   prismCookieShader: {fileID: 0}
   lightResponseMode: 0
@@ -1526,6 +1682,9 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 48
     absoluteChannel: 48
+  syncIrisToDmx: 1
+  irisProfile: {fileID: 0}
+  irisInstance: 1
 --- !u!4 &8876304756517623177 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
