@@ -6,6 +6,8 @@ Shader "ArtNet/HDRP/Gobo Lens Surface"
         _DmxDimmer ("DMX Dimmer", Range(0, 1)) = 1
         _GoboTexture ("Gobo Texture", 2D) = "white" {}
         _GoboEnabled ("Gobo Enabled", Float) = 0
+        _IrisShape ("Iris", Vector) = (1,0.01,0,0)
+        _IrisLensInfluence ("Iris Influence", Range(0,1)) = 0
         _GoboRotationDeg ("Gobo Rotation", Float) = 0
         _GoboOffset ("Gobo Offset", Vector) = (0, 0, 0, 0)
         _GoboLensInfluence ("Gobo Influence", Range(0, 1)) = 1

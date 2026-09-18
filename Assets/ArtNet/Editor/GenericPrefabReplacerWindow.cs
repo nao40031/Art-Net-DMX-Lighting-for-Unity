@@ -136,6 +136,7 @@ public class GenericPrefabReplacerWindow : EditorWindow
         EditorGUILayout.Space(4);
         EditorGUILayout.HelpBox(
             "注意：置換は「元を削除→テンプレ生成」です。参照が切れる可能性があります。\n" +
+            "\n" +
             "Warning: Replacement deletes the original object and creates the template. Existing references may be lost.",
             MessageType.Warning);
     }

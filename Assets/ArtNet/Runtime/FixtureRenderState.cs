@@ -24,6 +24,8 @@ namespace ArtNet.Runtime
         // Prism auxiliary rendering can replace the primary light even when Dimmer sync is disabled.
         public bool forceLightOff;
         public bool goboEnabled;
+        public bool irisEnabled;
+        public Vector4 irisShape;
         public Texture goboTexture;
         public float goboRotationDeg;
         public Vector2 goboOffsetUv;

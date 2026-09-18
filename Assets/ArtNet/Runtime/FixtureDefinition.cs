@@ -127,7 +127,9 @@ namespace ArtNet.Runtime
         Reset = 14,
         LampOn = 15,
         LampOff = 16,
-        Sync = 17
+        Sync = 17,
+        IrisHold = 18,
+        IrisPulseReverse = 19
     }
 
     public enum NormalizedMappingContext
@@ -278,6 +280,7 @@ namespace ArtNet.Runtime
     [CreateAssetMenu(menuName = "ArtNet/DMX/Fixture Definition", fileName = "FixtureDefinition")]
     public class FixtureDefinition : ScriptableObject
     {
+        public IrisProfile irisProfile;
         [Header("Identity (for humans/logs)")]
         public string manufacturer;
         public string model;

@@ -46,6 +46,11 @@ namespace ArtNet.Runtime
             public float cookieHdRotation;
             public Vector2 cookieHdTranslation;
             public Vector2 cookieHdScale;
+            public bool irisHdApplied;
+            public bool irisSdApplied;
+            public bool irisSdOriginalFromLight;
+            public float irisSdOriginalAngle;
+            public float irisSdOriginalRadius;
         }
 
         public static bool IsVlbAvailable => VlbReflection.IsAvailable;
@@ -145,7 +150,7 @@ namespace ArtNet.Runtime
 
                 if (entry.sd != null)
                 {
-                    ApplySd(entry, overrides);
+                    ApplySd(entry, state, overrides);
                     applied = true;
                 }
             }
@@ -163,6 +168,7 @@ namespace ArtNet.Runtime
             {
                 var entry = _entries[i];
                 Disable(entry.hd);
+                RestoreSdIris(entry);
                 Disable(entry.sd);
                 Disable(entry.cookieHd);
             }
@@ -181,6 +187,7 @@ namespace ArtNet.Runtime
         {
             if (lights == null)
             {
+                RestoreIrisEntries();
                 _entries.Clear();
                 _knownLights.Clear();
                 return;
@@ -203,6 +210,7 @@ namespace ArtNet.Runtime
             if (!changed)
                 return;
 
+            RestoreIrisEntries();
             _entries.Clear();
             _knownLights.Clear();
             for (int i = 0; i < lights.Count; i++)
@@ -218,6 +226,15 @@ namespace ArtNet.Runtime
             }
 
             _warnedMissingVlb = false;
+        }
+
+        private void RestoreIrisEntries()
+        {
+            foreach (var entry in _entries)
+            {
+                RestoreSdIris(entry);
+                if (entry.irisHdApplied) RestoreCookieHdBaseline(entry);
+            }
         }
 
         private static void RefreshComponents(Entry entry)
@@ -250,8 +267,24 @@ namespace ArtNet.Runtime
             ApplyPrismHd(entry.hd, entry.light, null, overrides);
             Disable(entry.sd);
 
+            if (state.irisEnabled && entry.cookieHd == null)
+            {
+                entry.cookieHd = EnsureCookieHd(entry.light.gameObject);
+                RefreshComponents(entry);
+            }
+
             if (entry.cookieHd == null)
                 return;
+
+            if (state.irisEnabled)
+            {
+                // The Light already carries the post-gobo iris cookie, in the light's projection space.
+                entry.irisHdApplied = true;
+                ApplyPrismCookieHd(entry.cookieHd, entry.light.cookie != null, entry.light.cookie, 1f, Vector2.one);
+                return;
+            }
+
+            entry.irisHdApplied = false;
 
             if (!syncCookie)
             {
@@ -288,7 +321,7 @@ namespace ArtNet.Runtime
             VlbReflection.Invoke(entry.cookieHd, "UpdateAfterManualPropertyChange");
         }
 
-        private static void ApplySd(Entry entry, Overrides overrides)
+        private static void ApplySd(Entry entry, FixtureRenderState state, Overrides overrides)
         {
             if (entry.sd is Behaviour behaviour)
                 behaviour.enabled = true;
@@ -305,7 +338,39 @@ namespace ArtNet.Runtime
                 VlbReflection.SetFloat(entry.sd, "intensityMultiplier", Mathf.Max(0f, overrides.sdIntensityMultiplier));
 
             VlbReflection.Invoke(entry.sd, "AssignPropertiesFromAttachedSpotLight");
+            // SD has no cookie support. Its native homogeneous beam can still represent the
+            // circular aperture geometrically, without changing the Light or projected gobo.
+            if (state.irisEnabled)
+            {
+                if (!entry.irisSdApplied)
+                {
+                    entry.irisSdOriginalFromLight = VlbReflection.GetObject(entry.sd, "spotAngleFromLight") is bool fromLight && fromLight;
+                    entry.irisSdOriginalAngle = VlbReflection.GetFloat(entry.sd, "spotAngle", entry.light.spotAngle);
+                    entry.irisSdOriginalRadius = VlbReflection.GetFloat(entry.sd, "coneRadiusStart", 0f);
+                    entry.irisSdApplied = true;
+                }
+                VlbReflection.SetBool(entry.sd, "spotAngleFromLight", false);
+                float baseAngle = entry.irisSdOriginalFromLight
+                    ? entry.light.spotAngle * VlbReflection.GetFloat(entry.sd, "spotAngleMultiplier", 1f)
+                    : entry.irisSdOriginalAngle;
+                float angle = 2f * Mathf.Atan(Mathf.Tan(baseAngle * Mathf.Deg2Rad * 0.5f) * state.irisShape.x) * Mathf.Rad2Deg;
+                VlbReflection.SetFloat(entry.sd, "spotAngle", Mathf.Max(0.1f, angle));
+                VlbReflection.SetFloat(entry.sd, "coneRadiusStart", entry.irisSdOriginalRadius * state.irisShape.x);
+                if (state.irisShape.x <= 0.000001f && entry.sd is Behaviour closedBeam) closedBeam.enabled = false;
+            }
+            else if (entry.irisSdApplied)
+                RestoreSdIris(entry);
             VlbReflection.Invoke(entry.sd, "UpdateAfterManualPropertyChange");
+        }
+
+        private static void RestoreSdIris(Entry entry)
+        {
+            if (!entry.irisSdApplied) return;
+            VlbReflection.SetBool(entry.sd, "spotAngleFromLight", entry.irisSdOriginalFromLight);
+            VlbReflection.SetFloat(entry.sd, "spotAngle", entry.irisSdOriginalAngle);
+            VlbReflection.SetFloat(entry.sd, "coneRadiusStart", entry.irisSdOriginalRadius);
+            VlbReflection.Invoke(entry.sd, "AssignPropertiesFromAttachedSpotLight");
+            entry.irisSdApplied = false;
         }
 
         private static class VlbReflection
