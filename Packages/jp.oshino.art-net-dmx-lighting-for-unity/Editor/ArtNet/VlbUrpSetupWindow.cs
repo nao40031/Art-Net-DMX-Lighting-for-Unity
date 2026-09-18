@@ -23,6 +23,7 @@ namespace ArtNet.Editor
         private const string VlbHdTypeName = "VLB.VolumetricLightBeamHD";
         private const string VlbCookieHdTypeName = "VLB.VolumetricCookieHD";
         private const int UrpRenderPipelineEnumValue = 1;
+        private const int VlbBeamRenderModeEnumValue = 2;
         private const int DepthPrimingDisabledEnumValue = 0;
         private const int CopyDepthAfterOpaquesEnumValue = 0;
 
@@ -190,7 +191,7 @@ namespace ArtNet.Editor
                 DrawStatusRow("DMX Fixture Component", StatusLevel.Warning, "No fixture component was found.");
             }
             else if (prefabStatus.needsSetupTargetLights.Count == 0 && prefabStatus.needsModeUpdateTargetLights.Count == 0 &&
-                     prefabStatus.needsUrpPresetFixtureCount == 0)
+                     prefabStatus.needsUrpPresetFixtureCount == 0 && prefabStatus.needsVlbRenderModeFixtureCount == 0)
             {
                 DrawStatusRow("Target Light VLB", StatusLevel.Success,
                     $"All {prefabStatus.targetLightCount} target light(s) use VLB {_beamMode}.");
@@ -198,7 +199,7 @@ namespace ArtNet.Editor
             else
             {
                 DrawStatusRow("Target Light VLB", StatusLevel.Warning,
-                    $"{prefabStatus.readyTargetLightCount} ready, {prefabStatus.needsSetupTargetLights.Count} need setup, {prefabStatus.needsModeUpdateTargetLights.Count} need mode update, {prefabStatus.needsUrpPresetFixtureCount} need URP preset.");
+                    $"{prefabStatus.readyTargetLightCount} ready, {prefabStatus.needsSetupTargetLights.Count} need setup, {prefabStatus.needsModeUpdateTargetLights.Count} need mode update, {prefabStatus.needsUrpPresetFixtureCount} need URP preset, {prefabStatus.needsVlbRenderModeFixtureCount} need VLB render mode.");
             }
             EditorGUILayout.EndVertical();
         }
@@ -225,11 +226,12 @@ namespace ArtNet.Editor
             var needsSetup = prefabStatuses.Sum(status => status.needsSetupTargetLights.Count);
             var needsUpdate = prefabStatuses.Sum(status => status.needsModeUpdateTargetLights.Count);
             var needsUrpPreset = prefabStatuses.Sum(status => status.needsUrpPresetFixtureCount);
-            using (new EditorGUI.DisabledScope(!_status.vlbInstalled || !typesAvailable || prefabPaths.Count == 0 || needsSetup + needsUpdate + needsUrpPreset == 0))
+            var needsRenderMode = prefabStatuses.Sum(status => status.needsVlbRenderModeFixtureCount);
+            using (new EditorGUI.DisabledScope(!_status.vlbInstalled || !typesAvailable || prefabPaths.Count == 0 || needsSetup + needsUpdate + needsUrpPreset + needsRenderMode == 0))
             {
                 if (GUILayout.Button($"Apply VLB {_beamMode} to Target Lights", GUILayout.Height(24f)))
                 {
-                    ApplyBeamModeToScanTargets(prefabPaths, needsSetup, needsUpdate, needsUrpPreset);
+                    ApplyBeamModeToScanTargets(prefabPaths, needsSetup, needsUpdate, needsUrpPreset, needsRenderMode);
                 }
             }
 
@@ -295,7 +297,7 @@ namespace ArtNet.Editor
             Refresh();
         }
 
-        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsUrpPreset)
+        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsUrpPreset, int needsRenderMode)
         {
             if (!TryGetRequiredBeamTypes(_beamMode, out var error))
             {
@@ -304,12 +306,12 @@ namespace ArtNet.Editor
             }
 
             var paths = prefabPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-            if (needsSetup + needsUpdate + needsUrpPreset == 0)
+            if (needsSetup + needsUpdate + needsUrpPreset + needsRenderMode == 0)
                 return;
 
             if (!EditorUtility.DisplayDialog(
                     $"Apply VLB {_beamMode} to Target Lights",
-                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply URP VLB preset: {needsUrpPreset}\n\n" +
+                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply URP VLB preset: {needsUrpPreset}\nSet Beam Render Mode to VLB: {needsRenderMode}\n\n" +
                     "Target Lights will be made consistent with the selected Beam Mode and URP VLB preset.",
                     "Apply", "Cancel"))
                 return;
@@ -327,6 +329,7 @@ namespace ArtNet.Editor
                     foreach (var fixture in root.GetComponentsInChildren<DmxFixtureComponent>(true))
                     {
                         var fixtureChanged = ApplyUrpVlbOverrides(fixture);
+                        fixtureChanged |= ApplyVlbRenderMode(fixture);
                         changed |= fixtureChanged;
                         foreach (var light in GetTargetLights(fixture))
                         {
@@ -638,6 +641,32 @@ namespace ArtNet.Editor
                    Mathf.Approximately(sdMultiplier.floatValue, 0.01f);
         }
 
+        private static bool HasVlbRenderMode(DmxFixtureComponent fixture)
+        {
+            if (fixture == null)
+                return false;
+
+            var serialized = new SerializedObject(fixture);
+            var beamRenderMode = serialized.FindProperty("beamRenderMode");
+            return beamRenderMode != null && beamRenderMode.enumValueIndex == VlbBeamRenderModeEnumValue;
+        }
+
+        private static bool ApplyVlbRenderMode(DmxFixtureComponent fixture)
+        {
+            if (fixture == null)
+                return false;
+
+            var serialized = new SerializedObject(fixture);
+            var beamRenderMode = serialized.FindProperty("beamRenderMode");
+            if (beamRenderMode == null || beamRenderMode.enumValueIndex == VlbBeamRenderModeEnumValue)
+                return false;
+
+            beamRenderMode.enumValueIndex = VlbBeamRenderModeEnumValue;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(fixture);
+            return true;
+        }
+
         private static bool ApplyUrpBeamPreset(GameObject gameObject, BeamMode mode)
         {
             var beamType = FindType(mode == BeamMode.SD ? VlbSdTypeName : VlbHdTypeName);
@@ -667,6 +696,8 @@ namespace ArtNet.Editor
                 InvokeVlbMethod(beam, "AssignPropertiesFromAttachedSpotLight");
                 InvokeVlbMethod(beam, "UpdateAfterManualPropertyChange");
             }
+
+            InvokeVlbMethod(beam, "GenerateGeometry");
 
             if (changed)
                 EditorUtility.SetDirty(beam);
@@ -793,6 +824,8 @@ namespace ArtNet.Editor
                     {
                         if (!HasUrpVlbOverrides(fixture))
                             status.needsUrpPresetFixtureCount++;
+                        if (!HasVlbRenderMode(fixture))
+                            status.needsVlbRenderModeFixtureCount++;
 
                         foreach (var light in GetTargetLights(fixture))
                         {
@@ -1010,6 +1043,7 @@ namespace ArtNet.Editor
             public int targetLightCount;
             public int readyTargetLightCount;
             public int needsUrpPresetFixtureCount;
+            public int needsVlbRenderModeFixtureCount;
             public List<string> needsSetupTargetLights = new();
             public List<string> needsModeUpdateTargetLights = new();
         }

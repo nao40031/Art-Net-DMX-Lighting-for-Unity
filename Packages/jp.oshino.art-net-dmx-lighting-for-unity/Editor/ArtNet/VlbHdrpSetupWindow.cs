@@ -20,6 +20,7 @@ namespace ArtNet.Editor
         private const string VlbHdTypeName = "VLB.VolumetricLightBeamHD";
         private const string VlbCookieHdTypeName = "VLB.VolumetricCookieHD";
         private const int HdrpRenderPipelineEnumValue = 2;
+        private const int VlbBeamRenderModeEnumValue = 2;
         private const string MenuPath = "Art-Net/VLB/HDRP Setup";
 
         private Vector2 _scrollPosition;
@@ -152,10 +153,11 @@ namespace ArtNet.Editor
             else if (status.nonSpotTargetLightCount > 0)
                 DrawStatusRow("Target Light Type", StatusLevel.Warning, $"{status.nonSpotTargetLightCount} non-Spot target Light(s) will be skipped. VLB requires Spot Lights.");
 
-            var pending = status.needsSetupTargetLights.Count + status.needsModeUpdateTargetLights.Count + status.needsHdrpPresetFixtureCount;
+            var pending = status.needsSetupTargetLights.Count + status.needsModeUpdateTargetLights.Count +
+                          status.needsHdrpPresetFixtureCount + status.needsVlbRenderModeFixtureCount;
             DrawStatusRow("Target Light VLB", pending == 0 ? StatusLevel.Success : StatusLevel.Warning,
                 pending == 0 ? $"All {status.targetLightCount} Spot target Light(s) use VLB {_beamMode}."
-                    : $"{status.readyTargetLightCount} ready, {status.needsSetupTargetLights.Count} need setup, {status.needsModeUpdateTargetLights.Count} need mode update, {status.needsHdrpPresetFixtureCount} need HDRP defaults.");
+                    : $"{status.readyTargetLightCount} ready, {status.needsSetupTargetLights.Count} need setup, {status.needsModeUpdateTargetLights.Count} need mode update, {status.needsHdrpPresetFixtureCount} need HDRP defaults, {status.needsVlbRenderModeFixtureCount} need automatic VLB render mode.");
             EditorGUILayout.EndVertical();
         }
 
@@ -165,10 +167,11 @@ namespace ArtNet.Editor
             var needSetup = statuses.Sum(x => x.needsSetupTargetLights.Count);
             var needUpdate = statuses.Sum(x => x.needsModeUpdateTargetLights.Count);
             var needDefaults = statuses.Sum(x => x.needsHdrpPresetFixtureCount);
-            using (new EditorGUI.DisabledScope(!typesAvailable || paths.Count == 0 || needSetup + needUpdate + needDefaults == 0))
+            var needRenderMode = statuses.Sum(x => x.needsVlbRenderModeFixtureCount);
+            using (new EditorGUI.DisabledScope(!typesAvailable || paths.Count == 0 || needSetup + needUpdate + needDefaults + needRenderMode == 0))
             {
                 if (GUILayout.Button($"Apply VLB {_beamMode} to Target Lights", GUILayout.Height(24f)))
-                    ApplyBeamModeToScanTargets(paths, needSetup, needUpdate, needDefaults);
+                    ApplyBeamModeToScanTargets(paths, needSetup, needUpdate, needDefaults, needRenderMode);
             }
             EditorGUILayout.HelpBox(typesAvailable
                 ? $"Applies VLB {_beamMode} and HDRP-safe Art-Net VLB defaults only to Spot Lights referenced by DMX Fixture Component. HD also adds VolumetricCookieHD."
@@ -193,7 +196,7 @@ namespace ArtNet.Editor
             Refresh();
         }
 
-        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsDefaults)
+        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsDefaults, int needsRenderMode)
         {
             if (!TryGetRequiredBeamTypes(_beamMode, out var error))
             {
@@ -202,7 +205,7 @@ namespace ArtNet.Editor
             }
             var paths = prefabPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             if (!EditorUtility.DisplayDialog($"Apply VLB {_beamMode} to Target Lights",
-                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply HDRP defaults: {needsDefaults}\n\nOnly Spot Lights referenced by DMX Fixture Component will be changed.",
+                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply HDRP defaults: {needsDefaults}\nSet Beam Render Mode to VLB: {needsRenderMode}\n\nOnly Spot Lights referenced by DMX Fixture Component will be changed.",
                     "Apply", "Cancel")) return;
 
             var changedPrefabs = 0;
@@ -218,6 +221,7 @@ namespace ArtNet.Editor
                     foreach (var fixture in root.GetComponentsInChildren<DmxFixtureComponent>(true))
                     {
                         changed |= ApplyHdrpVlbDefaults(fixture);
+                        changed |= ApplyVlbRenderMode(fixture);
                         foreach (var light in GetTargetLights(fixture))
                         {
                             if (light == null || light.type != LightType.Spot || !processedLights.Add(light.GetInstanceID())) continue;
@@ -381,7 +385,27 @@ namespace ArtNet.Editor
                 InvokeVlbMethod(beam, "UpdateAfterManualPropertyChange");
             }
             if (changed) EditorUtility.SetDirty(beam);
+            InvokeVlbMethod(beam, "GenerateGeometry");
             return changed;
+        }
+
+        private static bool HasVlbRenderMode(DmxFixtureComponent fixture)
+        {
+            if (fixture == null) return false;
+            var property = new SerializedObject(fixture).FindProperty("beamRenderMode");
+            return property != null && property.enumValueIndex == VlbBeamRenderModeEnumValue;
+        }
+
+        private static bool ApplyVlbRenderMode(DmxFixtureComponent fixture)
+        {
+            if (fixture == null) return false;
+            var serialized = new SerializedObject(fixture);
+            var property = serialized.FindProperty("beamRenderMode");
+            if (property == null || property.enumValueIndex == VlbBeamRenderModeEnumValue) return false;
+            property.enumValueIndex = VlbBeamRenderModeEnumValue;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(fixture);
+            return true;
         }
 
         private static bool TrySetVlbMember(Component component, string name, object value)
@@ -437,6 +461,7 @@ namespace ArtNet.Editor
                     foreach (var fixture in fixtures)
                     {
                         if (!HasHdrpVlbOverrides(fixture)) status.needsHdrpPresetFixtureCount++;
+                        if (!HasVlbRenderMode(fixture)) status.needsVlbRenderModeFixtureCount++;
                         foreach (var light in GetTargetLights(fixture))
                         {
                             if (light == null || !processed.Add(light.GetInstanceID())) continue;
@@ -501,7 +526,7 @@ namespace ArtNet.Editor
         private sealed class StatusSummary { public int SuccessCount { get; private set; } public int WarningCount { get; private set; } public int ErrorCount { get; private set; } public StatusLevel OverallLevel => ErrorCount > 0 ? StatusLevel.Error : WarningCount > 0 ? StatusLevel.Warning : StatusLevel.Success; public void Add(StatusLevel level) { if (level == StatusLevel.Success) SuccessCount++; else if (level == StatusLevel.Warning) WarningCount++; else ErrorCount++; } }
         private sealed class ProjectStatus { public Type vlbSdType; public Type vlbHdType; public Type vlbCookieHdType; public bool vlbInstalled; public ScriptableObject vlbConfig; public bool vlbConfigFound; public bool vlbConfigIsHdrp; public List<PipelineAssetStatus> hdrpAssets = new(); }
         private sealed class PipelineAssetStatus { public RenderPipelineAsset asset; public string label; }
-        private sealed class PrefabStatus { public GameObject prefab; public int fixtureCount; public int targetLightCount; public int readyTargetLightCount; public int nonSpotTargetLightCount; public int needsHdrpPresetFixtureCount; public List<string> needsSetupTargetLights = new(); public List<string> needsModeUpdateTargetLights = new(); }
+        private sealed class PrefabStatus { public GameObject prefab; public int fixtureCount; public int targetLightCount; public int readyTargetLightCount; public int nonSpotTargetLightCount; public int needsHdrpPresetFixtureCount; public int needsVlbRenderModeFixtureCount; public List<string> needsSetupTargetLights = new(); public List<string> needsModeUpdateTargetLights = new(); }
         private sealed class ScanTarget { public GameObject rootObject; public GameObject prefabAsset; }
     }
 }
