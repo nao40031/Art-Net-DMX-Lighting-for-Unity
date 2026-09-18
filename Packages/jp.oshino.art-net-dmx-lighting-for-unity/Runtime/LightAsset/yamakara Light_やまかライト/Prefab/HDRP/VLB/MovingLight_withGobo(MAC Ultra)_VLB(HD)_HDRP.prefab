@@ -432,7 +432,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   length: 10
-  startRadius: 0.05
+  startRadius: 0.02
   endRadius: 1.5
   segments: 32
   capStart: 0
