@@ -1219,7 +1219,7 @@ namespace ArtNet.Runtime
         {
             var pipeline = DetectCurrentRenderPipeline();
             vlbHdIntensityMultiplier = pipeline == RenderPipelineKind.HDRP ? 0.00001f : 0.01f;
-            vlbSdIntensityMultiplier = pipeline == RenderPipelineKind.HDRP ? 0.0001f : 0.01f;
+            vlbSdIntensityMultiplier = pipeline == RenderPipelineKind.HDRP ? 0.00001f : 0.01f;
             vlbHdrpExposureWeight = 0f;
             overrideVlbHdIntensityMultiplier = true;
             overrideVlbSdIntensityMultiplier = true;

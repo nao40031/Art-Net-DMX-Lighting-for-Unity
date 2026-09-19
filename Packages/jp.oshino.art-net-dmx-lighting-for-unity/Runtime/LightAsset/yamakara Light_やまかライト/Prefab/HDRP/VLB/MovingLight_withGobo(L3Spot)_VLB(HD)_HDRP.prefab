@@ -403,7 +403,7 @@ MonoBehaviour:
   m_HDRPExposureWeight: 0
   m_SpotAngle: 31.000013
   m_SpotAngleMultiplier: 1
-  m_ConeRadiusStart: 0.1
+  m_ConeRadiusStart: 0.05
   m_Scalable: 1
   m_FallOffStart: 0
   m_FallOffEnd: 12.87
@@ -600,7 +600,7 @@ MonoBehaviour:
   overrideVlbHdIntensityMultiplier: 1
   vlbHdIntensityMultiplier: 0.00001
   overrideVlbSdIntensityMultiplier: 1
-  vlbSdIntensityMultiplier: 0.01
+  vlbSdIntensityMultiplier: 0.00001
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
   syncPseudoBeamToDmx: 1

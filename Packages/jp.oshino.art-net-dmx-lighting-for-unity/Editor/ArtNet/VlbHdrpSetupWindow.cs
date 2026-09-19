@@ -357,7 +357,7 @@ namespace ArtNet.Editor
             var exposure = serialized.FindProperty("vlbHdrpExposureWeight");
             return hdOverride != null && hdValue != null && sdOverride != null && sdValue != null && exposureOverride != null && exposure != null &&
                    hdOverride.boolValue && sdOverride.boolValue && exposureOverride.boolValue && Mathf.Approximately(hdValue.floatValue, 0.00001f) &&
-                   Mathf.Approximately(sdValue.floatValue, 0.0001f) && Mathf.Approximately(exposure.floatValue, 0f);
+                   Mathf.Approximately(sdValue.floatValue, 0.00001f) && Mathf.Approximately(exposure.floatValue, 0f);
         }
 
         private static bool ApplyHdrpBeamPreset(GameObject gameObject, BeamMode mode)
@@ -366,7 +366,7 @@ namespace ArtNet.Editor
             var beam = type == null ? null : gameObject.GetComponent(type);
             if (beam == null) return false;
             var changed = TrySetVlbMember(beam, "colorFromLight", true);
-            changed |= TrySetVlbMember(beam, "intensityMultiplier", mode == BeamMode.HD ? 0.00001f : 0.0001f);
+            changed |= TrySetVlbMember(beam, "intensityMultiplier", 0.00001f);
             if (mode == BeamMode.SD)
             {
                 changed |= TrySetVlbMember(beam, "intensityFromLight", true);
@@ -378,6 +378,7 @@ namespace ArtNet.Editor
             else
             {
                 changed |= TrySetVlbMember(beam, "hdrpExposureWeight", 0f);
+                changed |= TrySetVlbMember(beam, "coneRadiusStart", 0.05f);
                 changed |= TrySetVlbMember(beam, "useIntensityFromAttachedLightSpot", true);
                 changed |= TrySetVlbMember(beam, "useSpotAngleFromAttachedLightSpot", true);
                 changed |= TrySetVlbMember(beam, "useFallOffEndFromAttachedLightSpot", true);

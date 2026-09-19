@@ -398,9 +398,9 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   intensityFromLight: 1
   intensityModeAdvanced: 0
-  intensityInside: 1.0898832
-  intensityOutside: 1.0898832
-  intensityMultiplier: 0.0001
+  intensityInside: 0.10898832
+  intensityOutside: 0.10898832
+  intensityMultiplier: 0.00001
   hdrpExposureWeight: 0
   blendingMode: 0
   spotAngleFromLight: 1
@@ -597,7 +597,7 @@ MonoBehaviour:
   overrideVlbHdIntensityMultiplier: 1
   vlbHdIntensityMultiplier: 0.00001
   overrideVlbSdIntensityMultiplier: 1
-  vlbSdIntensityMultiplier: 0.0001
+  vlbSdIntensityMultiplier: 0.00001
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
   syncPseudoBeamToDmx: 1
