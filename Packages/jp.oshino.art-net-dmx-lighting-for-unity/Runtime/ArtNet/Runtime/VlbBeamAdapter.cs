@@ -30,6 +30,8 @@ namespace ArtNet.Runtime
             public float sdIntensityMultiplier;
             public bool overrideHdrpExposureWeight;
             public float hdrpExposureWeight;
+            public bool overrideHdGoboCookieContribution;
+            public float hdGoboCookieContribution;
         }
 
         private sealed class Entry
@@ -298,7 +300,10 @@ namespace ArtNet.Runtime
                 : 1f;
             float visualScale = state.prismEnabled ? prismGoboScale : 1f;
             float cookieScale = CookieScaleToMatchUnitySpotLight / visualScale;
-            ApplyPrismCookieHd(entry.cookieHd, hasCookie, state.goboTexture, state.lightDimmer01, hasCookie ? Vector2.one * cookieScale : Vector2.one);
+            float cookieContribution = overrides.overrideHdGoboCookieContribution
+                ? overrides.hdGoboCookieContribution
+                : state.lightDimmer01;
+            ApplyPrismCookieHd(entry.cookieHd, hasCookie, state.goboTexture, cookieContribution, hasCookie ? Vector2.one * cookieScale : Vector2.one);
             if (hasCookie)
                 VlbReflection.SetFloat(entry.cookieHd, "rotation", state.syncLightGoboRotationToDmx ? state.goboRotationDeg : 0f);
             if (hasCookie)

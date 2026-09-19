@@ -116,6 +116,14 @@ namespace ArtNet.Runtime
 
         [SerializeField, Range(0f, 1f)] private float vlbHdrpExposureWeight = 0f;
 
+        [Tooltip("有効時、HDRP VLB HDのゴボマスク強度をこの値で上書きします。\nWhen enabled, overrides HDRP VLB HD gobo mask strength with this value.")]
+        [InspectorName("Override VLB HD Gobo Cutout Strength")]
+        [SerializeField] private bool overrideVlbHdGoboCookieContribution = true;
+
+        [Tooltip("HDRP VLB HDのゴボマスク強度です。1でマスク抜きを最大にします。\nHDRP VLB HD gobo mask strength. Use 1 for the strongest cutout.")]
+        [InspectorName("VLB HD Gobo Cutout Strength")]
+        [SerializeField, Range(0f, 1f)] private float vlbHdGoboCookieContribution = 1f;
+
         [SerializeField, HideInInspector] private bool syncPseudoBeamToDmx = false;
         [SerializeField, HideInInspector] private bool _beamRenderModeMigrated;
         [SerializeField, HideInInspector] private bool _beamSyncSettingsMigrated;
@@ -1221,9 +1229,11 @@ namespace ArtNet.Runtime
             vlbHdIntensityMultiplier = pipeline == RenderPipelineKind.HDRP ? 0.00001f : 0.01f;
             vlbSdIntensityMultiplier = pipeline == RenderPipelineKind.HDRP ? 0.00001f : 0.01f;
             vlbHdrpExposureWeight = 0f;
+            vlbHdGoboCookieContribution = 1f;
             overrideVlbHdIntensityMultiplier = true;
             overrideVlbSdIntensityMultiplier = true;
             overrideVlbHdrpExposureWeight = true;
+            overrideVlbHdGoboCookieContribution = true;
             _vlbPipelineDefaultsInitialized = true;
         }
 
@@ -3362,7 +3372,9 @@ namespace ArtNet.Runtime
                 overrideSdIntensityMultiplier = overrideVlbSdIntensityMultiplier,
                 sdIntensityMultiplier = vlbSdIntensityMultiplier,
                 overrideHdrpExposureWeight = overrideVlbHdrpExposureWeight,
-                hdrpExposureWeight = vlbHdrpExposureWeight
+                hdrpExposureWeight = vlbHdrpExposureWeight,
+                overrideHdGoboCookieContribution = overrideVlbHdGoboCookieContribution,
+                hdGoboCookieContribution = vlbHdGoboCookieContribution
             };
         }
 
@@ -5041,7 +5053,10 @@ namespace ArtNet.Runtime
             if (aux.vlbCookieHd != null)
             {
                 bool hasCookie = (state.irisEnabled || (syncBeamGoboToDmx && state.goboEnabled)) && cookie != null;
-                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, state.irisEnabled ? 1f : cookieContribution, GetTemplateVlbCookieScale(source));
+                float vlbCookieContribution = state.irisEnabled
+                    ? 1f
+                    : (overrides.overrideHdGoboCookieContribution ? overrides.hdGoboCookieContribution : cookieContribution);
+                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, vlbCookieContribution, GetTemplateVlbCookieScale(source));
             }
         }
 

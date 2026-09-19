@@ -603,6 +603,8 @@ MonoBehaviour:
   vlbSdIntensityMultiplier: 0.00001
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
+  overrideVlbHdGoboCookieContribution: 1
+  vlbHdGoboCookieContribution: 1
   syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
   _beamSyncSettingsMigrated: 1

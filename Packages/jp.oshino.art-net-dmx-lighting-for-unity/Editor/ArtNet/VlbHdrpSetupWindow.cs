@@ -355,9 +355,12 @@ namespace ArtNet.Editor
             var sdValue = serialized.FindProperty("vlbSdIntensityMultiplier");
             var exposureOverride = serialized.FindProperty("overrideVlbHdrpExposureWeight");
             var exposure = serialized.FindProperty("vlbHdrpExposureWeight");
+            var goboCutoutOverride = serialized.FindProperty("overrideVlbHdGoboCookieContribution");
+            var goboCutoutStrength = serialized.FindProperty("vlbHdGoboCookieContribution");
             return hdOverride != null && hdValue != null && sdOverride != null && sdValue != null && exposureOverride != null && exposure != null &&
-                   hdOverride.boolValue && sdOverride.boolValue && exposureOverride.boolValue && Mathf.Approximately(hdValue.floatValue, 0.00001f) &&
-                   Mathf.Approximately(sdValue.floatValue, 0.00001f) && Mathf.Approximately(exposure.floatValue, 0f);
+                   goboCutoutOverride != null && goboCutoutStrength != null && hdOverride.boolValue && sdOverride.boolValue && exposureOverride.boolValue &&
+                   goboCutoutOverride.boolValue && Mathf.Approximately(hdValue.floatValue, 0.00001f) && Mathf.Approximately(sdValue.floatValue, 0.00001f) &&
+                   Mathf.Approximately(exposure.floatValue, 0f) && Mathf.Approximately(goboCutoutStrength.floatValue, 1f);
         }
 
         private static bool ApplyHdrpBeamPreset(GameObject gameObject, BeamMode mode)
