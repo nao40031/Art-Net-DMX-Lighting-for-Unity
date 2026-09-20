@@ -306,7 +306,9 @@ namespace ArtNet.Editor
             }
 
             var paths = prefabPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-            if (needsSetup + needsUpdate + needsUrpPreset + needsRenderMode == 0)
+            // HD setup also performs the Very High raymarching-quality migration
+            // for existing HD prefabs, even when their other setup counters are zero.
+            if (needsSetup + needsUpdate + needsUrpPreset + needsRenderMode == 0 && _beamMode != BeamMode.HD)
                 return;
 
             if (!EditorUtility.DisplayDialog(
@@ -315,6 +317,12 @@ namespace ArtNet.Editor
                     "Target Lights will be made consistent with the selected Beam Mode and URP VLB preset.",
                     "Apply", "Cancel"))
                 return;
+
+            if (_beamMode == BeamMode.HD && !VlbRaymarchingQualitySetup.EnsureVeryHigh(out var qualityError))
+            {
+                EditorUtility.DisplayDialog("VLB Raymarching Quality setup failed", qualityError, "OK");
+                return;
+            }
 
             var changedPrefabCount = 0;
             var changedLightCount = 0;
@@ -345,6 +353,8 @@ namespace ArtNet.Editor
                             }
                         }
                     }
+                    if (_beamMode == BeamMode.HD)
+                        changed |= VlbRaymarchingQualitySetup.ApplyToChildren(root);
 
                     if (changed)
                     {

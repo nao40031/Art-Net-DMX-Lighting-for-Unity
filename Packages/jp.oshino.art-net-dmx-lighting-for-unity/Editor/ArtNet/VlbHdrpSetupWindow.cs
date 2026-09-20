@@ -208,6 +208,12 @@ namespace ArtNet.Editor
                     $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply HDRP defaults: {needsDefaults}\nSet Beam Render Mode to VLB: {needsRenderMode}\n\nOnly Spot Lights referenced by DMX Fixture Component will be changed.",
                     "Apply", "Cancel")) return;
 
+            if (_beamMode == BeamMode.HD && !VlbRaymarchingQualitySetup.EnsureVeryHigh(out var qualityError))
+            {
+                EditorUtility.DisplayDialog("VLB Raymarching Quality setup failed", qualityError, "OK");
+                return;
+            }
+
             var changedPrefabs = 0;
             var changedLights = 0;
             foreach (var path in paths)
@@ -230,6 +236,8 @@ namespace ArtNet.Editor
                             if (beamChanged || presetChanged) { changed = true; changedLights++; }
                         }
                     }
+                    if (_beamMode == BeamMode.HD)
+                        changed |= VlbRaymarchingQualitySetup.ApplyToChildren(root);
                     if (changed) { PrefabUtility.SaveAsPrefabAsset(root, path); changedPrefabs++; }
                 }
                 finally { PrefabUtility.UnloadPrefabContents(root); }
