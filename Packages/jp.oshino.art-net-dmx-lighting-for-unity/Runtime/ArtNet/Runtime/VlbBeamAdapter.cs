@@ -62,6 +62,11 @@ namespace ArtNet.Runtime
             return VlbReflection.GetComponent(gameObject, VlbReflection.HdType);
         }
 
+        public static Component GetSd(GameObject gameObject)
+        {
+            return VlbReflection.GetComponent(gameObject, VlbReflection.SdType);
+        }
+
         public static Component GetCookieHd(GameObject gameObject)
         {
             return VlbReflection.GetComponent(gameObject, VlbReflection.CookieHdType);
@@ -70,6 +75,11 @@ namespace ArtNet.Runtime
         public static Component EnsureHd(GameObject gameObject)
         {
             return VlbReflection.EnsureComponent(gameObject, VlbReflection.HdType);
+        }
+
+        public static Component EnsureSd(GameObject gameObject)
+        {
+            return VlbReflection.EnsureComponent(gameObject, VlbReflection.SdType);
         }
 
         public static Component EnsureCookieHd(GameObject gameObject)
@@ -111,6 +121,36 @@ namespace ArtNet.Runtime
 
             VlbReflection.Invoke(hd, "AssignPropertiesFromAttachedSpotLight");
             VlbReflection.Invoke(hd, "UpdateAfterManualPropertyChange");
+        }
+
+        public static void ApplyPrismSd(Component sd, Light light, Component template, Overrides overrides)
+        {
+            if (sd == null)
+                return;
+
+            if (sd is Behaviour behaviour)
+                behaviour.enabled = true;
+
+            if (template != null && template != sd)
+                VlbReflection.CopySdProps(sd, template);
+
+            // Member names changed between VLB releases. Set both variants so the
+            // reflection adapter remains compatible without a hard VLB dependency.
+            VlbReflection.SetBool(sd, "intensityFromLight", true);
+            VlbReflection.SetBool(sd, "useIntensityFromAttachedLightSpot", true);
+            VlbReflection.SetBool(sd, "spotAngleFromLight", true);
+            VlbReflection.SetBool(sd, "useSpotAngleFromAttachedLightSpot", true);
+            VlbReflection.SetBool(sd, "fallOffEndFromLight", true);
+            VlbReflection.SetBool(sd, "useFallOffEndFromAttachedLightSpot", true);
+            VlbReflection.SetBool(sd, "colorFromLight", true);
+            if (light != null)
+                VlbReflection.SetObject(sd, "color", light.color);
+
+            if (overrides.overrideSdIntensityMultiplier)
+                VlbReflection.SetFloat(sd, "intensityMultiplier", Mathf.Max(0f, overrides.sdIntensityMultiplier));
+
+            VlbReflection.Invoke(sd, "AssignPropertiesFromAttachedSpotLight");
+            VlbReflection.Invoke(sd, "UpdateAfterManualPropertyChange");
         }
 
         public static void ApplyPrismCookieHd(Component cookieHd, bool hasCookie, Texture cookie, float contribution, Vector2 scale)
@@ -386,11 +426,13 @@ namespace ArtNet.Runtime
             public static readonly Type HdType = FindType("VLB.VolumetricLightBeamHD");
             public static readonly Type SdType = FindType("VLB.VolumetricLightBeamSD");
             public static readonly Type CookieHdType = FindType("VLB.VolumetricCookieHD");
+            private static readonly Type BeamAbstractBaseType = FindType("VLB.VolumetricLightBeamAbstractBase");
             private static readonly Type BeamPropsType = FindType("VLB.BeamProps");
 
             private static readonly Dictionary<Type, Dictionary<string, MemberInfo>> MemberCache = new();
             private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> MethodCache = new();
             private static readonly object HdCopyMask = CreateHdCopyMask();
+            private static readonly object SdCopyMask = CreateSdCopyMask();
 
             public static bool IsAvailable => HdType != null || SdType != null;
 
@@ -411,11 +453,20 @@ namespace ArtNet.Runtime
 
             public static void CopyHdProps(Component target, Component template)
             {
-                if (target == null || template == null || HdCopyMask == null)
+                if (target == null || template == null || BeamAbstractBaseType == null || HdCopyMask == null)
                     return;
 
-                var method = GetMethod(target.GetType(), "CopyPropsFrom", template.GetType(), BeamPropsType);
+                var method = GetMethod(target.GetType(), "CopyPropsFrom", BeamAbstractBaseType, BeamPropsType);
                 method?.Invoke(target, new[] { template, HdCopyMask });
+            }
+
+            public static void CopySdProps(Component target, Component template)
+            {
+                if (target == null || template == null || BeamAbstractBaseType == null || SdCopyMask == null)
+                    return;
+
+                var method = GetMethod(target.GetType(), "CopyPropsFrom", BeamAbstractBaseType, BeamPropsType);
+                method?.Invoke(target, new[] { template, SdCopyMask });
             }
 
             public static void Invoke(Component component, string methodName)
@@ -594,6 +645,22 @@ namespace ArtNet.Runtime
                     return null;
 
                 const string names = "Color, BlendingMode, Intensity, SideSoftness, SpotShape, FallOffAttenuation, Noise3D";
+                try
+                {
+                    return Enum.Parse(BeamPropsType, names);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            private static object CreateSdCopyMask()
+            {
+                if (BeamPropsType == null)
+                    return null;
+
+                const string names = "Color, BlendingMode, Intensity, SideSoftness, SpotShape, FallOffAttenuation, Noise3D, SDConeGeometry, SDSoftIntersectBlendingDist";
                 try
                 {
                     return Enum.Parse(BeamPropsType, names);

@@ -26,19 +26,50 @@ namespace ArtNet.Editor
         private const int VlbBeamRenderModeEnumValue = 2;
         private const int DepthPrimingDisabledEnumValue = 0;
         private const int CopyDepthAfterOpaquesEnumValue = 0;
+        private const int RecommendedPrismAdditionalLightsPerObject = 8;
 
         private Vector2 _scrollPosition;
         private ProjectStatus _status;
         private readonly List<ScanTarget> _scanTargets = new() { new ScanTarget() };
         private BeamMode _beamMode = BeamMode.SD;
+        private bool _scrollToOptionalPrismShadows;
 
         [MenuItem(MenuPath)]
         private static void Open()
         {
+            OpenWindow();
+        }
+
+        internal static void OpenWindow(bool focusOptionalPrismShadows = false)
+        {
             var window = GetWindow<VlbUrpSetupWindow>(true, "Art-Net VLB URP Setup", true);
             window.minSize = new Vector2(560f, 440f);
+            window._scrollPosition = Vector2.zero;
+            window._scrollToOptionalPrismShadows = focusOptionalPrismShadows;
             window.Refresh();
             window.Show();
+            window.Repaint();
+        }
+
+        internal static bool TryGetOptionalPrismShadowIssue(out string details)
+        {
+            var assets = FindUsedUrpAssets();
+            var issues = new List<string>();
+            foreach (var asset in assets)
+            {
+                if (asset.IsOptionalPrismShadowConfigured)
+                    continue;
+
+                var settings = new List<string>();
+                if (!asset.additionalLightShadowsSupported)
+                    settings.Add("Additional Light Shadows: OFF");
+                if (asset.additionalLightsPerObjectLimit < RecommendedPrismAdditionalLightsPerObject)
+                    settings.Add($"Per Object Limit: {asset.additionalLightsPerObjectLimit} / {RecommendedPrismAdditionalLightsPerObject}");
+                issues.Add($"{asset.asset.name} ({asset.label}) — {string.Join(", ", settings)}");
+            }
+
+            details = string.Join("\n", issues);
+            return issues.Count > 0;
         }
 
         private void OnEnable()
@@ -117,6 +148,41 @@ namespace ArtNet.Editor
                 }
 
                 EditorGUILayout.EndVertical();
+            }
+
+            EditorGUILayout.Space(6f);
+            DrawOptionalPrismShadowSettings();
+        }
+
+        private void DrawOptionalPrismShadowSettings()
+        {
+            Rect sectionAnchor = EditorGUILayout.GetControlRect(false, 0f);
+            EditorGUILayout.LabelField("Optional: Prism auxiliary light shadows", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "プリズム補助ライトの影を使用する場合だけ設定してください。通常のVLB表示には必須ではありません。8面プリズムを想定し、Additional Light Shadowsを有効化してPer Object Limitを8以上にします。\n\n" +
+                "Configure this only when prism auxiliary-light shadows are required. It is not required for normal VLB rendering. For an eight-facet prism, this enables Additional Light Shadows and sets Per Object Limit to at least 8.",
+                MessageType.Info);
+
+            foreach (var asset in _status.urpAssets)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.ObjectField(asset.label, asset.asset, typeof(RenderPipelineAsset), false);
+                EditorGUILayout.LabelField("Additional Light Shadows", asset.additionalLightShadowsSupported ? "ON" : "OFF");
+                EditorGUILayout.LabelField("Per Object Limit", asset.additionalLightsPerObjectLimit.ToString());
+                EditorGUILayout.EndVertical();
+            }
+
+            using (new EditorGUI.DisabledScope(_status.urpAssets.Count == 0 || !_status.HasOptionalPrismShadowFixes))
+            {
+                if (GUILayout.Button("Fix Optional Prism Shadow Settings", GUILayout.Height(24f)))
+                    ApplyOptionalPrismShadowSettings();
+            }
+
+            if (_scrollToOptionalPrismShadows && Event.current.type == EventType.Repaint)
+            {
+                _scrollPosition.y = Mathf.Max(0f, sectionAnchor.y);
+                _scrollToOptionalPrismShadows = false;
+                Repaint();
             }
         }
 
@@ -276,6 +342,24 @@ namespace ArtNet.Editor
             Refresh();
         }
 
+        private void ApplyOptionalPrismShadowSettings()
+        {
+            if (!_status.HasOptionalPrismShadowFixes)
+                return;
+
+            var message =
+                "使用中のURP AssetでAdditional Light Shadowsを有効化し、Per Object Limitを8以上に設定します。これはプリズム補助ライトの影を検証・使用するための任意設定です。\n\n" +
+                "Enable Additional Light Shadows and set Per Object Limit to at least 8 on the URP Assets currently in use. This is an optional setting for validating or using prism auxiliary-light shadows.";
+            if (!EditorUtility.DisplayDialog("Optional Prism Shadow Settings", message, "Fix", "Cancel"))
+                return;
+
+            foreach (var asset in _status.urpAssets)
+                ConfigureOptionalPrismShadowSettings(asset);
+
+            AssetDatabase.SaveAssets();
+            Refresh();
+        }
+
         private void FixVlbConfig()
         {
             var action = _status.vlbConfigFound
@@ -423,6 +507,8 @@ namespace ArtNet.Editor
 
             var serialized = new SerializedObject(asset);
             var depthTexture = serialized.FindProperty("m_RequireDepthTexture");
+            var additionalLightShadows = serialized.FindProperty("m_AdditionalLightShadowsSupported");
+            var additionalLightsPerObjectLimit = serialized.FindProperty("m_AdditionalLightsPerObjectLimit");
             var rendererList = serialized.FindProperty("m_RendererDataList");
             var rendererData = rendererList != null && rendererList.arraySize > 0
                 ? rendererList.GetArrayElementAtIndex(0).objectReferenceValue
@@ -433,6 +519,8 @@ namespace ArtNet.Editor
                 asset = asset,
                 label = source,
                 depthTextureEnabled = depthTexture != null && depthTexture.boolValue,
+                additionalLightShadowsSupported = additionalLightShadows != null && additionalLightShadows.boolValue,
+                additionalLightsPerObjectLimit = additionalLightsPerObjectLimit?.intValue ?? 0,
                 rendererData = rendererData,
             };
 
@@ -481,6 +569,36 @@ namespace ArtNet.Editor
                 rendererSerialized.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(status.rendererData);
             }
+        }
+
+        private static void ConfigureOptionalPrismShadowSettings(UrpAssetStatus status)
+        {
+            if (status?.asset == null)
+                return;
+
+            Undo.RecordObject(status.asset, "Fix Optional Prism Shadow Settings");
+            var serialized = new SerializedObject(status.asset);
+            var additionalLightShadows = serialized.FindProperty("m_AdditionalLightShadowsSupported");
+            var additionalLightsPerObjectLimit = serialized.FindProperty("m_AdditionalLightsPerObjectLimit");
+            var changed = false;
+
+            if (additionalLightShadows != null && !additionalLightShadows.boolValue)
+            {
+                additionalLightShadows.boolValue = true;
+                changed = true;
+            }
+
+            if (additionalLightsPerObjectLimit != null && additionalLightsPerObjectLimit.intValue < RecommendedPrismAdditionalLightsPerObject)
+            {
+                additionalLightsPerObjectLimit.intValue = RecommendedPrismAdditionalLightsPerObject;
+                changed = true;
+            }
+
+            if (!changed)
+                return;
+
+            serialized.ApplyModifiedProperties();
+            EditorUtility.SetDirty(status.asset);
         }
 
         private static bool IsUrpAsset(RenderPipelineAsset asset)
@@ -1033,6 +1151,8 @@ namespace ArtNet.Editor
             public List<UrpAssetStatus> urpAssets = new();
             public bool HasFixableProjectSettings =>
                 !vlbConfigFound || !vlbConfigIsUrp || urpAssets.Any(asset => !asset.IsConfigured);
+            public bool HasOptionalPrismShadowFixes =>
+                urpAssets.Any(asset => !asset.IsOptionalPrismShadowConfigured);
         }
 
         private sealed class UrpAssetStatus
@@ -1040,10 +1160,14 @@ namespace ArtNet.Editor
             public RenderPipelineAsset asset;
             public string label;
             public bool depthTextureEnabled;
+            public bool additionalLightShadowsSupported;
+            public int additionalLightsPerObjectLimit;
             public UnityEngine.Object rendererData;
             public bool depthPrimingDisabled;
             public bool copyDepthAfterOpaques;
             public bool IsConfigured => depthTextureEnabled && rendererData != null && depthPrimingDisabled && copyDepthAfterOpaques;
+            public bool IsOptionalPrismShadowConfigured =>
+                additionalLightShadowsSupported && additionalLightsPerObjectLimit >= RecommendedPrismAdditionalLightsPerObject;
         }
 
         private sealed class PrefabStatus

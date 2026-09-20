@@ -724,7 +724,7 @@ MonoBehaviour:
   prismGoboSpacingMode: 0
   manualPrismGoboSpacingScale: 1
   prismGoboScaleVlb: 1
-  auxiliaryLightShadows: 0
+  auxiliaryLightShadows: 1
   prismCookieShader: {fileID: 0}
   lightResponseMode: 0
   halogenSourceRiseTime: 0.06

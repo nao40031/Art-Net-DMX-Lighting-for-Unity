@@ -524,7 +524,7 @@ namespace ArtNet.Runtime
         [Tooltip("プリズム機能を有効にします。オフの場合、Prism DefinitionとDMX値が設定されていてもプリズム描画は行いません。\nEnables the prism feature. When disabled, no prism is rendered even if a Prism Definition and DMX value are set.")]
         [SerializeField] private bool enablePrism = true;
 
-        [Tooltip("プリズムの描画モード。Projection Onlyは床・壁のCookie投影中心、Full Auxiliary Lightsは高品質、Projection + Shader Beamは将来のShaderビーム分割用です。\nPrism rendering mode. Projection Only focuses on Cookie projection onto floors and walls; Full Auxiliary Lights provides high quality; Projection + Shader Beam is reserved for future Shader beam splitting.")]
+        [Tooltip("プリズムの描画モード。Projection Onlyは床・壁への投影中心、Full Auxiliary Lightsは影を含む高品質な補助Light、Projection + Shader Beamは投影と分割ビームを併用します。VLBモードではHD・SDともに補助VLBビームを使用します。\n\nPrism rendering mode. Projection Only focuses on floor and wall projection, Full Auxiliary Lights uses high-quality auxiliary Lights including shadows, and Projection + Shader Beam combines projection with split beams. In VLB mode, both HD and SD use auxiliary VLB beams.")]
         [SerializeField] private PrismDrawMode prismDrawMode = PrismDrawMode.ProjectionOnly;
 
         [Tooltip("旧プリズム描画方式。既存Prefabの互換性維持用です。\nLegacy prism rendering method, retained for compatibility with existing Prefabs.")]
@@ -533,7 +533,7 @@ namespace ArtNet.Runtime
         [Tooltip("旧Projection Only互換用。現在のProjection OnlyではPrimary Lightを抑制し、補助ライト側で投影します。\nCompatibility option for the legacy Projection Only mode. The current mode suppresses the Primary Light and projects using Auxiliary Lights.")]
         [SerializeField, HideInInspector, Range(0f, 1f)] private float projectionOnlyPrimaryIntensityScale = 0.65f;
 
-        [Tooltip("Projection Only時に補助HDRPライトのVolumetric Dimmerを0にします。\nSets the Volumetric Dimmer of Auxiliary HDRP Lights to 0 in Projection Only mode.")]
+        [Tooltip("Projection Only時に補助VLBビーム（HD／SD）を非表示にし、補助HDRPライトのVolumetric Dimmerも0にします。オフにすると、従来互換としてProjection Onlyでも補助VLBビームを表示します。\n\nHides auxiliary VLB beams (HD/SD) and sets the Volumetric Dimmer of auxiliary HDRP Lights to 0 in Projection Only mode. Disable this option to preserve the legacy auxiliary VLB beams in Projection Only mode.")]
         [SerializeField] private bool disableAuxiliaryVolumetricInProjectionOnly = true;
 
         [Tooltip("AuxiliaryLightsでのGobo Rotation方式。AutoはHDRPならTransform Roll、それ以外はComposite Texture Rollです。\nGobo Rotation method for Auxiliary Lights. Auto uses Transform Roll in HDRP and Composite Texture Roll otherwise.")]
@@ -586,8 +586,9 @@ namespace ArtNet.Runtime
         [InspectorName("Prism Gobo Scale (VLB)")]
         [SerializeField, Range(0.1f, 3f)] private float prismGoboScaleVlb = 1f;
 
-        [Tooltip("Auxiliary LightのShadowを有効化します。初期OFF推奨。\nEnables Shadows on Auxiliary Lights. Keeping this disabled initially is recommended.")]
-        [SerializeField] private bool auxiliaryLightShadows = false;
+        [Tooltip("通常Spot LightとPrism Auxiliary LightのShadowを有効化します。初期値はONです。Projection Only系のPrism Draw Modeでは、補助LightのShadowは描画しません。\nEnables Shadows on the primary Spot Light and Prism Auxiliary Lights. Enabled by default. Auxiliary Light Shadows are not rendered in Projection Only Prism Draw Modes.")]
+        [InspectorName("Beam Light Shadows")]
+        [SerializeField] private bool auxiliaryLightShadows = true;
 
         [Tooltip("Cookie合成Shader。未設定の場合はResources/Shader.Findから解決します。\nShader used for Cookie composition. If unset, it is resolved through Resources or Shader.Find.")]
         [SerializeField] private Shader prismCookieShader;
@@ -933,7 +934,10 @@ namespace ArtNet.Runtime
             public Transform cookieRollPivot;
             public Light light;
             public Component vlbHd;
+            public Component vlbHdTemplate;
+            public Component vlbSd;
             public Component vlbCookieHd;
+            public Component vlbSdTemplate;
 #if HAS_HDRP
             public HDAdditionalLightData hd;
 #endif
@@ -1170,8 +1174,10 @@ namespace ArtNet.Runtime
             MigrateLegacyBeamSyncSettings();
             MigrateLegacyPrismGoboSpacingMode();
             InitializeVlbPipelineDefaultsIfNeeded();
-            if (!autoResolveOnValidate) return;
-            ResolveAll(allowAutoAddDriver: false);
+            if (autoResolveOnValidate)
+                ResolveAll(allowAutoAddDriver: false);
+
+            ApplyTargetLightShadows();
         }
 
         private void OnDisable()
@@ -3024,6 +3030,8 @@ namespace ArtNet.Runtime
                 ApplyDirectToLights(driverState);
             }
 
+            ApplyTargetLightShadows();
+
             // Prism facets must use the primary lights after their Sync Beam settings have
             // been applied, otherwise they retain the previous DMX colour/intensity/zoom.
             ApplyPrismAuxiliaryLights(state);
@@ -3095,6 +3103,18 @@ namespace ArtNet.Runtime
                     l.spotAngle = initialSpotAngles.x;
                     l.innerSpotAngle = initialSpotAngles.y;
                 }
+            }
+        }
+
+        private void ApplyTargetLightShadows()
+        {
+            var targets = GatherTargetLights();
+            LightShadows shadowMode = auxiliaryLightShadows ? LightShadows.Soft : LightShadows.None;
+            for (int i = 0; i < targets.Count; i++)
+            {
+                var light = targets[i];
+                if (light != null)
+                    light.shadows = shadowMode;
             }
         }
 
@@ -4355,6 +4375,13 @@ namespace ArtNet.Runtime
                    prismDrawMode == PrismDrawMode.ProjectionAndShaderBeam;
         }
 
+        private bool ShouldDisableAuxiliaryVlbForPrismMode()
+        {
+            return IsPrismDrawingEnabled() &&
+                   prismDrawMode == PrismDrawMode.ProjectionOnly &&
+                   disableAuxiliaryVolumetricInProjectionOnly;
+        }
+
         private float GetDisplayPrismRotationDeg()
         {
             return Mathf.Repeat(-(_prismRotationDeg + _prismRotationOffsetDeg), 360f);
@@ -5033,31 +5060,57 @@ namespace ArtNet.Runtime
             if (aux == null || aux.light == null)
                 return;
 
-            // SD keeps its native SD beam and never receives transient HD components.
-            // VLB prefabs may use ProjectionAndShaderBeam as their stored Prism preset;
-            // this is a Pseudo Beam-specific distinction, so do not suppress VLB facets.
-            if (!IsVlbBeamRenderMode() || source == null || VlbBeamAdapter.GetHd(source.gameObject) == null)
+            if (!IsVlbBeamRenderMode() || source == null || ShouldDisableAuxiliaryVlbForPrismMode())
             {
                 DisablePrismAuxiliaryVlb(aux);
                 return;
             }
 
-            EnsurePrismAuxiliaryVlb(aux);
-            if (aux.vlbHd == null)
+            var overrides = BuildVlbOverrides();
+            var hdTemplate = VlbBeamAdapter.GetHd(source.gameObject);
+            if (hdTemplate != null)
+            {
+                EnsurePrismAuxiliaryVlbHd(aux);
+                VlbBeamAdapter.Disable(aux.vlbSd);
+                aux.vlbSdTemplate = null;
+                if (aux.vlbHd == null)
+                    return;
+
+                // Copy static appearance only when the source template changes. Dynamic
+                // Light color, intensity, range and angle are still applied every update.
+                Component hdTemplateToCopy = aux.vlbHdTemplate == hdTemplate ? null : hdTemplate;
+                VlbBeamAdapter.ApplyPrismHd(aux.vlbHd, aux.light, hdTemplateToCopy, overrides);
+                aux.vlbHdTemplate = hdTemplate;
+                if (aux.vlbCookieHd != null)
+                {
+                    bool hasCookie = (state.irisEnabled || (syncBeamGoboToDmx && state.goboEnabled)) && cookie != null;
+                    float vlbCookieContribution = state.irisEnabled
+                        ? 1f
+                        : (overrides.overrideHdGoboCookieContribution ? overrides.hdGoboCookieContribution : cookieContribution);
+                    VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, vlbCookieContribution, GetTemplateVlbCookieScale(source));
+                }
+                return;
+            }
+
+            var sdTemplate = VlbBeamAdapter.GetSd(source.gameObject);
+            if (sdTemplate == null)
+            {
+                DisablePrismAuxiliaryVlb(aux);
+                return;
+            }
+
+            EnsurePrismAuxiliaryVlbSd(aux);
+            VlbBeamAdapter.Disable(aux.vlbHd);
+            VlbBeamAdapter.Disable(aux.vlbCookieHd);
+            aux.vlbHdTemplate = null;
+            if (aux.vlbSd == null)
                 return;
 
-            var overrides = BuildVlbOverrides();
-            var template = VlbBeamAdapter.GetHd(source.gameObject);
-            VlbBeamAdapter.ApplyPrismHd(aux.vlbHd, aux.light, template, overrides);
-
-            if (aux.vlbCookieHd != null)
-            {
-                bool hasCookie = (state.irisEnabled || (syncBeamGoboToDmx && state.goboEnabled)) && cookie != null;
-                float vlbCookieContribution = state.irisEnabled
-                    ? 1f
-                    : (overrides.overrideHdGoboCookieContribution ? overrides.hdGoboCookieContribution : cookieContribution);
-                VlbBeamAdapter.ApplyPrismCookieHd(aux.vlbCookieHd, hasCookie, cookie, vlbCookieContribution, GetTemplateVlbCookieScale(source));
-            }
+            // Copy static appearance only when the source template changes. Dynamic
+            // Light color, intensity, range and angle are still applied every update.
+            Component sdTemplateToCopy = aux.vlbSdTemplate == sdTemplate ? null : sdTemplate;
+            VlbBeamAdapter.ApplyPrismSd(aux.vlbSd, aux.light, sdTemplateToCopy, overrides);
+            aux.vlbSdTemplate = sdTemplate;
         }
 
         private Vector2 GetTemplateVlbCookieScale(Light source)
@@ -5068,7 +5121,7 @@ namespace ArtNet.Runtime
             return Vector2.one;
         }
 
-        private void EnsurePrismAuxiliaryVlb(PrismAuxiliaryLight aux)
+        private void EnsurePrismAuxiliaryVlbHd(PrismAuxiliaryLight aux)
         {
             if (aux == null || aux.light == null)
                 return;
@@ -5085,13 +5138,28 @@ namespace ArtNet.Runtime
                 aux.vlbCookieHd = VlbBeamAdapter.EnsureCookieHd(gameObject);
         }
 
+        private void EnsurePrismAuxiliaryVlbSd(PrismAuxiliaryLight aux)
+        {
+            if (aux == null || aux.light == null)
+                return;
+
+            var gameObject = aux.light.gameObject;
+            if (aux.vlbSd == null)
+                aux.vlbSd = VlbBeamAdapter.GetSd(gameObject);
+            if (aux.vlbSd == null)
+                aux.vlbSd = VlbBeamAdapter.EnsureSd(gameObject);
+        }
+
         private void DisablePrismAuxiliaryVlb(PrismAuxiliaryLight aux)
         {
             if (aux == null)
                 return;
 
             VlbBeamAdapter.Disable(aux.vlbHd);
+            VlbBeamAdapter.Disable(aux.vlbSd);
             VlbBeamAdapter.Disable(aux.vlbCookieHd);
+            aux.vlbHdTemplate = null;
+            aux.vlbSdTemplate = null;
         }
 
         private void DisablePrismAuxiliaryLights()

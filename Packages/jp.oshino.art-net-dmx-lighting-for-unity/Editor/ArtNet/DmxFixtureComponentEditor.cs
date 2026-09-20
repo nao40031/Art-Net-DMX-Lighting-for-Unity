@@ -57,10 +57,36 @@ namespace ArtNet.Editor
                 if (property.propertyPath == "goboLensHotspotStrength")
                     DrawGoboLensMaterialSetup();
 
+                if (property.propertyPath == "auxiliaryLightShadows")
+                    DrawOptionalPrismShadowWarning(property);
+
                 enterChildren = false;
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawOptionalPrismShadowWarning(SerializedProperty auxiliaryLightShadows)
+        {
+            var enablePrism = serializedObject.FindProperty("enablePrism");
+            bool prismCanUseAuxiliaryShadows = enablePrism != null &&
+                                                (enablePrism.boolValue || enablePrism.hasMultipleDifferentValues) &&
+                                                (auxiliaryLightShadows.boolValue || auxiliaryLightShadows.hasMultipleDifferentValues);
+            if (!prismCanUseAuxiliaryShadows ||
+                !VlbUrpSetupWindow.TryGetOptionalPrismShadowIssue(out string details))
+                return;
+
+            EditorGUILayout.HelpBox(
+                "プリズム補助ライトの影が有効ですが、影を表示するためのURP設定が不足しています。\n" +
+                details + "\n" +
+                "Art-Net > VLB > URP Setup の Optional Prism Shadow Settings で確認・修正してください。\n\n" +
+                "Prism auxiliary-light shadows are enabled, but the required URP settings are incomplete.\n" +
+                details + "\n" +
+                "Review and fix Optional Prism Shadow Settings in Art-Net > VLB > URP Setup.",
+                MessageType.Warning);
+
+            if (GUILayout.Button("Open VLB URP Setup"))
+                VlbUrpSetupWindow.OpenWindow(focusOptionalPrismShadows: true);
         }
 
         private static bool ShouldDrawIrisBefore(string propertyPath)
