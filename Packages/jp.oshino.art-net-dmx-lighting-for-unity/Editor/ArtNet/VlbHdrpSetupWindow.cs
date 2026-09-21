@@ -19,6 +19,7 @@ namespace ArtNet.Editor
         private const string VlbSdTypeName = "VLB.VolumetricLightBeamSD";
         private const string VlbHdTypeName = "VLB.VolumetricLightBeamHD";
         private const string VlbCookieHdTypeName = "VLB.VolumetricCookieHD";
+        private const string VlbSdDynamicOcclusionTypeName = "VLB.DynamicOcclusionRaycasting";
         private const int HdrpRenderPipelineEnumValue = 2;
         private const int VlbBeamRenderModeEnumValue = 2;
         private const string MenuPath = "Art-Net/VLB/HDRP Setup";
@@ -312,10 +313,13 @@ namespace ArtNet.Editor
 
         private static void SetVlbConfigToHdrp(ScriptableObject config)
         {
-            var property = new SerializedObject(config).FindProperty("m_RenderPipeline");
+            var serialized = new SerializedObject(config);
+            var property = serialized.FindProperty("m_RenderPipeline");
             if (property == null) return;
             property.enumValueIndex = HdrpRenderPipelineEnumValue;
-            property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            var dynamicOcclusion = serialized.FindProperty("featureEnabledDynamicOcclusion");
+            if (dynamicOcclusion != null) dynamicOcclusion.boolValue = true;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(config);
             var type = config.GetType();
             type.GetMethod("SetScriptingDefineSymbolsForCurrentRenderPipeline", BindingFlags.Instance | BindingFlags.Public)?.Invoke(config, null);
@@ -332,7 +336,14 @@ namespace ArtNet.Editor
                 error = mode == BeamMode.SD ? "VolumetricLightBeamSD could not be resolved. Check that VLB has finished compiling." : "VolumetricLightBeamHD could not be resolved. Check that VLB has finished compiling.";
                 return false;
             }
-            if (mode == BeamMode.SD) { error = null; return true; }
+            if (mode == BeamMode.SD)
+            {
+                var occlusion = FindType(VlbSdDynamicOcclusionTypeName);
+                error = occlusion == null || !typeof(Component).IsAssignableFrom(occlusion)
+                    ? "DynamicOcclusionRaycastingを解決できません。SDセットアップにはVLBのDynamic Occlusion APIが必要です。\n\nDynamicOcclusionRaycasting could not be resolved. SD setup requires the VLB dynamic occlusion API."
+                    : null;
+                return error == null;
+            }
             var cookie = FindType(VlbCookieHdTypeName);
             error = cookie == null || !typeof(Component).IsAssignableFrom(cookie) ? "VolumetricCookieHD could not be resolved. HD setup requires the VLB Cookie HD API." : null;
             return error == null;
@@ -341,9 +352,40 @@ namespace ArtNet.Editor
         private static bool ApplyBeamMode(GameObject gameObject, BeamMode mode)
         {
             var sd = FindType(VlbSdTypeName); var hd = FindType(VlbHdTypeName); var cookie = FindType(VlbCookieHdTypeName);
-            return mode == BeamMode.SD
-                ? RemoveComponentIfPresent(gameObject, hd) | RemoveComponentIfPresent(gameObject, cookie) | AddComponentIfMissing(gameObject, sd)
-                : RemoveComponentIfPresent(gameObject, sd) | AddComponentIfMissing(gameObject, hd) | AddComponentIfMissing(gameObject, cookie);
+            var sdOcclusion = FindType(VlbSdDynamicOcclusionTypeName);
+            if (mode == BeamMode.SD)
+            {
+                var changed = RemoveComponentIfPresent(gameObject, hd) | RemoveComponentIfPresent(gameObject, cookie) |
+                              AddComponentIfMissing(gameObject, sd) | AddComponentIfMissing(gameObject, sdOcclusion);
+                return ApplySdOcclusionPreset(gameObject, sdOcclusion) | changed;
+            }
+
+            return RemoveComponentIfPresent(gameObject, sdOcclusion) | RemoveComponentIfPresent(gameObject, sd) |
+                   AddComponentIfMissing(gameObject, hd) | AddComponentIfMissing(gameObject, cookie);
+        }
+
+        private static bool ApplySdOcclusionPreset(GameObject gameObject, Type occlusionType)
+        {
+            var component = occlusionType == null ? null : gameObject.GetComponent(occlusionType);
+            if (component == null) return false;
+
+            var serialized = new SerializedObject(component);
+            var changed = SetSerializedInt(serialized, "updateRate", 12);
+            changed |= SetSerializedInt(serialized, "waitXFrames", 3);
+            changed |= SetSerializedInt(serialized, "layerMask", 1);
+            if (!changed) return false;
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(component);
+            return true;
+        }
+
+        private static bool SetSerializedInt(SerializedObject serialized, string propertyName, int value)
+        {
+            var property = serialized.FindProperty(propertyName);
+            if (property == null || property.intValue == value) return false;
+            property.intValue = value;
+            return true;
         }
 
         private static bool ApplyHdrpVlbDefaults(DmxFixtureComponent fixture)
@@ -502,8 +544,10 @@ namespace ArtNet.Editor
         private static bool IsBeamModeConfigured(GameObject gameObject, BeamMode mode)
         {
             var sd = FindType(VlbSdTypeName); var hd = FindType(VlbHdTypeName); var cookie = FindType(VlbCookieHdTypeName);
+            var sdOcclusion = FindType(VlbSdDynamicOcclusionTypeName);
             var hasSd = sd != null && gameObject.GetComponent(sd) != null; var hasHd = hd != null && gameObject.GetComponent(hd) != null; var hasCookie = cookie != null && gameObject.GetComponent(cookie) != null;
-            return mode == BeamMode.SD ? hasSd && !hasHd && !hasCookie : hasHd && !hasSd && hasCookie;
+            var hasSdOcclusion = sdOcclusion != null && gameObject.GetComponent(sdOcclusion) != null;
+            return mode == BeamMode.SD ? hasSd && hasSdOcclusion && !hasHd && !hasCookie : hasHd && !hasSd && hasCookie;
         }
         private static bool HasAnyBeamComponent(GameObject gameObject)
         {

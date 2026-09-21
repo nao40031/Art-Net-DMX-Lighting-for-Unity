@@ -9,7 +9,7 @@
 - Add the Generic Prefab Replacer editor tool for configurable scene-object replacement.
 - Add the MagicQ calibration CSV exporter with bilingual Japanese and English guidance.
 - Add configurable HDRP and URP gobo-lens rendering, material setup, validation, zoom, rotation, shake, hotspot, aperture, and prism controls.
-- Finalize the bundled URP light assets and preconfigured VLB SD / HD prefabs for MAC Ultra and L3Spot fixtures.
+- Finalize the bundled URP light assets and preconfigured VLB SD / HD prefabs for MAC Ultra and E3 Spot fixtures.
 - Tune the HDRP MAC Ultra prism pseudo-beam defaults.
 - Remove the obsolete duplicate HDRP gobo-lens shader implementation.
 

@@ -305,7 +305,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: c16797c950334e3e9e462d0029e71206, type: 2}
     - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: m_Name
-      value: MovingLight_withGobo(L3Spot)_URP
+      value: MovingLight_withGobo(E3 Spot)_URP
       objectReference: {fileID: 0}
     - target: {fileID: 3138592158095932230, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -478,7 +478,7 @@ MonoBehaviour:
   auxiliarySpreadMultiplierDeg: 10
   auxiliaryIntensityScale: 1
   auxiliaryVolumetricIntensityScale: 1
-  prismBrightnessDistribution: 1
+  prismBrightnessDistribution: 0
   prismZoomCorrection: 0
   prismGoboSpacingScale: 1
   prismGoboScaleVlb: 1

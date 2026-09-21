@@ -598,7 +598,7 @@ MonoBehaviour:
   auxiliarySpreadMultiplierDeg: 10
   auxiliaryIntensityScale: 1
   auxiliaryVolumetricIntensityScale: 1
-  prismBrightnessDistribution: 1
+  prismBrightnessDistribution: 0
   prismGoboSpacingMode: 0
   manualPrismGoboSpacingScale: 1
   prismGoboScaleVlb: 1

@@ -52,8 +52,8 @@ VLB版Prefabはパッケージ本体に同梱されています。以下のPrefa
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/HDRP/VLB/MovingLight_withGobo(MAC Ultra)_VLB_HDRP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(MAC Ultra)_VLB(SD)_URP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(MAC Ultra)_VLB(HD)_URP.prefab
-Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(L3Spot)_VLB(SD)_URP.prefab
-Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(L3Spot)_VLB(HD)_URP.prefab
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(E3 Spot)_VLB(SD)_URP.prefab
+Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/yamakara Light_やまかライト/Prefab/URP/VLB/MovingLight_withGobo(E3 Spot)_VLB(HD)_URP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/ParLight/Prefab with Lights/HDRP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_HDRP.prefab
 Packages/Art-Net DMX Lighting for Unity/Runtime/LightAsset/ParLight/Prefab with Lights/URP/VLB/ParLight_ver12_WithLigh&Dmx_VLB_URP.prefab
 ```

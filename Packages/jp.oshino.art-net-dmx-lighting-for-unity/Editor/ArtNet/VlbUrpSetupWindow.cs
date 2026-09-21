@@ -22,6 +22,7 @@ namespace ArtNet.Editor
         private const string VlbSdTypeName = "VLB.VolumetricLightBeamSD";
         private const string VlbHdTypeName = "VLB.VolumetricLightBeamHD";
         private const string VlbCookieHdTypeName = "VLB.VolumetricCookieHD";
+        private const string VlbSdDynamicOcclusionTypeName = "VLB.DynamicOcclusionRaycasting";
         private const int UrpRenderPipelineEnumValue = 1;
         private const int VlbBeamRenderModeEnumValue = 2;
         private const int DepthPrimingDisabledEnumValue = 0;
@@ -673,6 +674,9 @@ namespace ArtNet.Editor
                 return;
 
             property.enumValueIndex = UrpRenderPipelineEnumValue;
+            var dynamicOcclusion = serialized.FindProperty("featureEnabledDynamicOcclusion");
+            if (dynamicOcclusion != null)
+                dynamicOcclusion.boolValue = true;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(config);
 
@@ -713,7 +717,14 @@ namespace ArtNet.Editor
             }
 
             if (mode != BeamMode.HD)
-                return true;
+            {
+                var occlusionType = FindType(VlbSdDynamicOcclusionTypeName);
+                if (occlusionType != null && typeof(Component).IsAssignableFrom(occlusionType))
+                    return true;
+
+                error = "DynamicOcclusionRaycastingを解決できません。SDセットアップにはVLBのDynamic Occlusion APIが必要です。\n\nDynamicOcclusionRaycasting could not be resolved. SD setup requires the VLB dynamic occlusion API.";
+                return false;
+            }
 
             var cookieType = FindType(VlbCookieHdTypeName);
             if (cookieType != null && typeof(Component).IsAssignableFrom(cookieType))
@@ -728,6 +739,7 @@ namespace ArtNet.Editor
             var sdType = FindType(VlbSdTypeName);
             var hdType = FindType(VlbHdTypeName);
             var cookieType = FindType(VlbCookieHdTypeName);
+            var sdOcclusionType = FindType(VlbSdDynamicOcclusionTypeName);
             var changed = false;
 
             if (mode == BeamMode.SD)
@@ -735,15 +747,46 @@ namespace ArtNet.Editor
                 changed |= RemoveComponentIfPresent(gameObject, hdType);
                 changed |= RemoveComponentIfPresent(gameObject, cookieType);
                 changed |= AddComponentIfMissing(gameObject, sdType);
+                changed |= AddComponentIfMissing(gameObject, sdOcclusionType);
+                changed |= ApplySdOcclusionPreset(gameObject, sdOcclusionType);
             }
             else
             {
+                changed |= RemoveComponentIfPresent(gameObject, sdOcclusionType);
                 changed |= RemoveComponentIfPresent(gameObject, sdType);
                 changed |= AddComponentIfMissing(gameObject, hdType);
                 changed |= AddComponentIfMissing(gameObject, cookieType);
             }
 
             return changed;
+        }
+
+        private static bool ApplySdOcclusionPreset(GameObject gameObject, Type occlusionType)
+        {
+            var component = occlusionType == null ? null : gameObject.GetComponent(occlusionType);
+            if (component == null)
+                return false;
+
+            var serialized = new SerializedObject(component);
+            var changed = SetSerializedInt(serialized, "updateRate", 12);
+            changed |= SetSerializedInt(serialized, "waitXFrames", 3);
+            changed |= SetSerializedInt(serialized, "layerMask", 1);
+            if (!changed)
+                return false;
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(component);
+            return true;
+        }
+
+        private static bool SetSerializedInt(SerializedObject serialized, string propertyName, int value)
+        {
+            var property = serialized.FindProperty(propertyName);
+            if (property == null || property.intValue == value)
+                return false;
+
+            property.intValue = value;
+            return true;
         }
 
         private static bool ApplyUrpVlbOverrides(DmxFixtureComponent fixture)
@@ -1000,10 +1043,12 @@ namespace ArtNet.Editor
             var sdType = FindType(VlbSdTypeName);
             var hdType = FindType(VlbHdTypeName);
             var cookieType = FindType(VlbCookieHdTypeName);
+            var sdOcclusionType = FindType(VlbSdDynamicOcclusionTypeName);
             var hasSd = sdType != null && gameObject.GetComponent(sdType) != null;
             var hasHd = hdType != null && gameObject.GetComponent(hdType) != null;
             var hasCookie = cookieType != null && gameObject.GetComponent(cookieType) != null;
-            return mode == BeamMode.SD ? hasSd && !hasHd && !hasCookie : hasHd && !hasSd && hasCookie;
+            var hasSdOcclusion = sdOcclusionType != null && gameObject.GetComponent(sdOcclusionType) != null;
+            return mode == BeamMode.SD ? hasSd && hasSdOcclusion && !hasHd && !hasCookie : hasHd && !hasSd && hasCookie;
         }
 
         private static bool HasAnyBeamComponent(GameObject gameObject)

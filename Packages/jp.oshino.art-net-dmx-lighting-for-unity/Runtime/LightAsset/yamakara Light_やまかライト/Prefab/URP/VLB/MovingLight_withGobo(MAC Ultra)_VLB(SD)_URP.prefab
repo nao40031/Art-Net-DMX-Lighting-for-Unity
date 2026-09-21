@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 2415676272866749}
   - component: {fileID: 5435452863099544097}
   - component: {fileID: 995114904721219125}
-  - component: {fileID: 6055491826154978673}
+ - component: {fileID: 6055491826154978673}
+  - component: {fileID: 8123456789012345603}
   m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
@@ -595,7 +596,7 @@ MonoBehaviour:
   auxiliarySpreadMultiplierDeg: 10
   auxiliaryIntensityScale: 1
   auxiliaryVolumetricIntensityScale: 1
-  prismBrightnessDistribution: 1
+  prismBrightnessDistribution: 0
   prismGoboSpacingMode: 0
   manualPrismGoboSpacingScale: 1
   prismGoboScaleVlb: 1
@@ -1567,3 +1568,28 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
   m_PrefabInstance: {fileID: 3488826918228270366}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8123456789012345603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 558dd6d156642974780bc97cd2ab1bd2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  updateRate: 12
+  waitXFrames: 3
+  dimensions: 0
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  considerTriggers: 0
+  minOccluderArea: 0
+  minSurfaceRatio: 0.5
+  maxSurfaceDot: 0.25
+  planeAlignment: 0
+  planeOffset: 0.1
+  fadeDistanceToSurface: 0.25

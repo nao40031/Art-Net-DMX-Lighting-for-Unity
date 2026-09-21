@@ -564,7 +564,7 @@ namespace ArtNet.Runtime
         [SerializeField, Range(0f, 30f)] private float auxiliaryVolumetricIntensityScale = 1f;
 
         [Tooltip("プリズム時の明るさ分散量。0で分散なし、1でFacet数に応じて完全分散します。\nAmount of brightness distribution while using a prism. 0 applies no distribution; 1 distributes fully according to the Facet count.")]
-        [SerializeField, Range(0f, 1f)] private float prismBrightnessDistribution = 1f;
+        [SerializeField, Range(0f, 1f)] private float prismBrightnessDistribution = 0f;
 
         private enum PrismGoboSpacingMode
         {
@@ -965,6 +965,8 @@ namespace ArtNet.Runtime
         private bool _hasTiltTarget;
         private Quaternion _panTargetLocalRot;
         private Quaternion _tiltTargetLocalRot;
+        private float _tiltCurrentDeg;
+        private float _tiltTargetDeg;
         private float _panTargetMaxDegPerSec = -1f;
         private float _tiltTargetMaxDegPerSec = -1f;
         private float _panTargetSmoothing = 0.15f;
@@ -1705,7 +1707,13 @@ namespace ArtNet.Runtime
             if (!force && _movementBaseCaptured) return;
 
             if (panTransform != null) _panBaseLocalRot = panTransform.localRotation;
-            if (tiltTransform != null) _tiltBaseLocalRot = tiltTransform.localRotation;
+            if (tiltTransform != null)
+            {
+                _tiltBaseLocalRot = tiltTransform.localRotation;
+                _tiltCurrentDeg = 0f;
+                _tiltTargetDeg = 0f;
+                _tiltTargetLocalRot = _tiltBaseLocalRot;
+            }
 
             _movementBaseCaptured = true;
         }
@@ -2736,6 +2744,9 @@ namespace ArtNet.Runtime
             CaptureMovementBaseIfNeeded(force: false);
             if (panTransform != null) panTransform.localRotation = _panBaseLocalRot;
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
+            _tiltCurrentDeg = 0f;
+            _tiltTargetDeg = 0f;
+            _tiltTargetLocalRot = _tiltBaseLocalRot;
             _hasPanTarget = false;
             _hasTiltTarget = false;
         }
@@ -2820,6 +2831,10 @@ namespace ArtNet.Runtime
             _iris.Reset();
             if (panTransform != null) panTransform.localRotation = _panBaseLocalRot;
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
+            _tiltCurrentDeg = 0f;
+            _tiltTargetDeg = 0f;
+            _tiltTargetLocalRot = _tiltBaseLocalRot;
+            _hasTiltTarget = false;
 
             _hasDmxTargets = true;
             _targetDimmer01 = 0f;
@@ -5241,7 +5256,9 @@ namespace ArtNet.Runtime
 
         private void SetTiltTarget(float tiltDeg, float maxDegPerSec, float smoothing01)
         {
-            _tiltTargetLocalRot = _tiltBaseLocalRot * Quaternion.AngleAxis(tiltDeg, AxisToVector(tiltAxis));
+            float halfRange = Mathf.Max(0f, tiltRangeDeg) * 0.5f;
+            _tiltTargetDeg = Mathf.Clamp(tiltDeg, tiltOffsetDeg - halfRange, tiltOffsetDeg + halfRange);
+            _tiltTargetLocalRot = _tiltBaseLocalRot * Quaternion.AngleAxis(_tiltTargetDeg, AxisToVector(tiltAxis));
             _hasTiltTarget = true;
             _tiltTargetMaxDegPerSec = maxDegPerSec;
             _tiltTargetSmoothing = smoothing01;
@@ -5259,8 +5276,36 @@ namespace ArtNet.Runtime
 
             if (tiltTransform != null && _hasTiltTarget)
             {
-                ApplyRotationToTarget(tiltTransform, _tiltTargetLocalRot, _tiltTargetMaxDegPerSec, _tiltTargetSmoothing);
+                ApplyTiltToTarget();
             }
+        }
+
+        private void ApplyTiltToTarget()
+        {
+            if (tiltTransform == null) return;
+
+            if (_tiltTargetMaxDegPerSec > 0f)
+            {
+                float dt = Mathf.Max(0.0001f, Time.deltaTime);
+                _tiltCurrentDeg = Mathf.MoveTowards(_tiltCurrentDeg, _tiltTargetDeg, _tiltTargetMaxDegPerSec * dt);
+            }
+            else if (_tiltTargetSmoothing <= 0f)
+            {
+                _tiltCurrentDeg = _tiltTargetDeg;
+            }
+            else
+            {
+                float dt = Mathf.Max(0.0001f, Time.deltaTime);
+                float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(_tiltTargetSmoothing), dt * 60f);
+                _tiltCurrentDeg = Mathf.Lerp(_tiltCurrentDeg, _tiltTargetDeg, k);
+                if (Mathf.Abs(_tiltTargetDeg - _tiltCurrentDeg) < 0.0001f)
+                    _tiltCurrentDeg = _tiltTargetDeg;
+            }
+
+            // Keep Tilt inside its signed mechanical interval. Quaternion interpolation
+            // would choose the shorter route through the fixture underside between
+            // +135 and -135 degrees on a 270-degree fixture.
+            tiltTransform.localRotation = _tiltBaseLocalRot * Quaternion.AngleAxis(_tiltCurrentDeg, AxisToVector(tiltAxis));
         }
 
         private static void ApplyRotationToTarget(Transform t, Quaternion targetLocalRot, float maxDegPerSec, float smoothing01)
