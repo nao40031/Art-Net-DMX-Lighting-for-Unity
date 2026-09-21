@@ -748,6 +748,7 @@ namespace ArtNet.Editor
                 changed |= RemoveComponentIfPresent(gameObject, cookieType);
                 changed |= AddComponentIfMissing(gameObject, sdType);
                 changed |= AddComponentIfMissing(gameObject, sdOcclusionType);
+                changed |= ApplySdBeamPreset(gameObject, sdType);
                 changed |= ApplySdOcclusionPreset(gameObject, sdOcclusionType);
             }
             else
@@ -761,6 +762,22 @@ namespace ArtNet.Editor
             return changed;
         }
 
+        private static bool ApplySdBeamPreset(GameObject gameObject, Type sdType)
+        {
+            var component = sdType == null ? null : gameObject.GetComponent(sdType);
+            if (component == null)
+                return false;
+
+            var serialized = new SerializedObject(component);
+            var changed = SetSerializedInt(serialized, "geomMeshType", 1);
+            if (!changed)
+                return false;
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(component);
+            return true;
+        }
+
         private static bool ApplySdOcclusionPreset(GameObject gameObject, Type occlusionType)
         {
             var component = occlusionType == null ? null : gameObject.GetComponent(occlusionType);
@@ -771,11 +788,23 @@ namespace ArtNet.Editor
             var changed = SetSerializedInt(serialized, "updateRate", 12);
             changed |= SetSerializedInt(serialized, "waitXFrames", 3);
             changed |= SetSerializedInt(serialized, "layerMask", 1);
+            changed |= SetSerializedFloat(serialized, "planeOffset", 0.01f);
+            changed |= SetSerializedFloat(serialized, "fadeDistanceToSurface", 0f);
             if (!changed)
                 return false;
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(component);
+            return true;
+        }
+
+        private static bool SetSerializedFloat(SerializedObject serialized, string propertyName, float value)
+        {
+            var property = serialized.FindProperty(propertyName);
+            if (property == null || Mathf.Approximately(property.floatValue, value))
+                return false;
+
+            property.floatValue = value;
             return true;
         }
 
@@ -1048,7 +1077,16 @@ namespace ArtNet.Editor
             var hasHd = hdType != null && gameObject.GetComponent(hdType) != null;
             var hasCookie = cookieType != null && gameObject.GetComponent(cookieType) != null;
             var hasSdOcclusion = sdOcclusionType != null && gameObject.GetComponent(sdOcclusionType) != null;
-            return mode == BeamMode.SD ? hasSd && hasSdOcclusion && !hasHd && !hasCookie : hasHd && !hasSd && hasCookie;
+            return mode == BeamMode.SD ? hasSd && hasSdOcclusion && !hasHd && !hasCookie && IsSdPresetConfigured(gameObject, sdType, sdOcclusionType) : hasHd && !hasSd && hasCookie;
+        }
+
+        private static bool IsSdPresetConfigured(GameObject gameObject, Type sdType, Type occlusionType)
+        {
+            var sd = new SerializedObject(gameObject.GetComponent(sdType));
+            var occlusion = new SerializedObject(gameObject.GetComponent(occlusionType));
+            return sd.FindProperty("geomMeshType")?.intValue == 1 &&
+                   Mathf.Approximately(occlusion.FindProperty("planeOffset")?.floatValue ?? float.NaN, 0.01f) &&
+                   Mathf.Approximately(occlusion.FindProperty("fadeDistanceToSurface")?.floatValue ?? float.NaN, 0f);
         }
 
         private static bool HasAnyBeamComponent(GameObject gameObject)

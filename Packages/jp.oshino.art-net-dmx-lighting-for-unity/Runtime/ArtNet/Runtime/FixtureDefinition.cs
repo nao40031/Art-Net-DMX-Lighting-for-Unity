@@ -129,7 +129,10 @@ namespace ArtNet.Runtime
         LampOff = 16,
         Sync = 17,
         IrisHold = 18,
-        IrisPulseReverse = 19
+        IrisPulseReverse = 19,
+        PanTiltSpeedStandard = 20,
+        PanTiltSpeedFast = 21,
+        PanTiltSpeedSmooth = 22
     }
 
     public enum NormalizedMappingContext
@@ -163,6 +166,11 @@ namespace ArtNet.Runtime
         public int dmxMax = 255;
 
         public FixtureRangeType type = FixtureRangeType.None;
+
+        [Range(0f, 10f)]
+        [Tooltip("この範囲を有効にするためDMX値を保持する秒数です。0なら即時反映します。\n\nSeconds the DMX value must remain in this range before activation. Zero applies immediately.")]
+        public float activationHoldSeconds = 0f;
+
         public NormalizedMappingContext mappingContext = NormalizedMappingContext.Generic;
         public NormalizedMappingPreset mappingPreset = NormalizedMappingPreset.Normal;
         public float normalizedFrom = 0f;

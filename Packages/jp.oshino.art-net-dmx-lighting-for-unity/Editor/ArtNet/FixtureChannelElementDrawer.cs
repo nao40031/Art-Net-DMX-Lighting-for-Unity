@@ -134,6 +134,8 @@ namespace ArtNet.Editor
             SerializedProperty typeProperty = range.FindPropertyRelative("type");
             DrawProperty(ref line, typeProperty);
             ApplyNotUsedPresetIfNeeded(range, typeProperty);
+            if (IsPanTiltSpeedPreset(typeProperty))
+                DrawProperty(ref line, range.FindPropertyRelative("activationHoldSeconds"));
             DrawProperty(ref line, range.FindPropertyRelative("mappingContext"));
             DrawMappingPreset(ref line, range);
             EditorGUI.indentLevel--;
@@ -212,6 +214,8 @@ namespace ArtNet.Editor
                 return height;
 
             int lines = 9;
+            if (IsPanTiltSpeedPreset(range.FindPropertyRelative("type")))
+                lines += 1;
             var preset = (NormalizedMappingPreset)Mathf.Clamp(range.FindPropertyRelative("mappingPreset").enumValueIndex, 0, (int)NormalizedMappingPreset.NotUsed);
             if (preset == NormalizedMappingPreset.Custom)
                 lines += 1;
@@ -228,11 +232,20 @@ namespace ArtNet.Editor
             range.FindPropertyRelative("dmxMin").intValue = 0;
             range.FindPropertyRelative("dmxMax").intValue = 255;
             range.FindPropertyRelative("type").enumValueIndex = (int)FixtureRangeType.None;
+            range.FindPropertyRelative("activationHoldSeconds").floatValue = 0f;
             range.FindPropertyRelative("mappingContext").enumValueIndex = (int)context;
             range.FindPropertyRelative("mappingPreset").enumValueIndex = (int)NormalizedMappingPreset.Normal;
             range.FindPropertyRelative("normalizedFrom").floatValue = 0f;
             range.FindPropertyRelative("normalizedTo").floatValue = 1f;
             range.isExpanded = true;
+        }
+
+        private static bool IsPanTiltSpeedPreset(SerializedProperty typeProperty)
+        {
+            var type = (FixtureRangeType)typeProperty.enumValueIndex;
+            return type == FixtureRangeType.PanTiltSpeedStandard ||
+                   type == FixtureRangeType.PanTiltSpeedFast ||
+                   type == FixtureRangeType.PanTiltSpeedSmooth;
         }
 
         private static void DrawRangeScaleHint(ref Rect line, SerializedProperty element)

@@ -322,11 +322,38 @@ MonoBehaviour:
       role: 2
       byteRole: 2
       ranges: []
-    - attribute: 0
+    - attribute: 23
       instance: 1
-      role: 0
+      role: 7
       byteRole: 0
-      ranges: []
+      ranges:
+      - name: Pan/Tilt Speed Standard
+        dmxMin: 27
+        dmxMax: 27
+        type: 20
+        activationHoldSeconds: 1
+        mappingContext: 0
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Pan/Tilt Speed Fast
+        dmxMin: 28
+        dmxMax: 28
+        type: 21
+        activationHoldSeconds: 1
+        mappingContext: 0
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Pan/Tilt Speed Smooth
+        dmxMin: 29
+        dmxMax: 29
+        type: 22
+        activationHoldSeconds: 1
+        mappingContext: 0
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
     - attribute: 0
       instance: 1
       role: 0

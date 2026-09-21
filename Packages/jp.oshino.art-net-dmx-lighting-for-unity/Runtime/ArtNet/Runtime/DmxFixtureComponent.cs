@@ -972,6 +972,18 @@ namespace ArtNet.Runtime
         private float _panTargetSmoothing = 0.15f;
         private float _tiltTargetSmoothing = 0.15f;
 
+        private enum PanTiltSpeedPreset
+        {
+            Standard,
+            Fast,
+            Smooth
+        }
+
+        private PanTiltSpeedPreset _panTiltSpeedPreset = PanTiltSpeedPreset.Standard;
+        private FixtureRangeType _pendingPanTiltSpeedRangeType = FixtureRangeType.None;
+        private float _pendingPanTiltSpeedStartedAt;
+        private bool _hasPanTiltSpeedPresetRanges;
+
         private readonly Dictionary<FixtureFunction, int> _relativeMap = new();
         private readonly Dictionary<ElementKey, ElementBinding> _elementMap = new();
         private readonly Dictionary<WheelKey, GoboWheelDefinition> _goboWheelMap = new();
@@ -1161,6 +1173,7 @@ namespace ArtNet.Runtime
             MigrateLegacyBeamRenderMode();
             MigrateLegacyBeamSyncSettings();
             MigrateLegacyPrismGoboSpacingMode();
+            ResetPanTiltSpeedPresetState();
             ResolveAll(Application.isPlaying);
 
             if (Application.isPlaying)
@@ -1329,11 +1342,13 @@ namespace ArtNet.Runtime
         public void ResolveMapping()
         {
             ReleaseIris();
+            ResetPanTiltSpeedPresetState();
             _relativeMap.Clear();
             _elementMap.Clear();
             _goboWheelMap.Clear();
             _resolvedItems.Clear();
             _usesElementMode = false;
+            _hasPanTiltSpeedPresetRanges = false;
 
             if (fixture == null)
             {
@@ -1360,6 +1375,7 @@ namespace ArtNet.Runtime
                 BuildElementMapping(md);
                 if (_elementMap.Count > 0)
                 {
+                    _hasPanTiltSpeedPresetRanges = HasPanTiltSpeedPresetRanges();
                     _usesElementMode = true;
                     return;
                 }
@@ -1973,6 +1989,8 @@ namespace ArtNet.Runtime
                 return;
             }
 
+            UpdatePanTiltSpeedPreset(universe512);
+
             float dim01 = TryReadElement01(universe512, FixtureAttribute.Dimmer, 1, FixtureChannelRole.Value, out float dim)
                 ? dim
                 : 1f;
@@ -1983,9 +2001,7 @@ namespace ArtNet.Runtime
             Color rgb = ReadElementColor(universe512);
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
-            float panTiltMaxDegPerSec = hasPanTiltSpeed
-                ? Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, panTiltSpeed01)
-                : -1f;
+            float panTiltMaxDegPerSec = ResolvePanTiltMaxDegPerSec(hasPanTiltSpeed, panTiltSpeed01);
 
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
@@ -2040,6 +2056,8 @@ namespace ArtNet.Runtime
                 return;
             }
 
+            UpdatePanTiltSpeedPreset(universe512);
+
             float dim01 = TryReadElement01(universe512, FixtureAttribute.Dimmer, 1, FixtureChannelRole.Value, out float dim)
                 ? dim
                 : 1f;
@@ -2050,9 +2068,7 @@ namespace ArtNet.Runtime
             Color rgb = ReadElementColor(universe512);
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
-            float panTiltMaxDegPerSec = hasPanTiltSpeed
-                ? Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, panTiltSpeed01)
-                : -1f;
+            float panTiltMaxDegPerSec = ResolvePanTiltMaxDegPerSec(hasPanTiltSpeed, panTiltSpeed01);
 
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
@@ -2555,6 +2571,191 @@ namespace ArtNet.Runtime
             return false;
         }
 
+        private bool HasPanTiltSpeedPresetRanges()
+        {
+            return ElementHasPanTiltSpeedPresetRanges(GetElement(FixtureAttribute.Control, 1, FixtureChannelRole.Control)) ||
+                   ElementHasPanTiltSpeedPresetRanges(GetElement(FixtureAttribute.Control, 1, FixtureChannelRole.Value));
+        }
+
+        private FixtureChannelElement GetElement(FixtureAttribute attribute, int instance, FixtureChannelRole role)
+        {
+            return _elementMap.TryGetValue(new ElementKey(attribute, instance, role), out var binding)
+                ? binding.PrimaryElement
+                : null;
+        }
+
+        private static bool ElementHasPanTiltSpeedPresetRanges(FixtureChannelElement element)
+        {
+            if (element?.ranges == null)
+                return false;
+
+            for (int i = 0; i < element.ranges.Count; i++)
+            {
+                var range = element.ranges[i];
+                if (range != null && TryConvertPanTiltSpeedPreset(range.type, out _))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void UpdatePanTiltSpeedPreset(int[] universe512)
+        {
+            if (TryReadPanTiltSpeedPresetRange(universe512, out var range))
+                UpdatePanTiltSpeedPreset(range);
+            else
+                ClearPendingPanTiltSpeedPreset();
+        }
+
+        private void UpdatePanTiltSpeedPreset(byte[] universe512)
+        {
+            if (TryReadPanTiltSpeedPresetRange(universe512, out var range))
+                UpdatePanTiltSpeedPreset(range);
+            else
+                ClearPendingPanTiltSpeedPreset();
+        }
+
+        private bool TryReadPanTiltSpeedPresetRange(int[] universe512, out FixtureChannelRange range)
+        {
+            return TryReadPanTiltSpeedPresetRange(universe512, FixtureChannelRole.Control, out range) ||
+                   TryReadPanTiltSpeedPresetRange(universe512, FixtureChannelRole.Value, out range);
+        }
+
+        private bool TryReadPanTiltSpeedPresetRange(byte[] universe512, out FixtureChannelRange range)
+        {
+            return TryReadPanTiltSpeedPresetRange(universe512, FixtureChannelRole.Control, out range) ||
+                   TryReadPanTiltSpeedPresetRange(universe512, FixtureChannelRole.Value, out range);
+        }
+
+        private bool TryReadPanTiltSpeedPresetRange(int[] universe512, FixtureChannelRole role, out FixtureChannelRange range)
+        {
+            range = null;
+            if (!TryReadElementRaw8(universe512, FixtureAttribute.Control, 1, role, out int rawValue))
+                return false;
+
+            range = FindPanTiltSpeedPresetRange(GetElement(FixtureAttribute.Control, 1, role), rawValue);
+            return range != null;
+        }
+
+        private bool TryReadPanTiltSpeedPresetRange(byte[] universe512, FixtureChannelRole role, out FixtureChannelRange range)
+        {
+            range = null;
+            if (!TryReadElementRaw8(universe512, FixtureAttribute.Control, 1, role, out int rawValue))
+                return false;
+
+            range = FindPanTiltSpeedPresetRange(GetElement(FixtureAttribute.Control, 1, role), rawValue);
+            return range != null;
+        }
+
+        private static FixtureChannelRange FindPanTiltSpeedPresetRange(FixtureChannelElement element, int rawValue)
+        {
+            if (element?.ranges == null)
+                return null;
+
+            FixtureChannelRange bestRange = null;
+            int bestWidth = int.MaxValue;
+            for (int i = 0; i < element.ranges.Count; i++)
+            {
+                var candidate = element.ranges[i];
+                if (candidate == null || !candidate.Contains(rawValue))
+                    continue;
+                if (!TryConvertPanTiltSpeedPreset(candidate.type, out _))
+                    continue;
+
+                int width = Mathf.Abs(candidate.dmxMax - candidate.dmxMin);
+                if (bestRange == null || width < bestWidth)
+                {
+                    bestRange = candidate;
+                    bestWidth = width;
+                }
+            }
+
+            return bestRange;
+        }
+
+        private void UpdatePanTiltSpeedPreset(FixtureChannelRange range)
+        {
+            if (!TryConvertPanTiltSpeedPreset(range.type, out var preset))
+            {
+                ClearPendingPanTiltSpeedPreset();
+                return;
+            }
+
+            if (_panTiltSpeedPreset == preset)
+            {
+                ClearPendingPanTiltSpeedPreset();
+                return;
+            }
+
+            float holdSeconds = Mathf.Max(0f, range.activationHoldSeconds);
+            if (!Application.isPlaying || holdSeconds <= 0f)
+            {
+                _panTiltSpeedPreset = preset;
+                ClearPendingPanTiltSpeedPreset();
+                return;
+            }
+
+            if (_pendingPanTiltSpeedRangeType != range.type)
+            {
+                _pendingPanTiltSpeedRangeType = range.type;
+                _pendingPanTiltSpeedStartedAt = Time.unscaledTime;
+                return;
+            }
+
+            if (Time.unscaledTime - _pendingPanTiltSpeedStartedAt >= holdSeconds)
+            {
+                _panTiltSpeedPreset = preset;
+                ClearPendingPanTiltSpeedPreset();
+            }
+        }
+
+        private float ResolvePanTiltMaxDegPerSec(bool hasContinuousSpeed, float continuousSpeed01)
+        {
+            if (hasContinuousSpeed)
+                return Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, continuousSpeed01);
+
+            if (!_hasPanTiltSpeedPresetRanges)
+                return -1f;
+
+            return _panTiltSpeedPreset switch
+            {
+                PanTiltSpeedPreset.Fast => panTiltSpeedMaxDegPerSec,
+                PanTiltSpeedPreset.Smooth => panTiltSpeedMinDegPerSec,
+                _ => Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, 0.5f)
+            };
+        }
+
+        private static bool TryConvertPanTiltSpeedPreset(FixtureRangeType type, out PanTiltSpeedPreset preset)
+        {
+            switch (type)
+            {
+                case FixtureRangeType.PanTiltSpeedStandard:
+                    preset = PanTiltSpeedPreset.Standard;
+                    return true;
+                case FixtureRangeType.PanTiltSpeedFast:
+                    preset = PanTiltSpeedPreset.Fast;
+                    return true;
+                case FixtureRangeType.PanTiltSpeedSmooth:
+                    preset = PanTiltSpeedPreset.Smooth;
+                    return true;
+                default:
+                    preset = default;
+                    return false;
+            }
+        }
+
+        private void ResetPanTiltSpeedPresetState()
+        {
+            _panTiltSpeedPreset = PanTiltSpeedPreset.Standard;
+            ClearPendingPanTiltSpeedPreset();
+        }
+
+        private void ClearPendingPanTiltSpeedPreset()
+        {
+            _pendingPanTiltSpeedRangeType = FixtureRangeType.None;
+            _pendingPanTiltSpeedStartedAt = 0f;
+        }
+
         private Color ReadElementColor(int[] universe512)
         {
             bool hasC = TryReadElement01(universe512, FixtureAttribute.Cyan, 1, FixtureChannelRole.Value, out float c);
@@ -2829,6 +3030,7 @@ namespace ArtNet.Runtime
         private void PerformReset()
         {
             _iris.Reset();
+            ResetPanTiltSpeedPresetState();
             if (panTransform != null) panTransform.localRotation = _panBaseLocalRot;
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
             _tiltCurrentDeg = 0f;
@@ -5295,8 +5497,7 @@ namespace ArtNet.Runtime
             }
             else
             {
-                float dt = Mathf.Max(0.0001f, Time.deltaTime);
-                float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(_tiltTargetSmoothing), dt * 60f);
+                float k = ComputePanTiltSmoothingFactor(_tiltTargetSmoothing, Time.deltaTime);
                 _tiltCurrentDeg = Mathf.Lerp(_tiltCurrentDeg, _tiltTargetDeg, k);
                 if (Mathf.Abs(_tiltTargetDeg - _tiltCurrentDeg) < 0.0001f)
                     _tiltCurrentDeg = _tiltTargetDeg;
@@ -5326,10 +5527,18 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            float dt2 = Mathf.Max(0.0001f, Time.deltaTime);
-            // smoothing01 is treated as 0..1
-            float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(smoothing01), dt2 * 60f);
+            float k = ComputePanTiltSmoothingFactor(smoothing01, Time.deltaTime);
             t.localRotation = Quaternion.Slerp(t.localRotation, targetLocalRot, k);
+        }
+
+        private static float ComputePanTiltSmoothingFactor(float smoothing, float deltaTime)
+        {
+            // Inspector values are 0..30: 0 is immediate and larger values are smoother.
+            // Treat the value as a response time instead of clamping it to 0..1, which
+            // previously made the default value (12) snap in a single frame.
+            float responseTime = Mathf.Max(0.0001f, smoothing / 30f);
+            float dt = Mathf.Max(0.0001f, deltaTime);
+            return 1f - Mathf.Exp(-dt / responseTime);
         }
 
 private static Vector3 AxisToVector(LocalAxis a) => a switch

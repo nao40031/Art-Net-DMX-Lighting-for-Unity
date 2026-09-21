@@ -39,6 +39,7 @@ namespace ArtNet.Runtime
             public Light light;
             public Component hd;
             public Component sd;
+            public Component sdDynamicOcclusion;
             public Component cookieHd;
             public bool hasCookieHdBaseline;
             public bool cookieHdEnabled;
@@ -55,6 +56,10 @@ namespace ArtNet.Runtime
             public float irisSdOriginalRadius;
             public bool hasSdSkewBaseline;
             public Vector3 sdSkewBaseline;
+            public bool hasSdOcclusionState;
+            public Vector3 sdOcclusionDirection;
+            public float sdOcclusionSpotAngle;
+            public int sdOcclusionNextAllowedFrame;
         }
 
         public static bool IsVlbAvailable => VlbReflection.IsAvailable;
@@ -292,6 +297,8 @@ namespace ArtNet.Runtime
                 entry.hd = GetHd(entry.light.gameObject);
             if (entry.sd == null)
                 entry.sd = VlbReflection.GetComponent(entry.light.gameObject, VlbReflection.SdType);
+            if (entry.sdDynamicOcclusion == null)
+                entry.sdDynamicOcclusion = VlbReflection.GetComponent(entry.light.gameObject, VlbReflection.DynamicOcclusionType);
             if (entry.cookieHd == null)
                 entry.cookieHd = GetCookieHd(entry.light.gameObject);
 
@@ -428,6 +435,39 @@ namespace ArtNet.Runtime
             else if (entry.irisSdApplied)
                 RestoreSdIris(entry);
             VlbReflection.Invoke(entry.sd, "UpdateAfterManualPropertyChange");
+            RefreshSdDynamicOcclusion(entry);
+        }
+
+        private static void RefreshSdDynamicOcclusion(Entry entry)
+        {
+            if (entry.sd == null || entry.sdDynamicOcclusion == null)
+                return;
+
+            // Match the cadence configured on the VLB occluder. This keeps shake
+            // responsive without turning the raycast into an every-frame cost.
+            if (Application.isPlaying && Time.frameCount < entry.sdOcclusionNextAllowedFrame)
+                return;
+
+            Vector3 direction = VlbReflection.GetVector3(entry.sd, "skewingLocalForwardDirection", Vector3.forward);
+            float spotAngle = VlbReflection.GetFloat(entry.sd, "spotAngle", entry.light != null ? entry.light.spotAngle : 0f);
+            bool changed = !entry.hasSdOcclusionState ||
+                           (direction - entry.sdOcclusionDirection).sqrMagnitude > 0.000001f ||
+                           Mathf.Abs(spotAngle - entry.sdOcclusionSpotAngle) > 0.0001f;
+            if (!changed)
+                return;
+
+            // VLB forbids processing an occluder twice in one rendered frame. If its
+            // regular update already ran, retain the old cache so this is retried next frame.
+            int lastProcessedFrame = VlbReflection.GetInt(entry.sdDynamicOcclusion, "_INTERNAL_LastFrameRendered", int.MinValue);
+            if (Application.isPlaying && lastProcessedFrame == Time.frameCount)
+                return;
+
+            VlbReflection.Invoke(entry.sdDynamicOcclusion, "ProcessOcclusionManually");
+            entry.sdOcclusionDirection = direction;
+            entry.sdOcclusionSpotAngle = spotAngle;
+            entry.hasSdOcclusionState = true;
+            int waitFrames = Mathf.Clamp(VlbReflection.GetInt(entry.sdDynamicOcclusion, "waitXFrames", 3), 1, 60);
+            entry.sdOcclusionNextAllowedFrame = Time.frameCount + waitFrames;
         }
 
         private static void RestoreSdIris(Entry entry)
@@ -452,6 +492,7 @@ namespace ArtNet.Runtime
             public static readonly Type HdType = FindType("VLB.VolumetricLightBeamHD");
             public static readonly Type SdType = FindType("VLB.VolumetricLightBeamSD");
             public static readonly Type CookieHdType = FindType("VLB.VolumetricCookieHD");
+            public static readonly Type DynamicOcclusionType = FindType("VLB.DynamicOcclusionRaycasting");
             private static readonly Type BeamAbstractBaseType = FindType("VLB.VolumetricLightBeamAbstractBase");
             private static readonly Type BeamPropsType = FindType("VLB.BeamProps");
 
@@ -572,6 +613,15 @@ namespace ArtNet.Runtime
 
                 object value = GetValue(component, GetMember(component.GetType(), name));
                 return value is float number ? number : fallback;
+            }
+
+            public static int GetInt(Component component, string name, int fallback)
+            {
+                if (component == null)
+                    return fallback;
+
+                object value = GetValue(component, GetMember(component.GetType(), name));
+                return value is int number ? number : fallback;
             }
 
             public static object GetObject(Component component, string name)
