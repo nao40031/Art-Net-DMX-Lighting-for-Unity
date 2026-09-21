@@ -60,6 +60,9 @@ namespace ArtNet.Runtime
             public Vector3 sdOcclusionDirection;
             public float sdOcclusionSpotAngle;
             public int sdOcclusionNextAllowedFrame;
+            public int sdOcclusionReadyAfterFrame;
+            public bool sdOcclusionManualRefreshDisabled;
+            public bool sdOcclusionManualRefreshWarningLogged;
         }
 
         public static bool IsVlbAvailable => VlbReflection.IsAvailable;
@@ -298,7 +301,19 @@ namespace ArtNet.Runtime
             if (entry.sd == null)
                 entry.sd = VlbReflection.GetComponent(entry.light.gameObject, VlbReflection.SdType);
             if (entry.sdDynamicOcclusion == null)
+            {
                 entry.sdDynamicOcclusion = VlbReflection.GetComponent(entry.light.gameObject, VlbReflection.DynamicOcclusionType);
+                // DynamicOcclusionRaycasting initializes its VLB master reference in Awake.
+                // Do not call its manual API during the same initialization frame.
+                if (entry.sdDynamicOcclusion != null)
+                {
+                    entry.sdOcclusionReadyAfterFrame = Time.frameCount + 2;
+                    entry.sdOcclusionManualRefreshDisabled = false;
+                    entry.sdOcclusionManualRefreshWarningLogged = false;
+                    entry.hasSdOcclusionState = false;
+                    entry.sdOcclusionNextAllowedFrame = 0;
+                }
+            }
             if (entry.cookieHd == null)
                 entry.cookieHd = GetCookieHd(entry.light.gameObject);
 
@@ -440,7 +455,13 @@ namespace ArtNet.Runtime
 
         private static void RefreshSdDynamicOcclusion(Entry entry)
         {
-            if (entry.sd == null || entry.sdDynamicOcclusion == null)
+            if (entry.sd == null || entry.sdDynamicOcclusion == null || entry.sdOcclusionManualRefreshDisabled)
+                return;
+
+            if (entry.sdDynamicOcclusion is Behaviour occlusionBehaviour && !occlusionBehaviour.isActiveAndEnabled)
+                return;
+
+            if (Application.isPlaying && Time.frameCount < entry.sdOcclusionReadyAfterFrame)
                 return;
 
             // Match the cadence configured on the VLB occluder. This keeps shake
@@ -462,7 +483,22 @@ namespace ArtNet.Runtime
             if (Application.isPlaying && lastProcessedFrame == Time.frameCount)
                 return;
 
-            VlbReflection.Invoke(entry.sdDynamicOcclusion, "ProcessOcclusionManually");
+            if (!VlbReflection.TryInvoke(entry.sdDynamicOcclusion, "ProcessOcclusionManually", out _))
+            {
+                // The optional VLB enhancement must never interrupt the DMX receive loop.
+                // VLB's regular update cadence remains active as a safe fallback.
+                entry.sdOcclusionManualRefreshDisabled = true;
+                if (!entry.sdOcclusionManualRefreshWarningLogged)
+                {
+                    entry.sdOcclusionManualRefreshWarningLogged = true;
+                    Debug.LogWarning(
+                        "[DMX Fixture Component] VLB Dynamic Occlusionの手動更新に失敗したため、この灯体ではVLB標準の自動更新へ切り替えました。DMX受信は継続します。\n\n" +
+                        "VLB Dynamic Occlusion manual refresh failed, so this fixture now uses VLB's regular automatic updates. DMX receiving continues.",
+                        entry.light);
+                }
+                return;
+            }
+
             entry.sdOcclusionDirection = direction;
             entry.sdOcclusionSpotAngle = spotAngle;
             entry.hasSdOcclusionState = true;
@@ -543,6 +579,33 @@ namespace ArtNet.Runtime
 
                 var method = GetMethod(component.GetType(), methodName);
                 method?.Invoke(component, null);
+            }
+
+            public static bool TryInvoke(Component component, string methodName, out Exception error)
+            {
+                error = null;
+                if (component == null)
+                    return false;
+
+                var method = GetMethod(component.GetType(), methodName);
+                if (method == null)
+                    return false;
+
+                try
+                {
+                    method.Invoke(component, null);
+                    return true;
+                }
+                catch (TargetInvocationException exception)
+                {
+                    error = exception.InnerException ?? exception;
+                    return false;
+                }
+                catch (Exception exception)
+                {
+                    error = exception;
+                    return false;
+                }
             }
 
             public static void SetBool(Component component, string name, bool value)
