@@ -33,6 +33,13 @@ namespace ArtNet.Editor
                 if (property.propertyPath == "panTiltSpeedMinDegPerSec")
                     DrawPanTiltSpeedResolution();
 
+                if (IsFocusedComponentProperty(property.propertyPath))
+                {
+                    DrawFocusedProperty(property);
+                    enterChildren = false;
+                    continue;
+                }
+
                 if (property.propertyPath == "lensMaterialBindings")
                 {
                     enterChildren = false;
@@ -130,9 +137,7 @@ namespace ArtNet.Editor
 
             if (_sourceFocusFixtureId == fixture.GetInstanceID())
             {
-                EditorGUILayout.HelpBox($"Source setting: {_sourceFocusPropertyPath}", MessageType.Info);
-                _sourceFocusFixtureId = 0;
-                _sourceFocusPropertyPath = null;
+                EditorGUILayout.HelpBox($"Source setting highlighted below: {_sourceFocusPropertyPath}", MessageType.Info);
             }
 
             EditorGUILayout.Space(4f);
@@ -181,9 +186,34 @@ namespace ArtNet.Editor
         {
             _sourceFocusFixtureId = fixture.GetInstanceID();
             _sourceFocusPropertyPath = propertyPath;
-            Selection.activeObject = fixture;
-            EditorGUIUtility.PingObject(fixture);
-            ActiveEditorTracker.sharedTracker.ForceRebuild();
+            EditorApplication.delayCall += () =>
+            {
+                if (fixture == null) return;
+                if (Selection.activeObject != fixture)
+                    Selection.activeObject = fixture;
+                EditorGUIUtility.PingObject(fixture);
+                ActiveEditorTracker.sharedTracker.ForceRebuild();
+            };
+        }
+
+        private bool IsFocusedComponentProperty(string propertyPath)
+        {
+            if (targets.Length != 1 || target is not DmxFixtureComponent fixture ||
+                _sourceFocusFixtureId != fixture.GetInstanceID())
+                return false;
+
+            if (_sourceFocusPropertyPath == "panTiltSpeedMinDegPerSec")
+                return propertyPath == "panTiltSpeedMinDegPerSec" || propertyPath == "panTiltSpeedMaxDegPerSec";
+
+            return _sourceFocusPropertyPath == propertyPath;
+        }
+
+        private void DrawFocusedProperty(SerializedProperty property)
+        {
+            float height = EditorGUI.GetPropertyHeight(property, true);
+            Rect rect = EditorGUILayout.GetControlRect(true, height);
+            EditorGUI.DrawRect(rect, new Color(0.18f, 0.55f, 0.9f, 0.25f));
+            EditorGUI.PropertyField(rect, property, CreateDisplayContent(property), true);
         }
 
         private void DrawOptionalPrismShadowWarning(SerializedProperty auxiliaryLightShadows)
@@ -535,8 +565,14 @@ namespace ArtNet.Editor
             _modeIndex = modeIndex;
             _relativeChannel = relativeChannel;
             _range = range;
-            Selection.activeObject = definition;
-            EditorGUIUtility.PingObject(definition);
+            EditorApplication.delayCall += SelectSourceDefinition;
+        }
+
+        private static void SelectSourceDefinition()
+        {
+            if (_definition == null) return;
+            Selection.activeObject = _definition;
+            EditorGUIUtility.PingObject(_definition);
             ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
