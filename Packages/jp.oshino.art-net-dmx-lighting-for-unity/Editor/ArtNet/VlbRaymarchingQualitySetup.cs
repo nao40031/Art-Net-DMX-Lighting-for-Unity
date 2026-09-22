@@ -16,6 +16,36 @@ namespace ArtNet.Editor
         private const string PresetName = "Very High";
         private const int PresetStepCount = 40;
 
+        internal readonly struct Status
+        {
+            public readonly bool configFound;
+            public readonly bool veryHighAvailable;
+            public readonly bool veryHighIsDefault;
+
+            public Status(bool configFound, bool veryHighAvailable, bool veryHighIsDefault)
+            {
+                this.configFound = configFound;
+                this.veryHighAvailable = veryHighAvailable;
+                this.veryHighIsDefault = veryHighIsDefault;
+            }
+
+            public bool IsReady => configFound && veryHighAvailable && veryHighIsDefault;
+        }
+
+        public static Status InspectStatus()
+        {
+            var config = FindConfig();
+            if (config == null) return new Status(false, false, false);
+
+            var quality = FindQuality(config);
+            var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
+            if (!(id is int qualityId)) return new Status(true, false, false);
+
+            var serializedConfig = new SerializedObject(config);
+            var defaultQuality = serializedConfig.FindProperty("m_DefaultRaymarchingQualityUniqueID");
+            return new Status(true, true, defaultQuality != null && defaultQuality.intValue == qualityId);
+        }
+
         public static bool EnsureVeryHigh(out string error)
         {
             error = null;
@@ -74,6 +104,55 @@ namespace ArtNet.Editor
             }
         }
 
+        public static bool FixVeryHighDefault(out string error)
+        {
+            if (!EnsureVeryHigh(out error)) return false;
+
+            var config = FindConfig();
+            var quality = config == null ? null : FindQuality(config);
+            var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
+            if (!(id is int qualityId))
+            {
+                error = "Very High (40) could not be resolved from the VLB Config asset.";
+                return false;
+            }
+
+            var serializedConfig = new SerializedObject(config);
+            var defaultQuality = serializedConfig.FindProperty("m_DefaultRaymarchingQualityUniqueID");
+            if (defaultQuality == null)
+            {
+                error = "This VLB Config version does not expose its default raymarching quality setting.";
+                return false;
+            }
+
+            serializedConfig.Update();
+            if (defaultQuality.intValue != qualityId)
+            {
+                defaultQuality.intValue = qualityId;
+                serializedConfig.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(config);
+                AssetDatabase.SaveAssets();
+            }
+
+            error = null;
+            return true;
+        }
+
+        public static bool IsVeryHighApplied(GameObject gameObject)
+        {
+            if (gameObject == null || !TryGetVeryHighQualityId(out var qualityId)) return false;
+            return IsQualityApplied(gameObject, qualityId);
+        }
+
+        public static bool IsQualityApplied(GameObject gameObject, int qualityId)
+        {
+            if (gameObject == null) return false;
+            var beamType = FindType(BeamHdTypeName);
+            var beam = beamType == null ? null : gameObject.GetComponent(beamType);
+            var property = beamType?.GetProperty("raymarchingQualityID", BindingFlags.Instance | BindingFlags.Public);
+            return beam != null && property != null && property.PropertyType == typeof(int) && (int)property.GetValue(beam) == qualityId;
+        }
+
         public static bool ApplyToGameObject(GameObject gameObject)
         {
             if (gameObject == null) return false;
@@ -81,11 +160,33 @@ namespace ArtNet.Editor
             var beam = beamType == null ? null : gameObject.GetComponent(beamType);
             if (beam == null) return false;
 
-            var config = FindConfig();
-            var quality = config == null ? null : FindQuality(config);
-            var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
+            if (!TryGetVeryHighQualityId(out var qualityId)) return false;
+            return ApplyQualityToGameObject(gameObject, qualityId);
+        }
+
+        public static bool ApplyQualityToGameObject(GameObject gameObject, int qualityId)
+        {
+            if (gameObject == null) return false;
+            var beamType = FindType(BeamHdTypeName);
+            var beam = beamType == null ? null : gameObject.GetComponent(beamType);
+            return beam != null && ApplyQualityToBeam(beam, beamType, qualityId);
+        }
+
+        public static bool ApplyToChildren(GameObject root, int qualityId)
+        {
+            if (root == null) return false;
+            var beamType = FindType(BeamHdTypeName);
+            if (beamType == null) return false;
+            var changed = false;
+            foreach (var component in root.GetComponentsInChildren(beamType, true))
+                changed |= ApplyQualityToBeam(component, beamType, qualityId);
+            return changed;
+        }
+
+        private static bool ApplyQualityToBeam(Component beam, Type beamType, int qualityId)
+        {
             var property = beamType.GetProperty("raymarchingQualityID", BindingFlags.Instance | BindingFlags.Public);
-            if (!(id is int qualityId) || property == null || property.PropertyType != typeof(int)) return false;
+            if (property == null || property.PropertyType != typeof(int)) return false;
             var current = (int)property.GetValue(beam);
             if (current == qualityId) return false;
             property.SetValue(beam, qualityId);
@@ -102,6 +203,17 @@ namespace ArtNet.Editor
             foreach (var component in root.GetComponentsInChildren(beamType, true))
                 changed |= ApplyToGameObject(component.gameObject);
             return changed;
+        }
+
+        public static bool TryGetVeryHighQualityId(out int qualityId)
+        {
+            qualityId = default;
+            var config = FindConfig();
+            var quality = config == null ? null : FindQuality(config);
+            var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
+            if (!(id is int value)) return false;
+            qualityId = value;
+            return true;
         }
 
         private static ScriptableObject FindConfig()

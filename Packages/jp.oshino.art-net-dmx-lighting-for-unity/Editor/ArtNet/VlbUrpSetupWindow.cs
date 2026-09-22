@@ -121,6 +121,16 @@ namespace ArtNet.Editor
                     DrawStatusRow("VLB Config: URP", StatusLevel.Success, configDetail);
                 else
                     DrawStatusRowWithFix("VLB Config: URP", StatusLevel.Warning, configDetail, FixVlbConfig);
+
+                var quality = _status.raymarchingQuality;
+                var qualityDetail = !quality.configFound ? "VLB Config asset was not found."
+                    : !quality.veryHighAvailable ? "Very High (40) is not configured."
+                    : quality.veryHighIsDefault ? "Very High (40) is the default raymarching quality."
+                    : "Very High (40) exists but is not the default raymarching quality.";
+                if (quality.IsReady)
+                    DrawStatusRow("Raymarching Quality", StatusLevel.Success, qualityDetail);
+                else
+                    DrawStatusRowWithFix("Raymarching Quality", StatusLevel.Warning, qualityDetail, FixRaymarchingQuality);
             }
 
             if (_status.urpAssets.Count == 0)
@@ -258,7 +268,8 @@ namespace ArtNet.Editor
                 DrawStatusRow("DMX Fixture Component", StatusLevel.Warning, "No fixture component was found.");
             }
             else if (prefabStatus.needsSetupTargetLights.Count == 0 && prefabStatus.needsModeUpdateTargetLights.Count == 0 &&
-                     prefabStatus.needsUrpPresetFixtureCount == 0 && prefabStatus.needsVlbRenderModeFixtureCount == 0)
+                     prefabStatus.needsUrpPresetFixtureCount == 0 && prefabStatus.needsVlbRenderModeFixtureCount == 0 &&
+                     prefabStatus.needsRaymarchingQualityTargetLightCount == 0)
             {
                 DrawStatusRow("Target Light VLB", StatusLevel.Success,
                     $"All {prefabStatus.targetLightCount} target light(s) use VLB {_beamMode}.");
@@ -266,7 +277,7 @@ namespace ArtNet.Editor
             else
             {
                 DrawStatusRow("Target Light VLB", StatusLevel.Warning,
-                    $"{prefabStatus.readyTargetLightCount} ready, {prefabStatus.needsSetupTargetLights.Count} need setup, {prefabStatus.needsModeUpdateTargetLights.Count} need mode update, {prefabStatus.needsUrpPresetFixtureCount} need URP preset, {prefabStatus.needsVlbRenderModeFixtureCount} need VLB render mode.");
+                    $"{prefabStatus.readyTargetLightCount} ready, {prefabStatus.needsSetupTargetLights.Count} need setup, {prefabStatus.needsModeUpdateTargetLights.Count} need mode update, {prefabStatus.needsUrpPresetFixtureCount} need URP preset, {prefabStatus.needsVlbRenderModeFixtureCount} need VLB render mode, {prefabStatus.needsRaymarchingQualityTargetLightCount} need Very High (40).");
             }
             EditorGUILayout.EndVertical();
         }
@@ -282,7 +293,7 @@ namespace ArtNet.Editor
             }
 
             EditorGUILayout.HelpBox(
-                "Fix All creates/configures VLB Config, enables URP Asset Depth Texture, and updates Universal Renderer depth settings.",
+                "Fix All creates/configures VLB Config, sets Very High (40) as the default HD raymarching quality, enables URP Asset Depth Texture, and updates Universal Renderer depth settings.",
                 MessageType.None);
         }
 
@@ -294,11 +305,14 @@ namespace ArtNet.Editor
             var needsUpdate = prefabStatuses.Sum(status => status.needsModeUpdateTargetLights.Count);
             var needsUrpPreset = prefabStatuses.Sum(status => status.needsUrpPresetFixtureCount);
             var needsRenderMode = prefabStatuses.Sum(status => status.needsVlbRenderModeFixtureCount);
-            using (new EditorGUI.DisabledScope(!_status.vlbInstalled || !typesAvailable || prefabPaths.Count == 0 || needsSetup + needsUpdate + needsUrpPreset + needsRenderMode == 0))
+            var needsQuality = prefabStatuses.Sum(status => status.needsRaymarchingQualityTargetLightCount);
+            var raymarchingQualityId = 0;
+            var canApplyQuality = _beamMode == BeamMode.HD && VlbRaymarchingQualitySetup.TryGetVeryHighQualityId(out raymarchingQualityId);
+            using (new EditorGUI.DisabledScope(!_status.vlbInstalled || !typesAvailable || prefabPaths.Count == 0 || needsSetup + needsUpdate + needsUrpPreset + needsRenderMode + (canApplyQuality ? needsQuality : 0) == 0))
             {
                 if (GUILayout.Button($"Apply VLB {_beamMode} to Target Lights", GUILayout.Height(24f)))
                 {
-                    ApplyBeamModeToScanTargets(prefabPaths, needsSetup, needsUpdate, needsUrpPreset, needsRenderMode);
+                    ApplyBeamModeToScanTargets(prefabPaths, needsSetup, needsUpdate, needsUrpPreset, needsRenderMode, canApplyQuality ? needsQuality : 0, canApplyQuality ? raymarchingQualityId : 0);
                 }
             }
 
@@ -317,6 +331,8 @@ namespace ArtNet.Editor
                 changes.Add("Create VLB Config asset and set Render Pipeline to URP");
             else if (!_status.vlbConfigIsUrp)
                 changes.Add("Set VLB Config Render Pipeline to URP");
+            if (!_status.raymarchingQuality.IsReady)
+                changes.Add("Create Very High (40) when needed and set it as the default raymarching quality");
             if (targets > 0)
                 changes.Add($"Configure {targets} URP Asset(s): Depth Texture ON, Depth Priming Disabled, Depth Texture Mode After Opaques");
 
@@ -335,6 +351,12 @@ namespace ArtNet.Editor
             }
             if (config != null && GetVlbConfigPipelineValue(config) != UrpRenderPipelineEnumValue)
                 SetVlbConfigToUrp(config);
+            if (!VlbRaymarchingQualitySetup.FixVeryHighDefault(out var qualityError))
+            {
+                EditorUtility.DisplayDialog("VLB Raymarching Quality setup failed", qualityError, "OK");
+                Refresh();
+                return;
+            }
 
             foreach (var asset in _status.urpAssets)
                 ConfigureUrpAsset(asset);
@@ -382,7 +404,17 @@ namespace ArtNet.Editor
             Refresh();
         }
 
-        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsUrpPreset, int needsRenderMode)
+        private void FixRaymarchingQuality()
+        {
+            if (!EditorUtility.DisplayDialog("Fix Raymarching Quality", "Create Very High (40) when needed and set it as the VLB Config default quality?", "Fix It", "Cancel"))
+                return;
+
+            if (!VlbRaymarchingQualitySetup.FixVeryHighDefault(out var error))
+                EditorUtility.DisplayDialog("VLB Raymarching Quality setup failed", error, "OK");
+            Refresh();
+        }
+
+        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsUrpPreset, int needsRenderMode, int needsQuality, int raymarchingQualityId)
         {
             if (!TryGetRequiredBeamTypes(_beamMode, out var error))
             {
@@ -398,16 +430,10 @@ namespace ArtNet.Editor
 
             if (!EditorUtility.DisplayDialog(
                     $"Apply VLB {_beamMode} to Target Lights",
-                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply URP VLB preset: {needsUrpPreset}\nSet Beam Render Mode to VLB: {needsRenderMode}\n\n" +
+                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply URP VLB preset: {needsUrpPreset}\nSet Beam Render Mode to VLB: {needsRenderMode}\nSet Raymarching Quality to Very High (40): {needsQuality}\n\n" +
                     "Target Lights will be made consistent with the selected Beam Mode and URP VLB preset.",
                     "Apply", "Cancel"))
                 return;
-
-            if (_beamMode == BeamMode.HD && !VlbRaymarchingQualitySetup.EnsureVeryHigh(out var qualityError))
-            {
-                EditorUtility.DisplayDialog("VLB Raymarching Quality setup failed", qualityError, "OK");
-                return;
-            }
 
             var changedPrefabCount = 0;
             var changedLightCount = 0;
@@ -431,16 +457,15 @@ namespace ArtNet.Editor
 
                             var beamChanged = ApplyBeamMode(light.gameObject, _beamMode);
                             var presetChanged = ApplyUrpBeamPreset(light.gameObject, _beamMode);
-                            if (beamChanged || presetChanged)
+                            var qualityChanged = _beamMode == BeamMode.HD && raymarchingQualityId > 0 &&
+                                                 VlbRaymarchingQualitySetup.ApplyQualityToGameObject(light.gameObject, raymarchingQualityId);
+                            if (beamChanged || presetChanged || qualityChanged)
                             {
                                 changed = true;
                                 changedLightCount++;
                             }
                         }
                     }
-                    if (_beamMode == BeamMode.HD)
-                        changed |= VlbRaymarchingQualitySetup.ApplyToChildren(root);
-
                     if (changed)
                     {
                         PrefabUtility.SaveAsPrefabAsset(root, path);
@@ -477,6 +502,7 @@ namespace ArtNet.Editor
             status.vlbInstalled = status.vlbSdType != null || status.vlbHdType != null;
             status.vlbConfigFound = status.vlbConfig != null;
             status.vlbConfigIsUrp = status.vlbConfigFound && GetVlbConfigPipelineValue(status.vlbConfig) == UrpRenderPipelineEnumValue;
+            status.raymarchingQuality = VlbRaymarchingQualitySetup.InspectStatus();
             status.urpAssets = FindUsedUrpAssets();
             return status;
         }
@@ -990,12 +1016,17 @@ namespace ArtNet.Editor
                 return "Root Object and Prefab Asset refer to different Prefabs. This target will not be processed.";
 
             prefabAsset = directPrefabAsset ?? rootPrefabAsset;
-            return prefabAsset == null ? "Specify either Root Object or Prefab Asset." : null;
+            if (prefabAsset == null)
+                return "Specify either Root Object or Prefab Asset.";
+            return AssetDatabase.GetAssetPath(prefabAsset).StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)
+                ? null : "Setup Target must be a Prefab under Assets. Package Prefabs are never modified.";
         }
 
         private static List<PrefabStatus> InspectPrefabs(IEnumerable<string> prefabPaths, BeamMode mode)
         {
             var statuses = new List<PrefabStatus>();
+            var raymarchingQualityId = 0;
+            var hasVeryHigh = mode == BeamMode.HD && VlbRaymarchingQualitySetup.TryGetVeryHighQualityId(out raymarchingQualityId);
             foreach (var path in prefabPaths)
             {
                 var root = PrefabUtility.LoadPrefabContents(path);
@@ -1022,7 +1053,11 @@ namespace ArtNet.Editor
 
                             status.targetLightCount++;
                             if (IsBeamModeConfigured(light.gameObject, mode))
+                            {
                                 status.readyTargetLightCount++;
+                                if (hasVeryHigh && !VlbRaymarchingQualitySetup.IsQualityApplied(light.gameObject, raymarchingQualityId))
+                                    status.needsRaymarchingQualityTargetLightCount++;
+                            }
                             else if (HasAnyBeamComponent(light.gameObject))
                                 status.needsModeUpdateTargetLights.Add(light.name);
                             else
@@ -1089,7 +1124,10 @@ namespace ArtNet.Editor
             var summary = new StatusSummary();
             summary.Add(_status.vlbInstalled ? StatusLevel.Success : StatusLevel.Error);
             if (_status.vlbInstalled)
+            {
                 summary.Add(_status.vlbConfigFound && _status.vlbConfigIsUrp ? StatusLevel.Success : StatusLevel.Warning);
+                summary.Add(_status.raymarchingQuality.IsReady ? StatusLevel.Success : StatusLevel.Warning);
+            }
 
             if (_status.urpAssets.Count == 0)
             {
@@ -1216,9 +1254,10 @@ namespace ArtNet.Editor
             public ScriptableObject vlbConfig;
             public bool vlbConfigFound;
             public bool vlbConfigIsUrp;
+            public VlbRaymarchingQualitySetup.Status raymarchingQuality;
             public List<UrpAssetStatus> urpAssets = new();
             public bool HasFixableProjectSettings =>
-                !vlbConfigFound || !vlbConfigIsUrp || urpAssets.Any(asset => !asset.IsConfigured);
+                !vlbConfigFound || !vlbConfigIsUrp || !raymarchingQuality.IsReady || urpAssets.Any(asset => !asset.IsConfigured);
             public bool HasOptionalPrismShadowFixes =>
                 urpAssets.Any(asset => !asset.IsOptionalPrismShadowConfigured);
         }
@@ -1246,6 +1285,7 @@ namespace ArtNet.Editor
             public int readyTargetLightCount;
             public int needsUrpPresetFixtureCount;
             public int needsVlbRenderModeFixtureCount;
+            public int needsRaymarchingQualityTargetLightCount;
             public List<string> needsSetupTargetLights = new();
             public List<string> needsModeUpdateTargetLights = new();
         }

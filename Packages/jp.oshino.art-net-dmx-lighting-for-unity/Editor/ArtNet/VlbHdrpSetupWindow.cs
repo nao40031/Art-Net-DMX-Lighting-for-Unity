@@ -76,6 +76,16 @@ namespace ArtNet.Editor
                     DrawStatusRow("VLB Config: HDRP", StatusLevel.Success, detail);
                 else
                     DrawStatusRowWithFix("VLB Config: HDRP", StatusLevel.Warning, detail, FixVlbConfig);
+
+                var quality = _status.raymarchingQuality;
+                var qualityDetail = !quality.configFound ? "VLB Config asset was not found."
+                    : !quality.veryHighAvailable ? "Very High (40) is not configured."
+                    : quality.veryHighIsDefault ? "Very High (40) is the default raymarching quality."
+                    : "Very High (40) exists but is not the default raymarching quality.";
+                if (quality.IsReady)
+                    DrawStatusRow("Raymarching Quality", StatusLevel.Success, qualityDetail);
+                else
+                    DrawStatusRowWithFix("Raymarching Quality", StatusLevel.Warning, qualityDetail, FixRaymarchingQuality);
             }
 
             if (_status.hdrpAssets.Count == 0)
@@ -155,10 +165,10 @@ namespace ArtNet.Editor
                 DrawStatusRow("Target Light Type", StatusLevel.Warning, $"{status.nonSpotTargetLightCount} non-Spot target Light(s) will be skipped. VLB requires Spot Lights.");
 
             var pending = status.needsSetupTargetLights.Count + status.needsModeUpdateTargetLights.Count +
-                          status.needsHdrpPresetFixtureCount + status.needsVlbRenderModeFixtureCount;
+                          status.needsHdrpPresetFixtureCount + status.needsVlbRenderModeFixtureCount + status.needsRaymarchingQualityTargetLightCount;
             DrawStatusRow("Target Light VLB", pending == 0 ? StatusLevel.Success : StatusLevel.Warning,
                 pending == 0 ? $"All {status.targetLightCount} Spot target Light(s) use VLB {_beamMode}."
-                    : $"{status.readyTargetLightCount} ready, {status.needsSetupTargetLights.Count} need setup, {status.needsModeUpdateTargetLights.Count} need mode update, {status.needsHdrpPresetFixtureCount} need HDRP defaults, {status.needsVlbRenderModeFixtureCount} need automatic VLB render mode.");
+                    : $"{status.readyTargetLightCount} ready, {status.needsSetupTargetLights.Count} need setup, {status.needsModeUpdateTargetLights.Count} need mode update, {status.needsHdrpPresetFixtureCount} need HDRP defaults, {status.needsVlbRenderModeFixtureCount} need automatic VLB render mode, {status.needsRaymarchingQualityTargetLightCount} need Very High (40).");
             EditorGUILayout.EndVertical();
         }
 
@@ -169,10 +179,13 @@ namespace ArtNet.Editor
             var needUpdate = statuses.Sum(x => x.needsModeUpdateTargetLights.Count);
             var needDefaults = statuses.Sum(x => x.needsHdrpPresetFixtureCount);
             var needRenderMode = statuses.Sum(x => x.needsVlbRenderModeFixtureCount);
-            using (new EditorGUI.DisabledScope(!typesAvailable || paths.Count == 0 || needSetup + needUpdate + needDefaults + needRenderMode == 0))
+            var needQuality = statuses.Sum(x => x.needsRaymarchingQualityTargetLightCount);
+            var raymarchingQualityId = 0;
+            var canApplyQuality = _beamMode == BeamMode.HD && VlbRaymarchingQualitySetup.TryGetVeryHighQualityId(out raymarchingQualityId);
+            using (new EditorGUI.DisabledScope(!typesAvailable || paths.Count == 0 || needSetup + needUpdate + needDefaults + needRenderMode + (canApplyQuality ? needQuality : 0) == 0))
             {
                 if (GUILayout.Button($"Apply VLB {_beamMode} to Target Lights", GUILayout.Height(24f)))
-                    ApplyBeamModeToScanTargets(paths, needSetup, needUpdate, needDefaults, needRenderMode);
+                    ApplyBeamModeToScanTargets(paths, needSetup, needUpdate, needDefaults, needRenderMode, canApplyQuality ? needQuality : 0, canApplyQuality ? raymarchingQualityId : 0);
             }
             EditorGUILayout.HelpBox(typesAvailable
                 ? $"Applies VLB {_beamMode} and HDRP-safe Art-Net VLB defaults only to Spot Lights referenced by DMX Fixture Component. HD also adds VolumetricCookieHD."
@@ -197,7 +210,15 @@ namespace ArtNet.Editor
             Refresh();
         }
 
-        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsDefaults, int needsRenderMode)
+        private void FixRaymarchingQuality()
+        {
+            if (!EditorUtility.DisplayDialog("Fix Raymarching Quality", "Create Very High (40) when needed and set it as the VLB Config default quality?", "Fix It", "Cancel")) return;
+            if (!VlbRaymarchingQualitySetup.FixVeryHighDefault(out var error))
+                EditorUtility.DisplayDialog("VLB Raymarching Quality setup failed", error, "OK");
+            Refresh();
+        }
+
+        private void ApplyBeamModeToScanTargets(IEnumerable<string> prefabPaths, int needsSetup, int needsUpdate, int needsDefaults, int needsRenderMode, int needsQuality, int raymarchingQualityId)
         {
             if (!TryGetRequiredBeamTypes(_beamMode, out var error))
             {
@@ -206,14 +227,8 @@ namespace ArtNet.Editor
             }
             var paths = prefabPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             if (!EditorUtility.DisplayDialog($"Apply VLB {_beamMode} to Target Lights",
-                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply HDRP defaults: {needsDefaults}\nSet Beam Render Mode to VLB: {needsRenderMode}\n\nOnly Spot Lights referenced by DMX Fixture Component will be changed.",
+                    $"Prefab(s): {paths.Count}\nAdd VLB {_beamMode}: {needsSetup}\nSwitch mode or repair Cookie: {needsUpdate}\nApply HDRP defaults: {needsDefaults}\nSet Beam Render Mode to VLB: {needsRenderMode}\nSet Raymarching Quality to Very High (40): {needsQuality}\n\nOnly Spot Lights referenced by DMX Fixture Component will be changed.",
                     "Apply", "Cancel")) return;
-
-            if (_beamMode == BeamMode.HD && !VlbRaymarchingQualitySetup.EnsureVeryHigh(out var qualityError))
-            {
-                EditorUtility.DisplayDialog("VLB Raymarching Quality setup failed", qualityError, "OK");
-                return;
-            }
 
             var changedPrefabs = 0;
             var changedLights = 0;
@@ -234,11 +249,11 @@ namespace ArtNet.Editor
                             if (light == null || light.type != LightType.Spot || !processedLights.Add(light.GetInstanceID())) continue;
                             var beamChanged = ApplyBeamMode(light.gameObject, _beamMode);
                             var presetChanged = ApplyHdrpBeamPreset(light.gameObject, _beamMode);
-                            if (beamChanged || presetChanged) { changed = true; changedLights++; }
+                            var qualityChanged = _beamMode == BeamMode.HD && raymarchingQualityId > 0 &&
+                                                 VlbRaymarchingQualitySetup.ApplyQualityToGameObject(light.gameObject, raymarchingQualityId);
+                            if (beamChanged || presetChanged || qualityChanged) { changed = true; changedLights++; }
                         }
                     }
-                    if (_beamMode == BeamMode.HD)
-                        changed |= VlbRaymarchingQualitySetup.ApplyToChildren(root);
                     if (changed) { PrefabUtility.SaveAsPrefabAsset(root, path); changedPrefabs++; }
                 }
                 finally { PrefabUtility.UnloadPrefabContents(root); }
@@ -260,6 +275,7 @@ namespace ArtNet.Editor
             status.vlbInstalled = status.vlbSdType != null || status.vlbHdType != null;
             status.vlbConfigFound = status.vlbConfig != null;
             status.vlbConfigIsHdrp = status.vlbConfigFound && GetVlbConfigPipelineValue(status.vlbConfig) == HdrpRenderPipelineEnumValue;
+            status.raymarchingQuality = VlbRaymarchingQualitySetup.InspectStatus();
             return status;
         }
 
@@ -513,12 +529,16 @@ namespace ArtNet.Editor
             if (target.rootObject != null && rootPrefab == null) return "Root Object must be a Prefab instance or a Prefab asset.";
             if (rootPrefab != null && direct != null && !string.Equals(AssetDatabase.GetAssetPath(rootPrefab), AssetDatabase.GetAssetPath(direct), StringComparison.OrdinalIgnoreCase)) return "Root Object and Prefab Asset refer to different Prefabs. This target will not be processed.";
             prefab = direct ?? rootPrefab;
-            return prefab == null ? "Specify either Root Object or Prefab Asset." : null;
+            if (prefab == null) return "Specify either Root Object or Prefab Asset.";
+            return AssetDatabase.GetAssetPath(prefab).StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)
+                ? null : "Setup Target must be a Prefab under Assets. Package Prefabs are never modified.";
         }
 
         private static List<PrefabStatus> InspectPrefabs(IEnumerable<string> paths, BeamMode mode)
         {
             var statuses = new List<PrefabStatus>();
+            var raymarchingQualityId = 0;
+            var hasVeryHigh = mode == BeamMode.HD && VlbRaymarchingQualitySetup.TryGetVeryHighQualityId(out raymarchingQualityId);
             foreach (var path in paths)
             {
                 var root = PrefabUtility.LoadPrefabContents(path);
@@ -535,7 +555,12 @@ namespace ArtNet.Editor
                             if (light == null || !processed.Add(light.GetInstanceID())) continue;
                             if (light.type != LightType.Spot) { status.nonSpotTargetLightCount++; continue; }
                             status.targetLightCount++;
-                            if (IsBeamModeConfigured(light.gameObject, mode)) status.readyTargetLightCount++;
+                            if (IsBeamModeConfigured(light.gameObject, mode))
+                            {
+                                status.readyTargetLightCount++;
+                                if (hasVeryHigh && !VlbRaymarchingQualitySetup.IsQualityApplied(light.gameObject, raymarchingQualityId))
+                                    status.needsRaymarchingQualityTargetLightCount++;
+                            }
                             else if (HasAnyBeamComponent(light.gameObject)) status.needsModeUpdateTargetLights.Add(light.name);
                             else status.needsSetupTargetLights.Add(light.name);
                         }
@@ -582,7 +607,11 @@ namespace ArtNet.Editor
         private StatusSummary GetProjectSettingsSummary()
         {
             var summary = new StatusSummary(); summary.Add(_status.vlbInstalled ? StatusLevel.Success : StatusLevel.Error);
-            if (_status.vlbInstalled) summary.Add(_status.vlbConfigFound && _status.vlbConfigIsHdrp ? StatusLevel.Success : StatusLevel.Warning);
+            if (_status.vlbInstalled)
+            {
+                summary.Add(_status.vlbConfigFound && _status.vlbConfigIsHdrp ? StatusLevel.Success : StatusLevel.Warning);
+                summary.Add(_status.raymarchingQuality.IsReady ? StatusLevel.Success : StatusLevel.Warning);
+            }
             summary.Add(_status.hdrpAssets.Count > 0 ? StatusLevel.Success : StatusLevel.Error); return summary;
         }
         private static void DrawStatusSummary(string title, StatusSummary summary) => DrawStatusRow(title, summary.OverallLevel, summary.ErrorCount > 0 ? $"{summary.ErrorCount} error(s), {summary.WarningCount} setting(s) need attention." : summary.WarningCount > 0 ? $"{summary.SuccessCount} check(s) passed, {summary.WarningCount} setting(s) need attention." : $"All {summary.SuccessCount} check(s) passed. No action is required.");
@@ -600,9 +629,9 @@ namespace ArtNet.Editor
         private enum BeamMode { SD, HD }
         private enum StatusLevel { Success, Warning, Error }
         private sealed class StatusSummary { public int SuccessCount { get; private set; } public int WarningCount { get; private set; } public int ErrorCount { get; private set; } public StatusLevel OverallLevel => ErrorCount > 0 ? StatusLevel.Error : WarningCount > 0 ? StatusLevel.Warning : StatusLevel.Success; public void Add(StatusLevel level) { if (level == StatusLevel.Success) SuccessCount++; else if (level == StatusLevel.Warning) WarningCount++; else ErrorCount++; } }
-        private sealed class ProjectStatus { public Type vlbSdType; public Type vlbHdType; public Type vlbCookieHdType; public bool vlbInstalled; public ScriptableObject vlbConfig; public bool vlbConfigFound; public bool vlbConfigIsHdrp; public List<PipelineAssetStatus> hdrpAssets = new(); }
+        private sealed class ProjectStatus { public Type vlbSdType; public Type vlbHdType; public Type vlbCookieHdType; public bool vlbInstalled; public ScriptableObject vlbConfig; public bool vlbConfigFound; public bool vlbConfigIsHdrp; public VlbRaymarchingQualitySetup.Status raymarchingQuality; public List<PipelineAssetStatus> hdrpAssets = new(); }
         private sealed class PipelineAssetStatus { public RenderPipelineAsset asset; public string label; }
-        private sealed class PrefabStatus { public GameObject prefab; public int fixtureCount; public int targetLightCount; public int readyTargetLightCount; public int nonSpotTargetLightCount; public int needsHdrpPresetFixtureCount; public int needsVlbRenderModeFixtureCount; public List<string> needsSetupTargetLights = new(); public List<string> needsModeUpdateTargetLights = new(); }
+        private sealed class PrefabStatus { public GameObject prefab; public int fixtureCount; public int targetLightCount; public int readyTargetLightCount; public int nonSpotTargetLightCount; public int needsHdrpPresetFixtureCount; public int needsVlbRenderModeFixtureCount; public int needsRaymarchingQualityTargetLightCount; public List<string> needsSetupTargetLights = new(); public List<string> needsModeUpdateTargetLights = new(); }
         private sealed class ScanTarget { public GameObject rootObject; public GameObject prefabAsset; }
     }
 }
