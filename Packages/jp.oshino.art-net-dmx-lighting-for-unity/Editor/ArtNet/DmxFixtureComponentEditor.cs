@@ -145,16 +145,23 @@ namespace ArtNet.Editor
 
         private static void DrawControlSource(DmxFixtureComponent fixture, DmxFixtureComponent.PanTiltSpeedResolution resolution, string label)
         {
-            EditorGUILayout.LabelField("Control Source", label);
+            DrawWrappedSourceLabel("Control Source", label);
             if (GUILayout.Button("Open Control Source"))
                 FixtureDefinitionSourceNavigator.Open(fixture.fixture, fixture.mode, resolution.controlRelativeChannel, resolution.activePresetRange);
         }
 
         private static void DrawSpeedRangeSource(DmxFixtureComponent fixture)
         {
-            EditorGUILayout.LabelField("Speed Range Source", $"Dmx Fixture Component / Min {fixture.panTiltSpeedMinDegPerSec:0.##} / Max {fixture.panTiltSpeedMaxDegPerSec:0.##} deg/sec");
+            DrawWrappedSourceLabel("Speed Range Source", $"Dmx Fixture Component / Min {fixture.panTiltSpeedMinDegPerSec:0.##} / Max {fixture.panTiltSpeedMaxDegPerSec:0.##} deg/sec");
             if (GUILayout.Button("Open Speed Range Settings"))
                 FocusComponentSetting(fixture, "panTiltSpeedMinDegPerSec");
+        }
+
+        private static void DrawWrappedSourceLabel(string label, string value)
+        {
+            EditorGUILayout.LabelField(label);
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                EditorGUILayout.LabelField(value, EditorStyles.wordWrappedLabel);
         }
 
         private static string GetFixtureAndModeLabel(DmxFixtureComponent fixture)
