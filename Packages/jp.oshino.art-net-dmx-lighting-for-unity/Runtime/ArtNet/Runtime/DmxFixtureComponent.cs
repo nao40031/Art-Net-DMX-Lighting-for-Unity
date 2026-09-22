@@ -4403,7 +4403,9 @@ namespace ArtNet.Runtime
                 _goboShakeOffsetDeg = wave * _goboShakeAmplitudeDeg;
                 Vector2 axis = ResolveGoboShakePositionAxis(_goboShakePositionAxis);
                 _goboShakePositionOffsetUv = axis * (wave * _goboShakePositionAmplitudeUv);
-                _goboShakeBeamAngleOffsetDeg = _goboShakeAffectBeam ? axis * (wave * _goboShakeBeamAngleAmplitudeDeg) : Vector2.zero;
+                _goboShakeBeamAngleOffsetDeg = _goboShakeAffectBeam
+                    ? ConvertGoboUvOffsetToBeamEuler(axis * (wave * _goboShakeBeamAngleAmplitudeDeg))
+                    : Vector2.zero;
             }
             else
             {
@@ -4517,6 +4519,14 @@ namespace ArtNet.Runtime
                 GoboShakePositionAxis.Both => new Vector2(1f, 1f).normalized,
                 _ => Vector2.right
             };
+        }
+
+        private static Vector2 ConvertGoboUvOffsetToBeamEuler(Vector2 uvOffset)
+        {
+            // Cookie UV X/Y describe the visible pattern plane, while beam Euler X/Y
+            // rotate that plane vertically/horizontally. Swap the axes and invert yaw
+            // so the beam follows the projected pattern instead of moving 90 degrees away.
+            return new Vector2(uvOffset.y, -uvOffset.x);
         }
 
         private bool ShouldApplyCurrentGoboShake()
