@@ -593,6 +593,10 @@ namespace ArtNet.Editor
         private static int _modeIndex = -1;
         private static int _relativeChannel;
         private static FixtureChannelRange _range;
+        private static int _rangeIndex = -1;
+        private static double _highlightExpiresAt;
+        private static bool _highlightUpdateRegistered;
+        private const double HighlightDurationSeconds = 1.5d;
 
         internal static void Open(FixtureDefinition definition, int modeIndex, int relativeChannel, FixtureChannelRange range)
         {
@@ -602,6 +606,9 @@ namespace ArtNet.Editor
             _modeIndex = modeIndex;
             _relativeChannel = relativeChannel;
             _range = range;
+            _rangeIndex = FindRangeIndex(definition, modeIndex, relativeChannel, range);
+            _highlightExpiresAt = EditorApplication.timeSinceStartup + HighlightDurationSeconds;
+            RegisterHighlightExpiry();
             EditorApplication.delayCall += SelectSourceDefinition;
         }
 
@@ -613,12 +620,49 @@ namespace ArtNet.Editor
             ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
-        internal static bool TryGetTarget(FixtureDefinition definition, out int modeIndex, out int relativeChannel, out FixtureChannelRange range)
+        internal static bool TryGetTarget(FixtureDefinition definition, out int modeIndex, out int relativeChannel, out FixtureChannelRange range, out int rangeIndex)
         {
             modeIndex = _modeIndex;
             relativeChannel = _relativeChannel;
             range = _range;
-            return definition != null && definition == _definition && modeIndex >= 0 && relativeChannel > 0;
+            rangeIndex = _rangeIndex;
+            return definition != null && definition == _definition && modeIndex >= 0 && relativeChannel > 0 &&
+                   EditorApplication.timeSinceStartup < _highlightExpiresAt;
+        }
+
+        private static int FindRangeIndex(FixtureDefinition definition, int modeIndex, int relativeChannel, FixtureChannelRange range)
+        {
+            if (definition?.modes == null || modeIndex < 0 || modeIndex >= definition.modes.Count ||
+                relativeChannel <= 0 || range == null)
+                return -1;
+
+            var elements = definition.modes[modeIndex]?.elements;
+            if (elements == null || relativeChannel > elements.Count) return -1;
+            var ranges = elements[relativeChannel - 1]?.ranges;
+            if (ranges == null) return -1;
+            for (int i = 0; i < ranges.Count; i++)
+            {
+                if (object.ReferenceEquals(ranges[i], range)) return i;
+            }
+
+            return -1;
+        }
+
+        private static void RegisterHighlightExpiry()
+        {
+            if (_highlightUpdateRegistered) return;
+            _highlightUpdateRegistered = true;
+            EditorApplication.update += ClearExpiredHighlight;
+        }
+
+        private static void ClearExpiredHighlight()
+        {
+            if (EditorApplication.timeSinceStartup < _highlightExpiresAt) return;
+
+            _highlightExpiresAt = 0d;
+            _highlightUpdateRegistered = false;
+            EditorApplication.update -= ClearExpiredHighlight;
+            ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
     }
 }
