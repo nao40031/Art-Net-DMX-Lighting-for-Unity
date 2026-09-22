@@ -22,7 +22,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
       propertyPath: vlbHdIntensityMultiplier
-      value: 0.01
+      value: 0.00001
       objectReference: {fileID: 0}
     - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
       propertyPath: overrideVlbHdrpExposureWeight
