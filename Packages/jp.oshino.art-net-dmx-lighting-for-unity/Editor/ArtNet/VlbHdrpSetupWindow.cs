@@ -387,20 +387,10 @@ namespace ArtNet.Editor
             var changed = SetSerializedInt(serialized, "updateRate", 12);
             changed |= SetSerializedInt(serialized, "waitXFrames", 3);
             changed |= SetSerializedInt(serialized, "layerMask", 1);
-            changed |= SetSerializedFloat(serialized, "planeOffset", 0.01f);
-            changed |= SetSerializedFloat(serialized, "fadeDistanceToSurface", 0f);
             if (!changed) return false;
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(component);
-            return true;
-        }
-
-        private static bool SetSerializedFloat(SerializedObject serialized, string propertyName, float value)
-        {
-            var property = serialized.FindProperty(propertyName);
-            if (property == null || Mathf.Approximately(property.floatValue, value)) return false;
-            property.floatValue = value;
             return true;
         }
 
@@ -571,16 +561,13 @@ namespace ArtNet.Editor
             var sdOcclusion = FindType(VlbSdDynamicOcclusionTypeName);
             var hasSd = sd != null && gameObject.GetComponent(sd) != null; var hasHd = hd != null && gameObject.GetComponent(hd) != null; var hasCookie = cookie != null && gameObject.GetComponent(cookie) != null;
             var hasSdOcclusion = sdOcclusion != null && gameObject.GetComponent(sdOcclusion) != null;
-            return mode == BeamMode.SD ? hasSd && hasSdOcclusion && !hasHd && !hasCookie && IsSdPresetConfigured(gameObject, sd, sdOcclusion) : hasHd && !hasSd && hasCookie;
+            return mode == BeamMode.SD ? hasSd && hasSdOcclusion && !hasHd && !hasCookie && IsSdPresetConfigured(gameObject, sd) : hasHd && !hasSd && hasCookie;
         }
 
-        private static bool IsSdPresetConfigured(GameObject gameObject, Type sdType, Type occlusionType)
+        private static bool IsSdPresetConfigured(GameObject gameObject, Type sdType)
         {
             var sd = new SerializedObject(gameObject.GetComponent(sdType));
-            var occlusion = new SerializedObject(gameObject.GetComponent(occlusionType));
-            return sd.FindProperty("geomMeshType")?.intValue == 1 &&
-                   Mathf.Approximately(occlusion.FindProperty("planeOffset")?.floatValue ?? float.NaN, 0.01f) &&
-                   Mathf.Approximately(occlusion.FindProperty("fadeDistanceToSurface")?.floatValue ?? float.NaN, 0f);
+            return sd.FindProperty("geomMeshType")?.intValue == 1;
         }
         private static bool HasAnyBeamComponent(GameObject gameObject)
         {

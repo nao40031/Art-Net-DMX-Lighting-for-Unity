@@ -139,7 +139,7 @@ Transform:
   m_GameObject: {fileID: 7960800072310362778}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.07}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1034,5 +1034,5 @@ MonoBehaviour:
   minSurfaceRatio: 0.5
   maxSurfaceDot: 0.25
   planeAlignment: 0
-  planeOffset: 0.01
-  fadeDistanceToSurface: 0
+  planeOffset: 0.1
+  fadeDistanceToSurface: 0.25
