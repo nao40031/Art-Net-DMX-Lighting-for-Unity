@@ -18,6 +18,9 @@ namespace ArtNet.Editor
     {
         private static int _sourceFocusFixtureId;
         private static string _sourceFocusPropertyPath;
+        private static double _sourceFocusExpiresAt;
+        private static bool _sourceFocusUpdateRegistered;
+        private const double SourceFocusDurationSeconds = 1.5d;
 
         public override void OnInspectorGUI()
         {
@@ -135,7 +138,7 @@ namespace ArtNet.Editor
                     break;
             }
 
-            if (_sourceFocusFixtureId == fixture.GetInstanceID())
+            if (HasActiveSourceFocus(fixture))
             {
                 EditorGUILayout.HelpBox($"Source setting highlighted below: {_sourceFocusPropertyPath}", MessageType.Info);
             }
@@ -193,6 +196,8 @@ namespace ArtNet.Editor
         {
             _sourceFocusFixtureId = fixture.GetInstanceID();
             _sourceFocusPropertyPath = propertyPath;
+            _sourceFocusExpiresAt = EditorApplication.timeSinceStartup + SourceFocusDurationSeconds;
+            RegisterSourceFocusExpiry();
             EditorApplication.delayCall += () =>
             {
                 if (fixture == null) return;
@@ -206,13 +211,38 @@ namespace ArtNet.Editor
         private bool IsFocusedComponentProperty(string propertyPath)
         {
             if (targets.Length != 1 || target is not DmxFixtureComponent fixture ||
-                _sourceFocusFixtureId != fixture.GetInstanceID())
+                !HasActiveSourceFocus(fixture))
                 return false;
 
             if (_sourceFocusPropertyPath == "panTiltSpeedMinDegPerSec")
                 return propertyPath == "panTiltSpeedMinDegPerSec" || propertyPath == "panTiltSpeedMaxDegPerSec";
 
             return _sourceFocusPropertyPath == propertyPath;
+        }
+
+        private static bool HasActiveSourceFocus(DmxFixtureComponent fixture)
+        {
+            return fixture != null && _sourceFocusFixtureId == fixture.GetInstanceID() &&
+                   EditorApplication.timeSinceStartup < _sourceFocusExpiresAt;
+        }
+
+        private static void RegisterSourceFocusExpiry()
+        {
+            if (_sourceFocusUpdateRegistered) return;
+            _sourceFocusUpdateRegistered = true;
+            EditorApplication.update += ClearExpiredSourceFocus;
+        }
+
+        private static void ClearExpiredSourceFocus()
+        {
+            if (EditorApplication.timeSinceStartup < _sourceFocusExpiresAt) return;
+
+            _sourceFocusFixtureId = 0;
+            _sourceFocusPropertyPath = null;
+            _sourceFocusExpiresAt = 0d;
+            _sourceFocusUpdateRegistered = false;
+            EditorApplication.update -= ClearExpiredSourceFocus;
+            ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
         private void DrawFocusedProperty(SerializedProperty property)
