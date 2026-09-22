@@ -81,7 +81,6 @@ namespace ArtNet.Editor
         private void OnGUI()
         {
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-            EditorGUILayout.LabelField("Art-Net 編集用アセットライブラリ", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("Art-Net Editable Asset Library", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "配布パッケージの定義・Prefab・必要な依存アセットをAssets配下へ複製します。作成済みの編集用アセットだけを管理するため、ユーザーが独自に作成または複製したアセットは上書き・削除しません。\n\n" +
@@ -100,7 +99,6 @@ namespace ArtNet.Editor
 
         private void DrawSourceOptions()
         {
-            EditorGUILayout.LabelField("展開対象", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("Export Contents", EditorStyles.boldLabel);
             _includeDefinitions = EditorGUILayout.ToggleLeft("Fixture / Gobo / Prism Definitions", _includeDefinitions);
             _includeUrpPrefabs = EditorGUILayout.ToggleLeft("URP Prefabs", _includeUrpPrefabs);
@@ -115,7 +113,6 @@ namespace ArtNet.Editor
 
         private void DrawOverwriteOptions()
         {
-            EditorGUILayout.LabelField("更新方法", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("Update Mode", EditorStyles.boldLabel);
             _overwriteMode = (OverwriteMode)EditorGUILayout.EnumPopup("Mode", _overwriteMode);
             EditorGUILayout.HelpBox(GetOverwriteModeDescription(), MessageType.None);
@@ -137,7 +134,6 @@ namespace ArtNet.Editor
         private void DrawCandidateSummary()
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            EditorGUILayout.LabelField("対象一覧", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("Asset List", EditorStyles.boldLabel);
             EditorGUILayout.LabelField($"{_candidates.Count} assets under {TargetRoot}");
 
