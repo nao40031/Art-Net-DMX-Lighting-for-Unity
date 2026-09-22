@@ -747,7 +747,7 @@ namespace ArtNet.Runtime
         [Tooltip("EditモードのTimelineプレビュー時にPan/Tiltと光量を即時反映します。\nApplies Pan/Tilt and light intensity immediately during Timeline preview in Edit mode.")]
         public bool applyImmediateInEditMode = true;
 
-        [Header("Pan/Tilt Speed (deg/sec) - Available only on fixtures with PanTiltSpeed")]
+        [Header("Pan/Tilt Speed Settings")]
         [Tooltip("PanTiltSpeed=0のときの角速度（deg/sec）。\nAngular velocity in degrees per second when PanTiltSpeed = 0.")]
         public float panTiltSpeedMinDegPerSec = 30f;
 
@@ -972,6 +972,24 @@ namespace ArtNet.Runtime
         private float _panTargetSmoothing = 0.15f;
         private float _tiltTargetSmoothing = 0.15f;
 
+        public enum PanTiltSpeedMode
+        {
+            Unresolved,
+            ContinuousDmx,
+            Preset,
+            AutoSmoothing
+        }
+
+        public struct PanTiltSpeedResolution
+        {
+            public PanTiltSpeedMode mode;
+            public float appliedSpeedDegPerSec;
+            public int controlRelativeChannel;
+            public FixtureChannelRange activePresetRange;
+            public int currentDmxValue;
+            public bool isRuntimeValue;
+        }
+
         private enum PanTiltSpeedPreset
         {
             Standard,
@@ -983,6 +1001,8 @@ namespace ArtNet.Runtime
         private FixtureRangeType _pendingPanTiltSpeedRangeType = FixtureRangeType.None;
         private float _pendingPanTiltSpeedStartedAt;
         private bool _hasPanTiltSpeedPresetRanges;
+        private int _lastPanTiltSpeedDmxValue = -1;
+        private float _lastPanTiltSpeedDegPerSec = -1f;
 
         private readonly Dictionary<FixtureFunction, int> _relativeMap = new();
         private readonly Dictionary<ElementKey, ElementBinding> _elementMap = new();
@@ -1319,6 +1339,145 @@ namespace ArtNet.Runtime
 
         public string ActiveProfileLabel => _activeProfileLabel;
         public string ActiveModeLabel => _activeModeLabel;
+
+        /// <summary>
+        /// Inspector用のPan/Tilt速度解決結果です。設定値を変更せず、現在または予定の制御方式を返します。
+        /// Returns the resolved Pan/Tilt speed mode for Inspector display without changing any settings.
+        /// </summary>
+        public PanTiltSpeedResolution GetPanTiltSpeedResolution()
+        {
+            if (!TryGetActiveModeDefinition(out var modeDefinition))
+                return new PanTiltSpeedResolution { mode = PanTiltSpeedMode.Unresolved, appliedSpeedDegPerSec = -1f, currentDmxValue = -1 };
+
+            if (TryGetContinuousPanTiltSpeedSource(modeDefinition, out int continuousChannel))
+            {
+                return new PanTiltSpeedResolution
+                {
+                    mode = PanTiltSpeedMode.ContinuousDmx,
+                    appliedSpeedDegPerSec = Application.isPlaying ? _lastPanTiltSpeedDegPerSec : -1f,
+                    controlRelativeChannel = continuousChannel,
+                    currentDmxValue = Application.isPlaying ? _lastPanTiltSpeedDmxValue : -1,
+                    isRuntimeValue = Application.isPlaying && _lastPanTiltSpeedDmxValue >= 0
+                };
+            }
+
+            if (TryGetPanTiltSpeedPresetSource(modeDefinition, out int presetChannel, out var defaultRange))
+            {
+                var activeRange = FindPresetRangeForPreset(modeDefinition, presetChannel, _panTiltSpeedPreset) ?? defaultRange;
+                return new PanTiltSpeedResolution
+                {
+                    mode = PanTiltSpeedMode.Preset,
+                    appliedSpeedDegPerSec = ResolvePanTiltPresetMaxDegPerSec(_panTiltSpeedPreset),
+                    controlRelativeChannel = presetChannel,
+                    activePresetRange = activeRange,
+                    currentDmxValue = activeRange != null ? activeRange.dmxMin : -1,
+                    isRuntimeValue = Application.isPlaying
+                };
+            }
+
+            return new PanTiltSpeedResolution
+            {
+                mode = PanTiltSpeedMode.AutoSmoothing,
+                appliedSpeedDegPerSec = -1f,
+                currentDmxValue = -1
+            };
+        }
+
+        private bool TryGetActiveModeDefinition(out FixtureModeDefinition modeDefinition)
+        {
+            modeDefinition = null;
+            if (fixture?.modes == null || fixture.modes.Count == 0)
+                return false;
+
+            int modeIndex = Mathf.Clamp(mode, 0, fixture.modes.Count - 1);
+            modeDefinition = fixture.modes[modeIndex];
+            return modeDefinition != null;
+        }
+
+        private static bool TryGetContinuousPanTiltSpeedSource(FixtureModeDefinition modeDefinition, out int relativeChannel)
+        {
+            relativeChannel = 0;
+            if (modeDefinition?.UsesChannelElements() == true && modeDefinition.elements != null)
+            {
+                for (int i = 0; i < modeDefinition.elements.Count; i++)
+                {
+                    var element = modeDefinition.elements[i];
+                    if (element != null && element.attribute == FixtureAttribute.Pan && element.instance == 1 && element.role == FixtureChannelRole.Speed)
+                    {
+                        relativeChannel = i + 1;
+                        return true;
+                    }
+                }
+            }
+
+            if (modeDefinition?.channels == null)
+                return false;
+
+            for (int i = 0; i < modeDefinition.channels.Count; i++)
+            {
+                var channel = modeDefinition.channels[i];
+                if (channel != null && channel.function == FixtureFunction.PanTiltSpeed)
+                {
+                    relativeChannel = Mathf.Clamp(channel.channel, 1, 512);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryGetPanTiltSpeedPresetSource(FixtureModeDefinition modeDefinition, out int relativeChannel, out FixtureChannelRange defaultRange)
+        {
+            relativeChannel = 0;
+            defaultRange = null;
+            if (modeDefinition?.elements == null)
+                return false;
+
+            for (int i = 0; i < modeDefinition.elements.Count; i++)
+            {
+                var element = modeDefinition.elements[i];
+                if (element == null || element.attribute != FixtureAttribute.Control || element.instance != 1 ||
+                    (element.role != FixtureChannelRole.Control && element.role != FixtureChannelRole.Value) || element.ranges == null)
+                    continue;
+
+                for (int j = 0; j < element.ranges.Count; j++)
+                {
+                    var range = element.ranges[j];
+                    if (range != null && TryConvertPanTiltSpeedPreset(range.type, out var preset))
+                    {
+                        if (relativeChannel == 0)
+                        {
+                            relativeChannel = i + 1;
+                            defaultRange = range;
+                        }
+
+                        if (preset == PanTiltSpeedPreset.Standard)
+                            defaultRange = range;
+                    }
+                }
+            }
+
+            return relativeChannel > 0;
+        }
+
+        private static FixtureChannelRange FindPresetRangeForPreset(FixtureModeDefinition modeDefinition, int relativeChannel, PanTiltSpeedPreset preset)
+        {
+            if (modeDefinition?.elements == null || relativeChannel <= 0 || relativeChannel > modeDefinition.elements.Count)
+                return null;
+
+            var element = modeDefinition.elements[relativeChannel - 1];
+            if (element?.ranges == null)
+                return null;
+
+            for (int j = 0; j < element.ranges.Count; j++)
+            {
+                var range = element.ranges[j];
+                if (range != null && TryConvertPanTiltSpeedPreset(range.type, out var candidate) && candidate == preset)
+                    return range;
+            }
+
+            return null;
+        }
 
         public IReadOnlyList<(FixtureFunction function, int relativeCh, int absoluteCh)> GetResolved()
         {
@@ -1815,6 +1974,7 @@ namespace ArtNet.Runtime
             {
                 float sp01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + spRel - 1)); // slow -> fast
                 maxDegPerSec = Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, sp01);
+                UpdatePanTiltSpeedRuntimeState(true, sp01, maxDegPerSec);
             }
 
             // --- Pan ---
@@ -1935,6 +2095,7 @@ namespace ArtNet.Runtime
             {
                 float sp01 = DmxValueUtils.ByteTo01(Read8Abs(universe512, startAddress + spRel - 1)); // slow -> fast
                 maxDegPerSec = Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, sp01);
+                UpdatePanTiltSpeedRuntimeState(true, sp01, maxDegPerSec);
             }
 
             // --- Pan ---
@@ -2002,6 +2163,7 @@ namespace ArtNet.Runtime
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
             float panTiltMaxDegPerSec = ResolvePanTiltMaxDegPerSec(hasPanTiltSpeed, panTiltSpeed01);
+            UpdatePanTiltSpeedRuntimeState(hasPanTiltSpeed, panTiltSpeed01, panTiltMaxDegPerSec);
 
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
@@ -2069,6 +2231,7 @@ namespace ArtNet.Runtime
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
             float panTiltMaxDegPerSec = ResolvePanTiltMaxDegPerSec(hasPanTiltSpeed, panTiltSpeed01);
+            UpdatePanTiltSpeedRuntimeState(hasPanTiltSpeed, panTiltSpeed01, panTiltMaxDegPerSec);
 
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
@@ -2717,12 +2880,25 @@ namespace ArtNet.Runtime
             if (!_hasPanTiltSpeedPresetRanges)
                 return -1f;
 
-            return _panTiltSpeedPreset switch
+            return ResolvePanTiltPresetMaxDegPerSec(_panTiltSpeedPreset);
+        }
+
+        private float ResolvePanTiltPresetMaxDegPerSec(PanTiltSpeedPreset preset)
+        {
+            return preset switch
             {
                 PanTiltSpeedPreset.Fast => panTiltSpeedMaxDegPerSec,
                 PanTiltSpeedPreset.Smooth => panTiltSpeedMinDegPerSec,
                 _ => Mathf.Lerp(panTiltSpeedMinDegPerSec, panTiltSpeedMaxDegPerSec, 0.5f)
             };
+        }
+
+        private void UpdatePanTiltSpeedRuntimeState(bool hasContinuousSpeed, float continuousSpeed01, float appliedSpeedDegPerSec)
+        {
+            _lastPanTiltSpeedDmxValue = hasContinuousSpeed
+                ? Mathf.Clamp(Mathf.RoundToInt(Mathf.Clamp01(continuousSpeed01) * 255f), 0, 255)
+                : -1;
+            _lastPanTiltSpeedDegPerSec = appliedSpeedDegPerSec;
         }
 
         private static bool TryConvertPanTiltSpeedPreset(FixtureRangeType type, out PanTiltSpeedPreset preset)
@@ -2748,6 +2924,8 @@ namespace ArtNet.Runtime
         {
             _panTiltSpeedPreset = PanTiltSpeedPreset.Standard;
             ClearPendingPanTiltSpeedPreset();
+            _lastPanTiltSpeedDmxValue = -1;
+            _lastPanTiltSpeedDegPerSec = -1f;
         }
 
         private void ClearPendingPanTiltSpeedPreset()

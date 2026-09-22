@@ -16,6 +16,9 @@ namespace ArtNet.Editor
     [CanEditMultipleObjects]
     public sealed class DmxFixtureComponentEditor : UnityEditor.Editor
     {
+        private static int _sourceFocusFixtureId;
+        private static string _sourceFocusPropertyPath;
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -26,6 +29,9 @@ namespace ArtNet.Editor
             {
                 if (ShouldDrawIrisBefore(property.propertyPath))
                     DrawIrisSection();
+
+                if (property.propertyPath == "panTiltSpeedMinDegPerSec")
+                    DrawPanTiltSpeedResolution();
 
                 if (property.propertyPath == "lensMaterialBindings")
                 {
@@ -64,6 +70,120 @@ namespace ArtNet.Editor
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawPanTiltSpeedResolution()
+        {
+            if (targets.Length != 1 || target is not DmxFixtureComponent fixture)
+            {
+                EditorGUILayout.HelpBox("Pan/Tilt Speed Resolution is available when one fixture is selected.", MessageType.Info);
+                return;
+            }
+
+            var resolution = fixture.GetPanTiltSpeedResolution();
+            EditorGUILayout.Space(6f);
+            EditorGUILayout.LabelField("Pan/Tilt Speed Resolution", EditorStyles.boldLabel);
+
+            switch (resolution.mode)
+            {
+                case DmxFixtureComponent.PanTiltSpeedMode.ContinuousDmx:
+                    EditorGUILayout.LabelField("Speed Mode", "Continuous DMX");
+                    EditorGUILayout.LabelField("Active Setting", resolution.isRuntimeValue ? $"DMX {resolution.currentDmxValue}" : "DMX Input (0-255)");
+                    EditorGUILayout.LabelField("Applied Speed", resolution.isRuntimeValue
+                        ? $"{resolution.appliedSpeedDegPerSec:0.##} deg/sec"
+                        : $"{fixture.panTiltSpeedMinDegPerSec:0.##} - {fixture.panTiltSpeedMaxDegPerSec:0.##} deg/sec");
+                    EditorGUILayout.LabelField("Speed Range Status", "Applied (DMX Interpolation)");
+                    DrawControlSource(fixture, resolution, $"{GetFixtureAndModeLabel(fixture)} / Ch {resolution.controlRelativeChannel} / Pan Tilt Speed");
+                    DrawSpeedRangeSource(fixture);
+                    break;
+
+                case DmxFixtureComponent.PanTiltSpeedMode.Preset:
+                    string presetName = GetPresetName(resolution.activePresetRange);
+                    EditorGUILayout.LabelField("Speed Mode", "Preset");
+                    EditorGUILayout.LabelField("Active Setting", presetName);
+                    EditorGUILayout.LabelField("Applied Speed", $"{resolution.appliedSpeedDegPerSec:0.##} deg/sec");
+                    EditorGUILayout.LabelField("Speed Range Status", "Applied (Preset)");
+                    string dmxValue = resolution.activePresetRange != null
+                        ? $" / DMX {resolution.activePresetRange.dmxMin}"
+                        : string.Empty;
+                    DrawControlSource(fixture, resolution, $"{GetFixtureAndModeLabel(fixture)} / Ch {resolution.controlRelativeChannel} / {presetName}{dmxValue}");
+                    DrawSpeedRangeSource(fixture);
+                    break;
+
+                case DmxFixtureComponent.PanTiltSpeedMode.AutoSmoothing:
+                    EditorGUILayout.LabelField("Speed Mode", "Auto Smoothing");
+                    EditorGUILayout.LabelField("Applied Setting", $"Pan/Tilt Smoothing = {fixture.panTiltSmoothing:0.##}");
+                    EditorGUILayout.LabelField("Applied Speed", "—");
+                    EditorGUILayout.LabelField("Speed Range Status", "Not Applied");
+                    EditorGUILayout.LabelField("Source", "Dmx Fixture Component / Pan/Tilt Smoothing");
+                    if (GUILayout.Button("Open Source Setting"))
+                        FocusComponentSetting(fixture, "panTiltSmoothing");
+                    break;
+
+                default:
+                    EditorGUILayout.LabelField("Speed Mode", "Unresolved");
+                    EditorGUILayout.LabelField("Source", "Fixture Definition / Mode");
+                    if (GUILayout.Button("Open Source Setting"))
+                        FocusComponentSetting(fixture, "fixture");
+                    break;
+            }
+
+            if (_sourceFocusFixtureId == fixture.GetInstanceID())
+            {
+                EditorGUILayout.HelpBox($"Source setting: {_sourceFocusPropertyPath}", MessageType.Info);
+                _sourceFocusFixtureId = 0;
+                _sourceFocusPropertyPath = null;
+            }
+
+            EditorGUILayout.Space(4f);
+        }
+
+        private static void DrawControlSource(DmxFixtureComponent fixture, DmxFixtureComponent.PanTiltSpeedResolution resolution, string label)
+        {
+            EditorGUILayout.LabelField("Control Source", label);
+            if (GUILayout.Button("Open Control Source"))
+                FixtureDefinitionSourceNavigator.Open(fixture.fixture, fixture.mode, resolution.controlRelativeChannel, resolution.activePresetRange);
+        }
+
+        private static void DrawSpeedRangeSource(DmxFixtureComponent fixture)
+        {
+            EditorGUILayout.LabelField("Speed Range Source", $"Dmx Fixture Component / Min {fixture.panTiltSpeedMinDegPerSec:0.##} / Max {fixture.panTiltSpeedMaxDegPerSec:0.##} deg/sec");
+            if (GUILayout.Button("Open Speed Range Settings"))
+                FocusComponentSetting(fixture, "panTiltSpeedMinDegPerSec");
+        }
+
+        private static string GetFixtureAndModeLabel(DmxFixtureComponent fixture)
+        {
+            if (fixture.fixture == null) return "(No Fixture)";
+            string modeName = "(No Mode)";
+            if (fixture.fixture.modes != null && fixture.fixture.modes.Count > 0)
+            {
+                int modeIndex = Mathf.Clamp(fixture.mode, 0, fixture.fixture.modes.Count - 1);
+                modeName = fixture.fixture.modes[modeIndex]?.modeName;
+                if (string.IsNullOrWhiteSpace(modeName)) modeName = $"Mode {modeIndex}";
+            }
+
+            return $"{fixture.fixture.GetDisplayLabel()} / {modeName}";
+        }
+
+        private static string GetPresetName(FixtureChannelRange range)
+        {
+            return range?.type switch
+            {
+                FixtureRangeType.PanTiltSpeedFast => "Fast",
+                FixtureRangeType.PanTiltSpeedSmooth => "Smooth",
+                FixtureRangeType.PanTiltSpeedStandard => "Standard",
+                _ => "Standard"
+            };
+        }
+
+        private static void FocusComponentSetting(DmxFixtureComponent fixture, string propertyPath)
+        {
+            _sourceFocusFixtureId = fixture.GetInstanceID();
+            _sourceFocusPropertyPath = propertyPath;
+            Selection.activeObject = fixture;
+            EditorGUIUtility.PingObject(fixture);
+            ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
         private void DrawOptionalPrismShadowWarning(SerializedProperty auxiliaryLightShadows)
@@ -397,6 +517,35 @@ namespace ArtNet.Editor
                 EditorUtility.SetDirty(fixture);
                 PrefabUtility.RecordPrefabInstancePropertyModifications(fixture);
             }
+        }
+    }
+
+    internal static class FixtureDefinitionSourceNavigator
+    {
+        private static FixtureDefinition _definition;
+        private static int _modeIndex = -1;
+        private static int _relativeChannel;
+        private static FixtureChannelRange _range;
+
+        internal static void Open(FixtureDefinition definition, int modeIndex, int relativeChannel, FixtureChannelRange range)
+        {
+            if (definition == null) return;
+
+            _definition = definition;
+            _modeIndex = modeIndex;
+            _relativeChannel = relativeChannel;
+            _range = range;
+            Selection.activeObject = definition;
+            EditorGUIUtility.PingObject(definition);
+            ActiveEditorTracker.sharedTracker.ForceRebuild();
+        }
+
+        internal static bool TryGetTarget(FixtureDefinition definition, out int modeIndex, out int relativeChannel, out FixtureChannelRange range)
+        {
+            modeIndex = _modeIndex;
+            relativeChannel = _relativeChannel;
+            range = _range;
+            return definition != null && definition == _definition && modeIndex >= 0 && relativeChannel > 0;
         }
     }
 }
