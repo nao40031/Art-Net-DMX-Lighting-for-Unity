@@ -5735,8 +5735,8 @@ namespace ArtNet.Runtime
 
         private void SetPanTarget(float panDeg, float maxDegPerSec, float smoothing01, float accelerationTime = 0f, float decelerationTime = 0f)
         {
-            _panTargetDeg = panDeg;
-            _panTargetLocalRot = _panBaseLocalRot * Quaternion.AngleAxis(panDeg, AxisToVector(panAxis));
+            _panTargetDeg = ClampPanDegrees(panDeg);
+            _panTargetLocalRot = _panBaseLocalRot * Quaternion.AngleAxis(_panTargetDeg, AxisToVector(panAxis));
             _hasPanTarget = true;
             _panTargetMaxDegPerSec = maxDegPerSec;
             _panTargetSmoothing = smoothing01;
@@ -5746,8 +5746,7 @@ namespace ArtNet.Runtime
 
         private void SetTiltTarget(float tiltDeg, float maxDegPerSec, float smoothing01, float accelerationTime = 0f, float decelerationTime = 0f)
         {
-            float halfRange = Mathf.Max(0f, tiltRangeDeg) * 0.5f;
-            _tiltTargetDeg = Mathf.Clamp(tiltDeg, tiltOffsetDeg - halfRange, tiltOffsetDeg + halfRange);
+            _tiltTargetDeg = ClampTiltDegrees(tiltDeg);
             _tiltTargetLocalRot = _tiltBaseLocalRot * Quaternion.AngleAxis(_tiltTargetDeg, AxisToVector(tiltAxis));
             _hasTiltTarget = true;
             _tiltTargetMaxDegPerSec = maxDegPerSec;
@@ -5763,11 +5762,7 @@ namespace ArtNet.Runtime
             // 最初のDMX目標値が来るまでは何もしない
             if (panTransform != null && _hasPanTarget)
             {
-                if (_panTargetAccelerationTime > 0f || _panTargetDecelerationTime > 0f)
-                    ApplyPanToTarget();
-                else
-                    ApplyRotationToTarget(panTransform, _panTargetLocalRot, _panTargetMaxDegPerSec, _panTargetSmoothing,
-                        0f, 0f, ref _panCurrentSpeedDegPerSec);
+                ApplyPanToTarget();
             }
 
             if (tiltTransform != null && _hasTiltTarget)
@@ -5798,8 +5793,6 @@ namespace ArtNet.Runtime
                 {
                     UpdateAxisPosition(ref _tiltCurrentDeg, _tiltTargetDeg, ref _tiltCurrentSpeedDegPerSec,
                         _tiltTargetMaxDegPerSec, _tiltTargetAccelerationTime, _tiltTargetDecelerationTime, dt);
-                    float halfRange = Mathf.Max(0f, tiltRangeDeg) * 0.5f;
-                    _tiltCurrentDeg = Mathf.Clamp(_tiltCurrentDeg, tiltOffsetDeg - halfRange, tiltOffsetDeg + halfRange);
                 }
             }
             else if (_tiltTargetSmoothing <= 0f)
@@ -5817,6 +5810,7 @@ namespace ArtNet.Runtime
             // Keep Tilt inside its signed mechanical interval. Quaternion interpolation
             // would choose the shorter route through the fixture underside between
             // +135 and -135 degrees on a 270-degree fixture.
+            _tiltCurrentDeg = ClampTiltDegrees(_tiltCurrentDeg);
             tiltTransform.localRotation = _tiltBaseLocalRot * Quaternion.AngleAxis(_tiltCurrentDeg, AxisToVector(tiltAxis));
         }
 
@@ -5824,19 +5818,54 @@ namespace ArtNet.Runtime
         {
             if (panTransform == null) return;
 
-            if (_panTargetMaxDegPerSec <= 0f)
+            if (_panTargetMaxDegPerSec > 0f)
             {
+                float dt = Mathf.Max(0.0001f, Time.deltaTime);
+                float remaining = Mathf.Abs(_panTargetDeg - _panCurrentDeg);
+                if (remaining <= 0.0001f)
+                {
+                    _panCurrentDeg = _panTargetDeg;
+                    _panCurrentSpeedDegPerSec = 0f;
+                }
+                else if (_panTargetAccelerationTime <= 0f && _panTargetDecelerationTime <= 0f)
+                {
+                    _panCurrentDeg = Mathf.MoveTowards(_panCurrentDeg, _panTargetDeg, _panTargetMaxDegPerSec * dt);
+                    _panCurrentSpeedDegPerSec = 0f;
+                }
+                else
+                {
+                    UpdateAxisPosition(ref _panCurrentDeg, _panTargetDeg, ref _panCurrentSpeedDegPerSec,
+                        _panTargetMaxDegPerSec, _panTargetAccelerationTime, _panTargetDecelerationTime, dt);
+                }
+            }
+            else if (_panTargetSmoothing <= 0f)
+            {
+                _panCurrentDeg = _panTargetDeg;
                 _panCurrentSpeedDegPerSec = 0f;
-                panTransform.localRotation = _panTargetLocalRot;
-                return;
+            }
+            else
+            {
+                float k = ComputePanTiltSmoothingFactor(_panTargetSmoothing, Time.deltaTime);
+                _panCurrentDeg = Mathf.Lerp(_panCurrentDeg, _panTargetDeg, k);
+                if (Mathf.Abs(_panTargetDeg - _panCurrentDeg) < 0.0001f)
+                    _panCurrentDeg = _panTargetDeg;
+                _panCurrentSpeedDegPerSec = 0f;
             }
 
-            UpdateAxisPosition(ref _panCurrentDeg, _panTargetDeg, ref _panCurrentSpeedDegPerSec,
-                _panTargetMaxDegPerSec, _panTargetAccelerationTime, _panTargetDecelerationTime,
-                Mathf.Max(0.0001f, Time.deltaTime));
-            float halfRange = Mathf.Max(0f, panRangeDeg) * 0.5f;
-            _panCurrentDeg = Mathf.Clamp(_panCurrentDeg, panOffsetDeg - halfRange, panOffsetDeg + halfRange);
+            _panCurrentDeg = ClampPanDegrees(_panCurrentDeg);
             panTransform.localRotation = _panBaseLocalRot * Quaternion.AngleAxis(_panCurrentDeg, AxisToVector(panAxis));
+        }
+
+        private float ClampPanDegrees(float degrees)
+        {
+            float halfRange = Mathf.Max(0f, panRangeDeg) * 0.5f;
+            return Mathf.Clamp(degrees, panOffsetDeg - halfRange, panOffsetDeg + halfRange);
+        }
+
+        private float ClampTiltDegrees(float degrees)
+        {
+            float halfRange = Mathf.Max(0f, tiltRangeDeg) * 0.5f;
+            return Mathf.Clamp(degrees, tiltOffsetDeg - halfRange, tiltOffsetDeg + halfRange);
         }
 
         private static void ApplyRotationToTarget(Transform t, Quaternion targetLocalRot, float maxDegPerSec, float smoothing01,

@@ -744,7 +744,7 @@ MonoBehaviour:
   panAxis: 2
   tiltAxis: 0
   panInvert: 1
-  tiltInvert: 1
+  tiltInvert: 0
   panOffsetDeg: 0
   tiltOffsetDeg: 0
   panTiltSmoothing: 12
