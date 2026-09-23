@@ -28,6 +28,7 @@ namespace ArtNet.Editor
         private const string ManifestPath = TargetRoot + "/EditableAssetLibraryManifest.asset";
         private const string StagingRoot = TargetRoot + "/.ArtNetStaging";
         private const string MenuPath = "Art-Net/Assets/Editable Asset Library...";
+        private static readonly Color PrimaryButtonColor = new(0.28f, 0.72f, 0.36f, 1f);
 
         private readonly List<Candidate> _candidates = new();
         private readonly HashSet<string> _selectedPaths = new(StringComparer.OrdinalIgnoreCase);
@@ -173,14 +174,23 @@ namespace ArtNet.Editor
         private void DrawActions()
         {
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("再検索\nRefresh", GUILayout.Height(36f)))
+            if (GUILayout.Button("Refresh", GUILayout.Height(36f)))
                 RefreshCandidates();
 
             bool canApply = _candidates.Count > 0 && GetApplicableCandidates().Count > 0;
             using (new EditorGUI.DisabledScope(!canApply))
             {
-                if (GUILayout.Button("編集用アセットを展開・更新\nExport / Update Editable Assets", GUILayout.Height(36f)))
-                    Apply();
+                Color previousBackgroundColor = GUI.backgroundColor;
+                GUI.backgroundColor = PrimaryButtonColor;
+                try
+                {
+                    if (GUILayout.Button("Export / Update Editable Assets", GUILayout.Height(36f)))
+                        Apply();
+                }
+                finally
+                {
+                    GUI.backgroundColor = previousBackgroundColor;
+                }
             }
             EditorGUILayout.EndHorizontal();
 
@@ -325,13 +335,13 @@ namespace ArtNet.Editor
         {
             return status switch
             {
-                CandidateStatus.New => "新規 / New",
-                CandidateStatus.UpToDate => "最新 / Up to date",
-                CandidateStatus.PackageChanged => "配布更新 / Package changed",
-                CandidateStatus.UserEdited => "ユーザー編集済み / User edited",
-                CandidateStatus.PackageAndUserChanged => "双方更新 / Both changed",
-                CandidateStatus.MissingTarget => "コピー先なし / Missing target",
-                _ => "保護中 / Protected"
+                CandidateStatus.New => "New",
+                CandidateStatus.UpToDate => "Up to date",
+                CandidateStatus.PackageChanged => "Package changed",
+                CandidateStatus.UserEdited => "User edited",
+                CandidateStatus.PackageAndUserChanged => "Both changed",
+                CandidateStatus.MissingTarget => "Missing target",
+                _ => "Protected"
             };
         }
 
@@ -395,9 +405,8 @@ namespace ArtNet.Editor
             var candidates = GetApplicableCandidates();
             if (candidates.Count == 0) return;
 
-            string message = $"対象: {candidates.Count}件\n更新方式: {GetStatusLabelForMode()}\n出力先: {TargetRoot}\n\n管理対象の既存アセットだけが上書き候補です。未管理の独自アセットは変更しません。\n\n" +
-                             $"Assets: {candidates.Count}\nMode: {GetStatusLabelForMode()}\nTarget: {TargetRoot}\n\nOnly existing managed assets can be overwritten. Unmanaged custom assets will not be changed.";
-            if (!EditorUtility.DisplayDialog("Art-Net Editable Asset Library", message, "実行 / Apply", "キャンセル / Cancel"))
+            string message = $"Assets: {candidates.Count}\nMode: {GetStatusLabelForMode()}\nTarget: {TargetRoot}\n\nOnly existing managed assets can be overwritten. Unmanaged custom assets will not be changed.";
+            if (!EditorUtility.DisplayDialog("Art-Net Editable Asset Library", message, "Apply", "Cancel"))
                 return;
 
             try
@@ -409,14 +418,14 @@ namespace ArtNet.Editor
                 RefreshCandidates();
                 AssetDatabase.SaveAssets();
                 string result = errors.Count == 0
-                    ? $"{candidates.Count}件の編集用アセットを更新しました。\n\nUpdated {candidates.Count} editable asset(s)."
-                    : $"完了しましたが、{errors.Count}件で問題が発生しました。\n\nCompleted with {errors.Count} issue(s).\n\n" + string.Join("\n", errors.Take(8));
+                    ? $"Updated {candidates.Count} editable asset(s)."
+                    : $"Completed with {errors.Count} issue(s).\n\n" + string.Join("\n", errors.Take(8));
                 EditorUtility.DisplayDialog("Art-Net Editable Asset Library", result, "OK");
             }
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                EditorUtility.DisplayDialog("Art-Net Editable Asset Library", $"編集用アセットの更新に失敗しました。\n\nEditable asset update failed.\n\n{exception.Message}", "OK");
+                EditorUtility.DisplayDialog("Art-Net Editable Asset Library", $"Editable asset update failed.\n\n{exception.Message}", "OK");
                 RefreshCandidates();
             }
         }
@@ -425,9 +434,9 @@ namespace ArtNet.Editor
         {
             return _overwriteMode switch
             {
-                OverwriteMode.ChooseAssets => "一部上書き / Choose assets",
-                OverwriteMode.ReplaceAllManaged => "すべて上書き / Replace all managed",
-                _ => "上書きしない / Skip existing"
+                OverwriteMode.ChooseAssets => "Choose assets",
+                OverwriteMode.ReplaceAllManaged => "Replace all managed",
+                _ => "Skip existing"
             };
         }
 
