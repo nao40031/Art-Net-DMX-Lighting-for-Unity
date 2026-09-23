@@ -1,63 +1,75 @@
 # Art-Net DMX Lighting for Unity
 
-Unity上でArt-Net/DMXを受信し、Fixture単位でライト・Pan/Tilt・レンズ表現まで制御するシステムです。  
-ライブ受信とTimeline再生の両方に対応しています。
+[![Unity CI](https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity/actions/workflows/unity-ci.yml/badge.svg?branch=release)](https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity/actions/workflows/unity-ci.yml)
+[![Release](https://img.shields.io/github/v/tag/nao40031/Art-Net-DMX-Lighting-for-Unity?label=release)](https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity/tags)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity/blob/release/Packages/jp.oshino.art-net-dmx-lighting-for-unity/LICENSE.md)
 
-## サンプルシーン
+[English](README.md) | [日本語](README_ja.md)
 
-[![サンプルシーン1](docs/sample-scene/scene1-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2030463515891220541?s=20)  
+A Unity system that receives Art-Net/DMX and controls lights, Pan/Tilt, and lens effects per fixture. It supports both live input and Timeline playback.
+
+## Sample scenes
+
+[![Sample scene 1](docs/sample-scene/scene1-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2030463515891220541?s=20)  
 https://x.com/Oshino_Tech/status/2030463515891220541?s=20
 
-[![サンプルシーン2](docs/sample-scene/scene2-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2025485134578028589?s=20)  
+[![Sample scene 2](docs/sample-scene/scene2-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2025485134578028589?s=20)  
 https://x.com/Oshino_Tech/status/2025485134578028589?s=20
 
-## このリポジトリでできること
+## Documentation
 
-- Art-Net DMX受信（Universe単位）
-- Fixtureプロファイルに基づくDMX制御
-- カラー（RGB）/Dimmer/Pan/Tiltの適用
-- Built-in/URP向けとHDRP向けのLightDriver切替
-- Timeline経由の再生（`ArtNetChannels` + `DmxTimelinePlayback`）
-- DMX記録とAnimationClip書き出し（Recorder）
-- Editor拡張によるPrefab置換・ライト複製・CSV書き出し
+- Quick start: this README
+- Detailed script guide: [Japanese guide](./docs/DEVELOPED_SCRIPTS_GUIDE_JA.md) *(currently available in Japanese)*
+- Project documentation: [Art-Net DMX Lighting for Unity by Oshino](https://sleepy-smoke-ee3.notion.site/Art-Net-DMX-Lighting-for-Unity-by-Oshino-313d1c2c96f580be8e67eef37628ef5f?source=copy_link)
 
-## 詳細ドキュメント
+## Features
 
-詳細は以下の Notion ページをご確認ください。
+- Art-Net DMX reception by Universe
+- Fixture-profile-based DMX control
+- Color (RGB), Dimmer, and Pan/Tilt application
+- LightDriver switching for Built-in/URP and HDRP
+- Timeline playback with ArtNetChannels and DmxTimelinePlayback
+- DMX recording and AnimationClip export
+- Editor tools for prefab replacement, light duplication, and CSV export
 
-- [Art-Net DMX Lighting for Unity by Oshino](https://sleepy-smoke-ee3.notion.site/Art-Net-DMX-Lighting-for-Unity-by-Oshino-313d1c2c96f580be8e67eef37628ef5f?source=copy_link)
+## MagicQ show data
 
-## プロジェクトの取得方法
+MagicQ show data is included and can be obtained through GitHub's Download ZIP or git clone.
 
-このリポジトリには Git LFS 管理ファイル（`.unity` / `.fbx` など）が含まれます。  
-`Download ZIP` では実体ではなくポインタファイルになる場合があるため、以下の手順で取得してください。
+- Location: `MagicQ/show`
+- [ArtNetTest_LiveLightingTest6(Public).sbk](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.sbk)
+- [ArtNetTest_LiveLightingTest6(Public).shw](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.shw)
+- [ArtNetTest_LiveLightingTest6(Public).xhw](./MagicQ/show/ArtNetTest_LiveLightingTest6%28Public%29.xhw)
 
-1. PowerShell を「通常権限」で開き、`winget` が使えるか確認します。
+Copy the files you need to `C:\Users\<username>\Documents\MagicQ\show`.
+
+## Getting the project (recommended)
+
+This repository includes Git LFS-managed files such as `.unity` and `.fbx`. A Git clone is recommended because a GitHub ZIP download may contain LFS pointer files instead of their actual contents.
+
+### Windows
+
+1. Open PowerShell with standard user permissions, then verify `winget`.
 
 ```powershell
 winget --version
 ```
 
-2. Git をインストールします。
+2. Install Git and Git LFS.
 
 ```powershell
 winget install --id Git.Git -e --source winget
-```
-
-3. Git LFS をインストールします。
-
-```powershell
 winget install --id GitHub.GitLFS -e --source winget
 ```
 
-4. PowerShell を一度閉じて開き直し、インストール確認をします。
+3. Restart PowerShell and verify the installation.
 
 ```powershell
 git --version
 git lfs version
 ```
 
-5. 取得コマンドを実行します（`git lfs install` は最初の1回だけ）。
+4. Clone the project. Run `git lfs install` only once per machine.
 
 ```powershell
 git lfs install
@@ -67,153 +79,83 @@ git lfs pull
 git lfs checkout
 ```
 
-6. 取得したフォルダの場所は、次のコマンドを実行して確認します。
+5. Confirm the project path, or open it in Explorer.
 
 ```powershell
-Write-Host "取得完了フォルダ: $((Get-Location).Path)"
-```
-
-必要なら次を実行して、取得フォルダをエクスプローラーで開けます。
-
-```powershell
+Write-Host "Project folder: $((Get-Location).Path)"
 explorer .
 ```
 
-`git clone` は、PowerShellを開いている現在のフォルダ配下に作成されます。  
-現在位置の確認は `pwd`、任意の保存先に移動する場合は `cd <保存先パス>` を先に実行してください。
+`git clone` creates the project under the folder currently open in PowerShell. Check it with `pwd`, or run `cd <destination path>` first. The PowerShell prompt path, such as `PS C:\...\Art-Net-DMX-Lighting-for-Unity>`, is the project location.
 
-```powershell
-pwd
-```
+6. In Unity Hub, select `Add`, choose the `Art-Net-DMX-Lighting-for-Unity` folder, and open it.
 
-PowerShell のプロンプト（`PS C:\...\Art-Net-DMX-Lighting-for-Unity>`）に表示されるパスも、同じ取得先フォルダです。
+If `winget` is unavailable, install Git and Git LFS with their standard installers, then continue from step 3.
 
-7. Unity Hub で `Add` を押し、`Art-Net-DMX-Lighting-for-Unity` フォルダを選択して開きます。
+### macOS
 
-`winget` が使えない場合は、Git と Git LFS を通常インストーラーで入れた後に手順 4 以降を実行してください。
-
-### macOSで取得する場合
-
-このリポジトリには Git LFS 管理ファイル（`.unity` / `.fbx` など）が含まれます。  
-`Download ZIP` では実体ではなくポインタファイルになる場合があるため、以下の手順で取得してください。
-
-1. Terminal で Git のバージョンを確認します。
+1. Open Terminal and verify `brew`.
 
 ```bash
+brew --version
+```
+
+2. Install Git and Git LFS, then verify the installation.
+
+```bash
+brew install git git-lfs
 git --version
-```
-
-もし以下のように「Developer tools が見つからない」と表示された場合は、Command Line Tools のインストールが必要です。
-
-- `xcode-select: note: No developer tools were found, requesting install.`
-
-その場合は、次を実行してインストールしてください。
-
-```bash
-xcode-select --install
-```
-
-インストール完了後、再度 Git が使えるか確認します。
-
-```bash
-git --version
-```
-
-2. 次に Git LFS を確認します。
-
-```bash
 git lfs version
 ```
 
-もし次のように表示された場合、Git LFS はまだ未導入です。
-
-- `git: 'lfs' is not a git command. See 'git --help'.`
-
-未導入の場合は、次のステップで Git LFS をインストールします。
-
-3. Git LFS の配布ページ（Releases または公式サイト）から **macOS 向けバイナリ**をダウンロードします。  
-ダウンロード後、解凍（展開）すると `git-lfs-3.7.1` のようなフォルダができます（※バージョン番号は異なってOK）。
-
-4. まず Downloads に移動し、展開されたフォルダに入ります。
-
-```bash
-cd ~/Downloads
-cd git-lfs-3.7.1
-ls
-```
-
-`install.sh` があることを確認したら実行します。
-
-```bash
-./install.sh
-```
-
-もし次のような権限エラーが出た場合は、`sudo` を付けて実行してください。
-
-- `Error: Insufficient permissions to install in /usr/local. Try running with sudo or choose a different prefix.`
-
-```bash
-sudo ./install.sh
-```
-
-`sudo` 実行時にパスワード入力を求められますが、入力中は文字が表示されなくても正常です（そのまま入力して Enter）。
-
-成功すると `Git LFS initialized.` のような表示が出ます。
-
-5. インストール後、念のため Git LFS を初期化します（1回だけでOK）。
+3. Clone the project. Run `git lfs install` only once per machine.
 
 ```bash
 git lfs install
-```
-
-最後にバージョンが表示されることを確認します。
-
-```bash
-git lfs version
-```
-
-`git-lfs/3.x.x` のように表示されればインストール完了です。
-
-Git LFS の導入後、以下の手順でリポジトリを取得してください。
-
-```bash
-cd ~
 git clone https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git
 cd Art-Net-DMX-Lighting-for-Unity
 git lfs pull
 git lfs checkout
-git lfs ls-files
 ```
 
-Finder でフォルダを開く場合：
+4. Confirm the project path, or open it in Finder.
 
 ```bash
+echo "Project folder: $(pwd)"
 open .
 ```
 
+`git clone` creates the project under the folder currently open in Terminal. Check it with `pwd`, or run `cd <destination path>` first.
 
-## クイックスタート（ライブ受信）
+If `brew` is unavailable, install Homebrew first and then continue from step 1.
 
-1. シーンに `ArtNetReceiver` を配置し、`host` と `port`（通常 `6454`）を設定します。
-2. シーンに `DmxRigController` を配置し、`receiver` を割り当てます。
-3. 制御対象オブジェクトに `DmxFixtureComponent` を追加します。
-4. `DmxFixtureComponent` に `fixture`（`FixtureDefinition`）と `mode`、`universe`、`startAddress` を設定します。
-5. `targetLight`/`targetLights`、必要に応じて `panTransform`/`tiltTransform` を設定します。
-6. `DmxRigController` の `Discover & Initialize Fixtures` を実行します。
-7. Art-Net送信側からDMXを送信して動作確認します。
+## Quick start: live Art-Net input
 
-## クイックスタート（Timeline再生）
+1. Add `ArtNetReceiver` to the scene and set `host` and `port` (usually `6454`).
+2. Add `DmxRigController` and assign the `receiver`.
+3. Add `DmxFixtureComponent` to each controlled object.
+4. Set `fixture` (`FixtureDefinition`), `mode`, `universe`, and `startAddress`.
+5. Assign `targetLight`/`targetLights`; set `panTransform`/`tiltTransform` if required.
+6. Run `Discover & Initialize Fixtures` on `DmxRigController`.
+7. Send DMX from an Art-Net sender and verify the result.
 
-1. `ArtNetChannels` を再生ソース用オブジェクトに追加し、`Ch1..Ch512` をAnimation/Timelineで駆動します。
-2. `DmxTimelinePlayback` を配置し、`rig` に `DmxRigController` を割り当てます。
-3. `sources` に `universe` + `ArtNetChannels` の組を追加します。
-4. 必要に応じて `overrideRigInputMode` を有効化し、`PlaybackOnly` で再生します。
+## Quick start: Timeline playback
 
-## レコーディング（DMXからClip化）
+1. Add `ArtNetChannels` to the playback source and drive `Ch1..Ch512` using Animation or Timeline.
+2. Add `DmxTimelinePlayback` and assign `DmxRigController` to `rig`.
+3. Add pairs of `universe` and `ArtNetChannels` to `sources`.
+4. If needed, enable `overrideRigInputMode` and use `PlaybackOnly`.
 
-1. `ArtNetReceiverDmxRecorder`（`ArtNetDataRecorder.cs`）を配置し `receiver` を設定します。
-2. `Start Recording` で録画開始、`Stop & Save` で停止保存します。
-3. `Assets/<directoryPath>` に `ArtNetChannels` 向けAnimationClipが保存されます。
+## Recording: create clips from DMX
+
+1. Add `ArtNetReceiverDmxRecorder` (`ArtNetDataRecorder.cs`) and assign `receiver`.
+2. Select `Start Recording`, then select `Stop & Save`.
+3. An `ArtNetChannels` AnimationClip is saved to `Assets/<directoryPath>`.
+
+## Notes
+
+- Refer to the detailed guide for parameter specifications for each script.
+- `Assets/Editor` contains Editor tools; `Assets/ArtNet` contains the runtime and playback implementation.
 
 ## License
 
@@ -221,6 +163,7 @@ open .
 - Unity-chan-related assets use **Unity-chan License 3.0 (UCL 3.0)**.
 
 ### Unity-chan License 3.0 documents
+
 - `Assets/Avatar/Unity-chan/License/EN_Unity-Chan License Terms and Condition_UCL3.0.pdf`
 - `Assets/Avatar/Unity-chan/License/JP_Unity-Chan License Terms and Condition_UCL3.0.pdf`
 - `Assets/Avatar/Unity-chan/License/License Logo/` (logo usage/identity guidance)
