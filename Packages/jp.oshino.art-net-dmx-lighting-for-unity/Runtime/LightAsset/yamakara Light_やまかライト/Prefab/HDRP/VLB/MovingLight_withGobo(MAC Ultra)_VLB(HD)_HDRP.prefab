@@ -734,7 +734,7 @@ MonoBehaviour:
   halogenBeamRiseTime: 0.06
   halogenBeamFallTime: 0.08
   panRangeDeg: 540
-  tiltRangeDeg: 270
+  tiltRangeDeg: 268
   pipelineMode: 0
   driverOverride: {fileID: 0}
   autoAddDriverIfMissing: 1
@@ -743,8 +743,8 @@ MonoBehaviour:
   overrideDriverMaxIntensity: 1
   panAxis: 2
   tiltAxis: 0
-  panInvert: 0
-  tiltInvert: 0
+  panInvert: 1
+  tiltInvert: 1
   panOffsetDeg: 0
   tiltOffsetDeg: 0
   panTiltSmoothing: 12

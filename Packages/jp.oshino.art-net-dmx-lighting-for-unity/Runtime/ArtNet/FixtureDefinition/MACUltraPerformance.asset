@@ -388,3 +388,19 @@ MonoBehaviour:
     - attribute: 12
       instance: 1
       goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}
+    panTiltSpeedProfiles:
+    - preset: 20
+      panMaxDegPerSec: 140
+      tiltMaxDegPerSec: 95
+      accelerationTime: 0.75
+      decelerationTime: 0.75
+    - preset: 21
+      panMaxDegPerSec: 210
+      tiltMaxDegPerSec: 143
+      accelerationTime: 0.5
+      decelerationTime: 0.5
+    - preset: 22
+      panMaxDegPerSec: 70
+      tiltMaxDegPerSec: 48
+      accelerationTime: 1.2
+      decelerationTime: 1.2

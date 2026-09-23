@@ -965,12 +965,20 @@ namespace ArtNet.Runtime
         private bool _hasTiltTarget;
         private Quaternion _panTargetLocalRot;
         private Quaternion _tiltTargetLocalRot;
+        private float _panCurrentDeg;
+        private float _panTargetDeg;
         private float _tiltCurrentDeg;
         private float _tiltTargetDeg;
         private float _panTargetMaxDegPerSec = -1f;
         private float _tiltTargetMaxDegPerSec = -1f;
         private float _panTargetSmoothing = 0.15f;
         private float _tiltTargetSmoothing = 0.15f;
+        private float _panTargetAccelerationTime;
+        private float _tiltTargetAccelerationTime;
+        private float _panTargetDecelerationTime;
+        private float _tiltTargetDecelerationTime;
+        private float _panCurrentSpeedDegPerSec;
+        private float _tiltCurrentSpeedDegPerSec;
 
         public enum PanTiltSpeedMode
         {
@@ -984,6 +992,11 @@ namespace ArtNet.Runtime
         {
             public PanTiltSpeedMode mode;
             public float appliedSpeedDegPerSec;
+            public float appliedPanSpeedDegPerSec;
+            public float appliedTiltSpeedDegPerSec;
+            public float accelerationTime;
+            public float decelerationTime;
+            public bool usesAxisProfile;
             public int controlRelativeChannel;
             public FixtureChannelRange activePresetRange;
             public int currentDmxValue;
@@ -995,6 +1008,14 @@ namespace ArtNet.Runtime
             Standard,
             Fast,
             Smooth
+        }
+
+        private struct PanTiltMotionProfile
+        {
+            public float panMaxDegPerSec;
+            public float tiltMaxDegPerSec;
+            public float accelerationTime;
+            public float decelerationTime;
         }
 
         private PanTiltSpeedPreset _panTiltSpeedPreset = PanTiltSpeedPreset.Standard;
@@ -1351,10 +1372,13 @@ namespace ArtNet.Runtime
 
             if (TryGetContinuousPanTiltSpeedSource(modeDefinition, out int continuousChannel))
             {
+                float appliedSpeed = Application.isPlaying ? _lastPanTiltSpeedDegPerSec : -1f;
                 return new PanTiltSpeedResolution
                 {
                     mode = PanTiltSpeedMode.ContinuousDmx,
-                    appliedSpeedDegPerSec = Application.isPlaying ? _lastPanTiltSpeedDegPerSec : -1f,
+                    appliedSpeedDegPerSec = appliedSpeed,
+                    appliedPanSpeedDegPerSec = appliedSpeed,
+                    appliedTiltSpeedDegPerSec = appliedSpeed,
                     controlRelativeChannel = continuousChannel,
                     currentDmxValue = Application.isPlaying ? _lastPanTiltSpeedDmxValue : -1,
                     isRuntimeValue = Application.isPlaying && _lastPanTiltSpeedDmxValue >= 0
@@ -1364,10 +1388,19 @@ namespace ArtNet.Runtime
             if (TryGetPanTiltSpeedPresetSource(modeDefinition, out int presetChannel, out var defaultRange))
             {
                 var activeRange = FindPresetRangeForPreset(modeDefinition, presetChannel, _panTiltSpeedPreset) ?? defaultRange;
+                var profile = FindPanTiltSpeedProfile(modeDefinition, _panTiltSpeedPreset);
+                float fallbackSpeed = ResolvePanTiltPresetMaxDegPerSec(_panTiltSpeedPreset);
+                float panSpeed = profile != null && profile.panMaxDegPerSec > 0f ? profile.panMaxDegPerSec : fallbackSpeed;
+                float tiltSpeed = profile != null && profile.tiltMaxDegPerSec > 0f ? profile.tiltMaxDegPerSec : fallbackSpeed;
                 return new PanTiltSpeedResolution
                 {
                     mode = PanTiltSpeedMode.Preset,
-                    appliedSpeedDegPerSec = ResolvePanTiltPresetMaxDegPerSec(_panTiltSpeedPreset),
+                    appliedSpeedDegPerSec = Mathf.Max(panSpeed, tiltSpeed),
+                    appliedPanSpeedDegPerSec = panSpeed,
+                    appliedTiltSpeedDegPerSec = tiltSpeed,
+                    accelerationTime = profile != null ? profile.accelerationTime : 0f,
+                    decelerationTime = profile != null ? profile.decelerationTime : 0f,
+                    usesAxisProfile = profile != null && (profile.panMaxDegPerSec > 0f || profile.tiltMaxDegPerSec > 0f),
                     controlRelativeChannel = presetChannel,
                     activePresetRange = activeRange,
                     currentDmxValue = activeRange != null ? activeRange.dmxMin : -1,
@@ -1379,6 +1412,8 @@ namespace ArtNet.Runtime
             {
                 mode = PanTiltSpeedMode.AutoSmoothing,
                 appliedSpeedDegPerSec = -1f,
+                appliedPanSpeedDegPerSec = -1f,
+                appliedTiltSpeedDegPerSec = -1f,
                 currentDmxValue = -1
             };
         }
@@ -1474,6 +1509,28 @@ namespace ArtNet.Runtime
                 var range = element.ranges[j];
                 if (range != null && TryConvertPanTiltSpeedPreset(range.type, out var candidate) && candidate == preset)
                     return range;
+            }
+
+            return null;
+        }
+
+        private static FixturePanTiltSpeedProfile FindPanTiltSpeedProfile(FixtureModeDefinition modeDefinition, PanTiltSpeedPreset preset)
+        {
+            if (modeDefinition?.panTiltSpeedProfiles == null)
+                return null;
+
+            FixtureRangeType rangeType = preset switch
+            {
+                PanTiltSpeedPreset.Fast => FixtureRangeType.PanTiltSpeedFast,
+                PanTiltSpeedPreset.Smooth => FixtureRangeType.PanTiltSpeedSmooth,
+                _ => FixtureRangeType.PanTiltSpeedStandard
+            };
+
+            for (int i = 0; i < modeDefinition.panTiltSpeedProfiles.Count; i++)
+            {
+                var profile = modeDefinition.panTiltSpeedProfiles[i];
+                if (profile != null && profile.preset == rangeType)
+                    return profile;
             }
 
             return null;
@@ -1882,6 +1939,8 @@ namespace ArtNet.Runtime
             if (!force && _movementBaseCaptured) return;
 
             if (panTransform != null) _panBaseLocalRot = panTransform.localRotation;
+            _panCurrentDeg = 0f;
+            _panTargetDeg = 0f;
             if (tiltTransform != null)
             {
                 _tiltBaseLocalRot = tiltTransform.localRotation;
@@ -2162,8 +2221,8 @@ namespace ArtNet.Runtime
             Color rgb = ReadElementColor(universe512);
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
-            float panTiltMaxDegPerSec = ResolvePanTiltMaxDegPerSec(hasPanTiltSpeed, panTiltSpeed01);
-            UpdatePanTiltSpeedRuntimeState(hasPanTiltSpeed, panTiltSpeed01, panTiltMaxDegPerSec);
+            var panTiltMotion = ResolvePanTiltMotionProfile(hasPanTiltSpeed, panTiltSpeed01);
+            UpdatePanTiltSpeedRuntimeState(hasPanTiltSpeed, panTiltSpeed01, Mathf.Max(panTiltMotion.panMaxDegPerSec, panTiltMotion.tiltMaxDegPerSec));
 
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
@@ -2196,7 +2255,7 @@ namespace ArtNet.Runtime
                 float panDeg = (pan01 - 0.5f) * panRangeDeg;
                 if (panInvert) panDeg = -panDeg;
                 panDeg += panOffsetDeg;
-                SetPanTarget(panDeg, panTiltMaxDegPerSec, panTiltSmoothing);
+                SetPanTarget(panDeg, panTiltMotion.panMaxDegPerSec, panTiltSmoothing, panTiltMotion.accelerationTime, panTiltMotion.decelerationTime);
             }
 
             if (tiltTransform != null && TryReadElement01(universe512, FixtureAttribute.Tilt, 1, FixtureChannelRole.Position, out float tilt01))
@@ -2204,7 +2263,7 @@ namespace ArtNet.Runtime
                 float tiltDeg = (tilt01 - 0.5f) * tiltRangeDeg;
                 if (tiltInvert) tiltDeg = -tiltDeg;
                 tiltDeg += tiltOffsetDeg;
-                SetTiltTarget(tiltDeg, panTiltMaxDegPerSec, panTiltSmoothing);
+                SetTiltTarget(tiltDeg, panTiltMotion.tiltMaxDegPerSec, panTiltSmoothing, panTiltMotion.accelerationTime, panTiltMotion.decelerationTime);
             }
         }
 
@@ -2230,8 +2289,8 @@ namespace ArtNet.Runtime
             Color rgb = ReadElementColor(universe512);
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
-            float panTiltMaxDegPerSec = ResolvePanTiltMaxDegPerSec(hasPanTiltSpeed, panTiltSpeed01);
-            UpdatePanTiltSpeedRuntimeState(hasPanTiltSpeed, panTiltSpeed01, panTiltMaxDegPerSec);
+            var panTiltMotion = ResolvePanTiltMotionProfile(hasPanTiltSpeed, panTiltSpeed01);
+            UpdatePanTiltSpeedRuntimeState(hasPanTiltSpeed, panTiltSpeed01, Mathf.Max(panTiltMotion.panMaxDegPerSec, panTiltMotion.tiltMaxDegPerSec));
 
             UpdateZoomTargetsFromDmx(TryReadElement01(universe512, FixtureAttribute.Zoom, 1, FixtureChannelRole.Value, out float zoom01, out bool zoomUsesRangeMapping), zoom01, zoomUsesRangeMapping);
 
@@ -2264,7 +2323,7 @@ namespace ArtNet.Runtime
                 float panDeg = (pan01 - 0.5f) * panRangeDeg;
                 if (panInvert) panDeg = -panDeg;
                 panDeg += panOffsetDeg;
-                SetPanTarget(panDeg, panTiltMaxDegPerSec, panTiltSmoothing);
+                SetPanTarget(panDeg, panTiltMotion.panMaxDegPerSec, panTiltSmoothing, panTiltMotion.accelerationTime, panTiltMotion.decelerationTime);
             }
 
             if (tiltTransform != null && TryReadElement01(universe512, FixtureAttribute.Tilt, 1, FixtureChannelRole.Position, out float tilt01))
@@ -2272,7 +2331,7 @@ namespace ArtNet.Runtime
                 float tiltDeg = (tilt01 - 0.5f) * tiltRangeDeg;
                 if (tiltInvert) tiltDeg = -tiltDeg;
                 tiltDeg += tiltOffsetDeg;
-                SetTiltTarget(tiltDeg, panTiltMaxDegPerSec, panTiltSmoothing);
+                SetTiltTarget(tiltDeg, panTiltMotion.tiltMaxDegPerSec, panTiltSmoothing, panTiltMotion.accelerationTime, panTiltMotion.decelerationTime);
             }
         }
 
@@ -2883,6 +2942,36 @@ namespace ArtNet.Runtime
             return ResolvePanTiltPresetMaxDegPerSec(_panTiltSpeedPreset);
         }
 
+        private PanTiltMotionProfile ResolvePanTiltMotionProfile(bool hasContinuousSpeed, float continuousSpeed01)
+        {
+            float fallbackSpeed = ResolvePanTiltMaxDegPerSec(hasContinuousSpeed, continuousSpeed01);
+            var result = new PanTiltMotionProfile
+            {
+                panMaxDegPerSec = fallbackSpeed,
+                tiltMaxDegPerSec = fallbackSpeed
+            };
+
+            if (hasContinuousSpeed || !TryGetActiveModeDefinition(out var modeDefinition))
+                return result;
+
+            var profile = FindPanTiltSpeedProfile(modeDefinition, _panTiltSpeedPreset);
+            if (profile == null)
+                return result;
+
+            if (profile.panMaxDegPerSec > 0f)
+                result.panMaxDegPerSec = profile.panMaxDegPerSec;
+            if (profile.tiltMaxDegPerSec > 0f)
+                result.tiltMaxDegPerSec = profile.tiltMaxDegPerSec;
+
+            if (profile.panMaxDegPerSec > 0f || profile.tiltMaxDegPerSec > 0f)
+            {
+                result.accelerationTime = Mathf.Max(0f, profile.accelerationTime);
+                result.decelerationTime = Mathf.Max(0f, profile.decelerationTime);
+            }
+
+            return result;
+        }
+
         private float ResolvePanTiltPresetMaxDegPerSec(PanTiltSpeedPreset preset)
         {
             return preset switch
@@ -3125,9 +3214,13 @@ namespace ArtNet.Runtime
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
             _tiltCurrentDeg = 0f;
             _tiltTargetDeg = 0f;
+            _panCurrentDeg = 0f;
+            _panTargetDeg = 0f;
             _tiltTargetLocalRot = _tiltBaseLocalRot;
             _hasPanTarget = false;
             _hasTiltTarget = false;
+            _panCurrentSpeedDegPerSec = 0f;
+            _tiltCurrentSpeedDegPerSec = 0f;
         }
         public void RecapturePanTiltBase()
         {
@@ -3213,8 +3306,12 @@ namespace ArtNet.Runtime
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
             _tiltCurrentDeg = 0f;
             _tiltTargetDeg = 0f;
+            _panCurrentDeg = 0f;
+            _panTargetDeg = 0f;
             _tiltTargetLocalRot = _tiltBaseLocalRot;
             _hasTiltTarget = false;
+            _panCurrentSpeedDegPerSec = 0f;
+            _tiltCurrentSpeedDegPerSec = 0f;
 
             _hasDmxTargets = true;
             _targetDimmer01 = 0f;
@@ -5636,15 +5733,18 @@ namespace ArtNet.Runtime
         // Pan/Tilt continuous interpolation (target set on DMX update, applied every frame)
         // ------------------------------------------------------------
 
-        private void SetPanTarget(float panDeg, float maxDegPerSec, float smoothing01)
+        private void SetPanTarget(float panDeg, float maxDegPerSec, float smoothing01, float accelerationTime = 0f, float decelerationTime = 0f)
         {
+            _panTargetDeg = panDeg;
             _panTargetLocalRot = _panBaseLocalRot * Quaternion.AngleAxis(panDeg, AxisToVector(panAxis));
             _hasPanTarget = true;
             _panTargetMaxDegPerSec = maxDegPerSec;
             _panTargetSmoothing = smoothing01;
+            _panTargetAccelerationTime = Mathf.Max(0f, accelerationTime);
+            _panTargetDecelerationTime = Mathf.Max(0f, decelerationTime);
         }
 
-        private void SetTiltTarget(float tiltDeg, float maxDegPerSec, float smoothing01)
+        private void SetTiltTarget(float tiltDeg, float maxDegPerSec, float smoothing01, float accelerationTime = 0f, float decelerationTime = 0f)
         {
             float halfRange = Mathf.Max(0f, tiltRangeDeg) * 0.5f;
             _tiltTargetDeg = Mathf.Clamp(tiltDeg, tiltOffsetDeg - halfRange, tiltOffsetDeg + halfRange);
@@ -5652,6 +5752,8 @@ namespace ArtNet.Runtime
             _hasTiltTarget = true;
             _tiltTargetMaxDegPerSec = maxDegPerSec;
             _tiltTargetSmoothing = smoothing01;
+            _tiltTargetAccelerationTime = Mathf.Max(0f, accelerationTime);
+            _tiltTargetDecelerationTime = Mathf.Max(0f, decelerationTime);
         }
 
         private void UpdatePanTiltMotion()
@@ -5661,7 +5763,11 @@ namespace ArtNet.Runtime
             // 最初のDMX目標値が来るまでは何もしない
             if (panTransform != null && _hasPanTarget)
             {
-                ApplyRotationToTarget(panTransform, _panTargetLocalRot, _panTargetMaxDegPerSec, _panTargetSmoothing);
+                if (_panTargetAccelerationTime > 0f || _panTargetDecelerationTime > 0f)
+                    ApplyPanToTarget();
+                else
+                    ApplyRotationToTarget(panTransform, _panTargetLocalRot, _panTargetMaxDegPerSec, _panTargetSmoothing,
+                        0f, 0f, ref _panCurrentSpeedDegPerSec);
             }
 
             if (tiltTransform != null && _hasTiltTarget)
@@ -5677,7 +5783,24 @@ namespace ArtNet.Runtime
             if (_tiltTargetMaxDegPerSec > 0f)
             {
                 float dt = Mathf.Max(0.0001f, Time.deltaTime);
-                _tiltCurrentDeg = Mathf.MoveTowards(_tiltCurrentDeg, _tiltTargetDeg, _tiltTargetMaxDegPerSec * dt);
+                float remaining = Mathf.Abs(_tiltTargetDeg - _tiltCurrentDeg);
+                if (remaining <= 0.0001f)
+                {
+                    _tiltCurrentDeg = _tiltTargetDeg;
+                    _tiltCurrentSpeedDegPerSec = 0f;
+                }
+                else if (_tiltTargetAccelerationTime <= 0f && _tiltTargetDecelerationTime <= 0f)
+                {
+                    _tiltCurrentDeg = Mathf.MoveTowards(_tiltCurrentDeg, _tiltTargetDeg, _tiltTargetMaxDegPerSec * dt);
+                    _tiltCurrentSpeedDegPerSec = 0f;
+                }
+                else
+                {
+                    UpdateAxisPosition(ref _tiltCurrentDeg, _tiltTargetDeg, ref _tiltCurrentSpeedDegPerSec,
+                        _tiltTargetMaxDegPerSec, _tiltTargetAccelerationTime, _tiltTargetDecelerationTime, dt);
+                    float halfRange = Mathf.Max(0f, tiltRangeDeg) * 0.5f;
+                    _tiltCurrentDeg = Mathf.Clamp(_tiltCurrentDeg, tiltOffsetDeg - halfRange, tiltOffsetDeg + halfRange);
+                }
             }
             else if (_tiltTargetSmoothing <= 0f)
             {
@@ -5697,17 +5820,58 @@ namespace ArtNet.Runtime
             tiltTransform.localRotation = _tiltBaseLocalRot * Quaternion.AngleAxis(_tiltCurrentDeg, AxisToVector(tiltAxis));
         }
 
-        private static void ApplyRotationToTarget(Transform t, Quaternion targetLocalRot, float maxDegPerSec, float smoothing01)
+        private void ApplyPanToTarget()
+        {
+            if (panTransform == null) return;
+
+            if (_panTargetMaxDegPerSec <= 0f)
+            {
+                _panCurrentSpeedDegPerSec = 0f;
+                panTransform.localRotation = _panTargetLocalRot;
+                return;
+            }
+
+            UpdateAxisPosition(ref _panCurrentDeg, _panTargetDeg, ref _panCurrentSpeedDegPerSec,
+                _panTargetMaxDegPerSec, _panTargetAccelerationTime, _panTargetDecelerationTime,
+                Mathf.Max(0.0001f, Time.deltaTime));
+            float halfRange = Mathf.Max(0f, panRangeDeg) * 0.5f;
+            _panCurrentDeg = Mathf.Clamp(_panCurrentDeg, panOffsetDeg - halfRange, panOffsetDeg + halfRange);
+            panTransform.localRotation = _panBaseLocalRot * Quaternion.AngleAxis(_panCurrentDeg, AxisToVector(panAxis));
+        }
+
+        private static void ApplyRotationToTarget(Transform t, Quaternion targetLocalRot, float maxDegPerSec, float smoothing01,
+            float accelerationTime, float decelerationTime, ref float currentSpeedDegPerSec)
         {
             if (t == null) return;
 
             if (maxDegPerSec > 0f)
             {
                 float dt = Mathf.Max(0.0001f, Time.deltaTime);
+                float remaining = Quaternion.Angle(t.localRotation, targetLocalRot);
+                if (remaining <= 0.0001f)
+                {
+                    t.localRotation = targetLocalRot;
+                    currentSpeedDegPerSec = 0f;
+                    return;
+                }
+
+                if (accelerationTime <= 0f && decelerationTime <= 0f)
+                {
+                    float legacyStep = maxDegPerSec * dt;
+                    t.localRotation = Quaternion.RotateTowards(t.localRotation, targetLocalRot, legacyStep);
+                    currentSpeedDegPerSec = 0f;
+                    return;
+                }
+
+                // Axis-aware acceleration is handled by ApplyPanToTarget / ApplyTiltToTarget.
+                // This quaternion path intentionally preserves legacy constant-speed behavior.
                 float step = maxDegPerSec * dt;
                 t.localRotation = Quaternion.RotateTowards(t.localRotation, targetLocalRot, step);
+                currentSpeedDegPerSec = 0f;
                 return;
             }
+
+            currentSpeedDegPerSec = 0f;
 
             if (smoothing01 <= 0f)
             {
@@ -5717,6 +5881,41 @@ namespace ArtNet.Runtime
 
             float k = ComputePanTiltSmoothingFactor(smoothing01, Time.deltaTime);
             t.localRotation = Quaternion.Slerp(t.localRotation, targetLocalRot, k);
+        }
+
+        private static void UpdateAxisPosition(ref float currentDegrees, float targetDegrees, ref float currentSpeedDegPerSec,
+            float maxSpeedDegPerSec, float accelerationTime, float decelerationTime, float deltaTime)
+        {
+            float remaining = targetDegrees - currentDegrees;
+            float targetDirection = Mathf.Sign(remaining);
+            if (Mathf.Abs(remaining) <= 0.0001f)
+            {
+                currentDegrees = targetDegrees;
+                currentSpeedDegPerSec = 0f;
+                return;
+            }
+
+            float acceleration = accelerationTime > 0f ? maxSpeedDegPerSec / accelerationTime : float.PositiveInfinity;
+            float deceleration = decelerationTime > 0f ? maxSpeedDegPerSec / decelerationTime : float.PositiveInfinity;
+            float currentDirection = Mathf.Sign(currentSpeedDegPerSec);
+            if (currentDirection != 0f && currentDirection != targetDirection)
+            {
+                currentSpeedDegPerSec = float.IsPositiveInfinity(deceleration)
+                    ? 0f
+                    : Mathf.MoveTowards(currentSpeedDegPerSec, 0f, deceleration * deltaTime);
+                currentDegrees += currentSpeedDegPerSec * deltaTime;
+                return;
+            }
+
+            float speedMagnitude = Mathf.Abs(currentSpeedDegPerSec);
+            float stoppingDistance = float.IsPositiveInfinity(deceleration) ? 0f : speedMagnitude * speedMagnitude / (2f * deceleration);
+            float desiredSpeed = stoppingDistance >= Mathf.Abs(remaining) ? 0f : maxSpeedDegPerSec;
+            float rate = desiredSpeed > speedMagnitude ? acceleration : deceleration;
+            speedMagnitude = float.IsPositiveInfinity(rate)
+                ? desiredSpeed
+                : Mathf.MoveTowards(speedMagnitude, desiredSpeed, rate * deltaTime);
+            currentSpeedDegPerSec = targetDirection * speedMagnitude;
+            currentDegrees = Mathf.MoveTowards(currentDegrees, targetDegrees, speedMagnitude * deltaTime);
         }
 
         private static float ComputePanTiltSmoothingFactor(float smoothing, float deltaTime)

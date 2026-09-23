@@ -111,13 +111,26 @@ namespace ArtNet.Editor
                     string presetName = GetPresetName(resolution.activePresetRange);
                     EditorGUILayout.LabelField("Speed Mode", "Preset");
                     EditorGUILayout.LabelField("Active Setting", presetName);
-                    EditorGUILayout.LabelField("Applied Speed", $"{resolution.appliedSpeedDegPerSec:0.##} deg/sec");
+                    if (resolution.usesAxisProfile)
+                    {
+                        EditorGUILayout.LabelField("Applied Pan Speed", $"{resolution.appliedPanSpeedDegPerSec:0.##} deg/sec");
+                        EditorGUILayout.LabelField("Applied Tilt Speed", $"{resolution.appliedTiltSpeedDegPerSec:0.##} deg/sec");
+                        EditorGUILayout.LabelField("Acceleration", $"{resolution.accelerationTime:0.##} sec");
+                        EditorGUILayout.LabelField("Deceleration", $"{resolution.decelerationTime:0.##} sec");
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField("Applied Speed", $"{resolution.appliedSpeedDegPerSec:0.##} deg/sec");
+                    }
                     EditorGUILayout.LabelField("Speed Range Status", "Applied (Preset)");
                     string dmxValue = resolution.activePresetRange != null
                         ? $" / DMX {resolution.activePresetRange.dmxMin}"
                         : string.Empty;
                     DrawControlSource(fixture, resolution, $"{GetFixtureAndModeLabel(fixture)} / Ch {resolution.controlRelativeChannel} / {presetName}{dmxValue}");
-                    DrawSpeedRangeSource(fixture);
+                    if (resolution.usesAxisProfile)
+                        DrawSpeedProfileSource(fixture, presetName);
+                    else
+                        DrawSpeedRangeSource(fixture);
                     break;
 
                 case DmxFixtureComponent.PanTiltSpeedMode.AutoSmoothing:
@@ -158,6 +171,16 @@ namespace ArtNet.Editor
             DrawWrappedSourceLabel("Speed Range Source", $"Dmx Fixture Component / Min {fixture.panTiltSpeedMinDegPerSec:0.##} / Max {fixture.panTiltSpeedMaxDegPerSec:0.##} deg/sec");
             if (GUILayout.Button("Open Speed Range Settings"))
                 FocusComponentSetting(fixture, "panTiltSpeedMinDegPerSec");
+        }
+
+        private static void DrawSpeedProfileSource(DmxFixtureComponent fixture, string presetName)
+        {
+            DrawWrappedSourceLabel("Speed Profile Source", $"{GetFixtureAndModeLabel(fixture)} / Pan/Tilt Speed Profiles / {presetName}");
+            if (GUILayout.Button("Open Speed Profile"))
+            {
+                if (fixture.fixture == null) return;
+                FixtureDefinitionSourceNavigator.OpenSpeedProfile(fixture.fixture, fixture.mode, presetName);
+            }
         }
 
         private static void DrawWrappedSourceLabel(string label, string value)
@@ -594,6 +617,7 @@ namespace ArtNet.Editor
         private static int _relativeChannel;
         private static FixtureChannelRange _range;
         private static int _rangeIndex = -1;
+        private static int _speedProfileIndex = -1;
         private static double _highlightExpiresAt;
         private static bool _highlightUpdateRegistered;
         private const double HighlightDurationSeconds = 1.5d;
@@ -607,9 +631,42 @@ namespace ArtNet.Editor
             _relativeChannel = relativeChannel;
             _range = range;
             _rangeIndex = FindRangeIndex(definition, modeIndex, relativeChannel, range);
+            _speedProfileIndex = -1;
             _highlightExpiresAt = EditorApplication.timeSinceStartup + HighlightDurationSeconds;
             RegisterHighlightExpiry();
             EditorApplication.delayCall += SelectSourceDefinition;
+        }
+
+        internal static void OpenSpeedProfile(FixtureDefinition definition, int modeIndex, string presetName)
+        {
+            if (definition?.modes == null || modeIndex < 0 || modeIndex >= definition.modes.Count) return;
+
+            var profiles = definition.modes[modeIndex]?.panTiltSpeedProfiles;
+            if (profiles == null) return;
+
+            FixtureRangeType preset = presetName switch
+            {
+                "Fast" => FixtureRangeType.PanTiltSpeedFast,
+                "Smooth" => FixtureRangeType.PanTiltSpeedSmooth,
+                _ => FixtureRangeType.PanTiltSpeedStandard
+            };
+
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i] != null && profiles[i].preset == preset)
+                {
+                    _definition = definition;
+                    _modeIndex = modeIndex;
+                    _relativeChannel = 0;
+                    _range = null;
+                    _rangeIndex = -1;
+                    _speedProfileIndex = i;
+                    _highlightExpiresAt = EditorApplication.timeSinceStartup + HighlightDurationSeconds;
+                    RegisterHighlightExpiry();
+                    EditorApplication.delayCall += SelectSourceDefinition;
+                    return;
+                }
+            }
         }
 
         private static void SelectSourceDefinition()
@@ -620,13 +677,14 @@ namespace ArtNet.Editor
             ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
-        internal static bool TryGetTarget(FixtureDefinition definition, out int modeIndex, out int relativeChannel, out FixtureChannelRange range, out int rangeIndex)
+        internal static bool TryGetTarget(FixtureDefinition definition, out int modeIndex, out int relativeChannel, out FixtureChannelRange range, out int rangeIndex, out int speedProfileIndex)
         {
             modeIndex = _modeIndex;
             relativeChannel = _relativeChannel;
             range = _range;
             rangeIndex = _rangeIndex;
-            return definition != null && definition == _definition && modeIndex >= 0 && relativeChannel > 0 &&
+            speedProfileIndex = _speedProfileIndex;
+            return definition != null && definition == _definition && modeIndex >= 0 && (relativeChannel > 0 || speedProfileIndex >= 0) &&
                    EditorApplication.timeSinceStartup < _highlightExpiresAt;
         }
 

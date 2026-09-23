@@ -260,6 +260,29 @@ namespace ArtNet.Runtime
     }
 
     [Serializable]
+    public class FixturePanTiltSpeedProfile
+    {
+        [Tooltip("Pan/Tilt速度プリセットに対応するRange Type。\n\nRange Type that activates this Pan/Tilt speed profile.")]
+        public FixtureRangeType preset = FixtureRangeType.PanTiltSpeedStandard;
+
+        [Min(0f)]
+        [Tooltip("Panの最大角速度（deg/sec）。0の場合はDmx Fixture Componentの共通速度設定を使用。\n\nMaximum Pan angular speed in deg/sec. Zero uses the shared Dmx Fixture Component speed setting.")]
+        public float panMaxDegPerSec;
+
+        [Min(0f)]
+        [Tooltip("Tiltの最大角速度（deg/sec）。0の場合はDmx Fixture Componentの共通速度設定を使用。\n\nMaximum Tilt angular speed in deg/sec. Zero uses the shared Dmx Fixture Component speed setting.")]
+        public float tiltMaxDegPerSec;
+
+        [Min(0f)]
+        [Tooltip("停止状態から最大速度へ到達する時間（秒）。0の場合は従来どおり一定速度で移動。\n\nSeconds to reach maximum speed from rest. Zero preserves the legacy constant-speed motion.")]
+        public float accelerationTime;
+
+        [Min(0f)]
+        [Tooltip("最大速度から停止するまでの時間（秒）。0の場合は従来どおり一定速度で移動。\n\nSeconds to stop from maximum speed. Zero preserves the legacy constant-speed motion.")]
+        public float decelerationTime;
+    }
+
+    [Serializable]
     public class FixtureModeDefinition
     {
         [Tooltip("表示用のモード名（例: Mode 3 / Extended 16bit）\nMode name displayed in the Inspector, for example Mode 3 or Extended 16-bit.")]
@@ -278,6 +301,10 @@ namespace ArtNet.Runtime
 
         [Tooltip("Wheel definitions bound by Attribute + Instance. Used by GoboWheel slots now.")]
         public List<FixtureWheelBinding> wheelBindings = new();
+
+        [Header("Pan/Tilt Speed Profiles")]
+        [Tooltip("プリセット方式のPan/Tilt速度プロファイル。未設定の灯体はDmx Fixture Componentの既存速度設定を使用。\n\nPan/Tilt speed profiles for preset-based fixtures. Fixtures without profiles use the existing Dmx Fixture Component speed settings.")]
+        public List<FixturePanTiltSpeedProfile> panTiltSpeedProfiles = new();
 
         public bool UsesChannelElements()
         {

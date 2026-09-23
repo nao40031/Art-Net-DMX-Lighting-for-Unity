@@ -19,22 +19,24 @@ namespace ArtNet.Editor
             serializedObject.Update();
 
             var definition = target as FixtureDefinition;
-            bool hasHighlightedSource = FixtureDefinitionSourceNavigator.TryGetTarget(definition, out int modeIndex, out int relativeChannel, out var range, out int rangeIndex);
+            bool hasHighlightedSource = FixtureDefinitionSourceNavigator.TryGetTarget(definition, out int modeIndex, out int relativeChannel, out var range, out int rangeIndex, out int speedProfileIndex);
             if (hasHighlightedSource)
             {
                 ExpandSourceProperties(modeIndex, relativeChannel, range);
                 string modeName = GetModeName(definition, modeIndex);
                 string rangeName = string.IsNullOrWhiteSpace(range?.name) ? range?.type.ToString() : range.name;
                 DrawSourceHighlight(
-                    $"Control Source: {modeName} / Ch {relativeChannel}" +
-                    (string.IsNullOrWhiteSpace(rangeName) ? string.Empty : $" / {rangeName}"));
+                    speedProfileIndex >= 0
+                        ? $"Speed Profile Source: {modeName} / Pan/Tilt Speed Profiles"
+                        : $"Control Source: {modeName} / Ch {relativeChannel}" +
+                          (string.IsNullOrWhiteSpace(rangeName) ? string.Empty : $" / {rangeName}"));
             }
 
-            DrawDefinitionProperties(hasHighlightedSource, modeIndex, relativeChannel, rangeIndex);
+            DrawDefinitionProperties(hasHighlightedSource, modeIndex, relativeChannel, rangeIndex, speedProfileIndex);
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawDefinitionProperties(bool hasHighlightedSource, int highlightedModeIndex, int highlightedRelativeChannel, int highlightedRangeIndex)
+        private void DrawDefinitionProperties(bool hasHighlightedSource, int highlightedModeIndex, int highlightedRelativeChannel, int highlightedRangeIndex, int highlightedSpeedProfileIndex)
         {
             var property = serializedObject.GetIterator();
             bool enterChildren = true;
@@ -42,7 +44,7 @@ namespace ArtNet.Editor
             {
                 if (property.propertyPath == "modes" && hasHighlightedSource)
                 {
-                    DrawModesWithHighlightedSource(property, highlightedModeIndex, highlightedRelativeChannel, highlightedRangeIndex);
+                    DrawModesWithHighlightedSource(property, highlightedModeIndex, highlightedRelativeChannel, highlightedRangeIndex, highlightedSpeedProfileIndex);
                     enterChildren = false;
                     continue;
                 }
@@ -53,7 +55,7 @@ namespace ArtNet.Editor
             }
         }
 
-        private static void DrawModesWithHighlightedSource(SerializedProperty modes, int highlightedModeIndex, int highlightedRelativeChannel, int highlightedRangeIndex)
+        private static void DrawModesWithHighlightedSource(SerializedProperty modes, int highlightedModeIndex, int highlightedRelativeChannel, int highlightedRangeIndex, int highlightedSpeedProfileIndex)
         {
             modes.isExpanded = EditorGUILayout.Foldout(modes.isExpanded, modes.displayName, true);
             if (!modes.isExpanded) return;
@@ -83,7 +85,31 @@ namespace ArtNet.Editor
                         EditorGUILayout.PropertyField(mode.FindPropertyRelative("channels"), true);
                         DrawElementsWithHighlightedSource(mode.FindPropertyRelative("elements"), highlightedRelativeChannel, highlightedRangeIndex);
                         EditorGUILayout.PropertyField(mode.FindPropertyRelative("wheelBindings"), true);
+                        DrawSpeedProfilesWithHighlightedSource(mode.FindPropertyRelative("panTiltSpeedProfiles"), highlightedSpeedProfileIndex);
                     }
+                }
+            }
+        }
+
+        private static void DrawSpeedProfilesWithHighlightedSource(SerializedProperty profiles, int highlightedSpeedProfileIndex)
+        {
+            if (profiles == null || highlightedSpeedProfileIndex < 0)
+            {
+                EditorGUILayout.PropertyField(profiles, true);
+                return;
+            }
+
+            profiles.isExpanded = EditorGUILayout.Foldout(profiles.isExpanded, profiles.displayName, true);
+            if (!profiles.isExpanded) return;
+            using (new EditorGUI.IndentLevelScope())
+            {
+                for (int i = 0; i < profiles.arraySize; i++)
+                {
+                    var profile = profiles.GetArrayElementAtIndex(i);
+                    if (i == highlightedSpeedProfileIndex)
+                        DrawHighlightedProperty(profile);
+                    else
+                        EditorGUILayout.PropertyField(profile, true);
                 }
             }
         }
@@ -182,6 +208,8 @@ namespace ArtNet.Editor
             modes.isExpanded = true;
             var mode = modes.GetArrayElementAtIndex(modeIndex);
             mode.isExpanded = true;
+            var profiles = mode.FindPropertyRelative("panTiltSpeedProfiles");
+            if (profiles != null) profiles.isExpanded = true;
             var elements = mode.FindPropertyRelative("elements");
             if (elements == null || relativeChannel <= 0 || relativeChannel > elements.arraySize) return;
 
