@@ -93,7 +93,7 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   m_BlendingMode: 0
   m_Intensity: 1
-  m_IntensityMultiplier: 1
+  m_IntensityMultiplier: 0.00001
   m_HDRPExposureWeight: 0
   m_SpotAngle: 15.170944
   m_SpotAngleMultiplier: 1
