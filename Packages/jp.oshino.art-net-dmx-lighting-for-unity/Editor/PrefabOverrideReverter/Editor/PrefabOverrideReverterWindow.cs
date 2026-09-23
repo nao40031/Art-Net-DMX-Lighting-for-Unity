@@ -39,7 +39,7 @@ public class PrefabOverrideReverterWindow : EditorWindow
     private GameObject lastPrefabAsset;
     private GameObject lastRootObject;
 
-    [MenuItem("Tools/Prefab Override Reverter")]
+    [MenuItem("Art-Net/Fixture Editing/Revert Prefab Overrides")]
     public static void ShowWindow()
     {
         GetWindow<PrefabOverrideReverterWindow>(WindowTitle);

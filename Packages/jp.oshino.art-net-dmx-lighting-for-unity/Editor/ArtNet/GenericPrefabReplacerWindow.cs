@@ -51,7 +51,7 @@ public class GenericPrefabReplacerWindow : EditorWindow
 
     [SerializeField] private bool warnOnMissingTransform = true;
 
-    [MenuItem("Tools/Generic/Replace Targets With Template...")]
+    [MenuItem("Art-Net/Fixture Editing/Replace Targets With Template...")]
     public static void Open()
     {
         var w = GetWindow<GenericPrefabReplacerWindow>("Generic Prefab Replacer");

@@ -16,7 +16,7 @@ using UnityEngine;
 
 public static class MagicQCsvExporter
 {
-    private const string MenuPath = "Tools/MagicQ/Export MagicQ Calibration CSV...";
+    private const string MenuPath = "Art-Net/MagicQ/Export MagicQ Calibration CSV...";
 
     // Prefs
     private const string PrefUnitsScale = "MagicQCsvExporter.UnitsScale";
