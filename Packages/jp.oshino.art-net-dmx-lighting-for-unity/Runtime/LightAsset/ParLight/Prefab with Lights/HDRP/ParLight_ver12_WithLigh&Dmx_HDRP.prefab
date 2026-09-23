@@ -975,7 +975,7 @@ MonoBehaviour:
   halogenBeamOnDelay: 0
   halogenBeamOffDelay: 0
   halogenBeamRiseTime: 0.5
-  halogenBeamFallTime: 0.5
+  halogenBeamFallTime: 0.8
   panRangeDeg: 540
   tiltRangeDeg: 270
   pipelineMode: 0
