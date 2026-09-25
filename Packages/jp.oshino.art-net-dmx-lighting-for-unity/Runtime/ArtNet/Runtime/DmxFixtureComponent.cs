@@ -5926,7 +5926,9 @@ namespace ArtNet.Runtime
 
             float acceleration = accelerationTime > 0f ? maxSpeedDegPerSec / accelerationTime : float.PositiveInfinity;
             float deceleration = decelerationTime > 0f ? maxSpeedDegPerSec / decelerationTime : float.PositiveInfinity;
-            float currentDirection = Mathf.Sign(currentSpeedDegPerSec);
+            // Mathf.Sign(0) returns +1, but a stopped axis has no direction yet.
+            // Preserve zero so the axis can accelerate toward a negative target.
+            float currentDirection = currentSpeedDegPerSec == 0f ? 0f : Mathf.Sign(currentSpeedDegPerSec);
             if (currentDirection != 0f && currentDirection != targetDirection)
             {
                 currentSpeedDegPerSec = float.IsPositiveInfinity(deceleration)
