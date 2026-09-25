@@ -53,6 +53,8 @@ namespace ArtNet.Runtime
             public bool irisSdOriginalFromLight;
             public float irisSdOriginalAngle;
             public float irisSdOriginalRadius;
+            public bool hasSdSkewBaseline;
+            public Vector3 sdSkewBaseline;
         }
 
         public static bool IsVlbAvailable => VlbReflection.IsAvailable;
@@ -211,6 +213,7 @@ namespace ArtNet.Runtime
                 var entry = _entries[i];
                 Disable(entry.hd);
                 RestoreSdIris(entry);
+                RestoreSdSkew(entry);
                 Disable(entry.sd);
                 Disable(entry.cookieHd);
             }
@@ -275,6 +278,7 @@ namespace ArtNet.Runtime
             foreach (var entry in _entries)
             {
                 RestoreSdIris(entry);
+                RestoreSdSkew(entry);
                 if (entry.irisHdApplied) RestoreCookieHdBaseline(entry);
             }
         }
@@ -301,6 +305,12 @@ namespace ArtNet.Runtime
                 entry.cookieHdTranslation = VlbReflection.GetVector2(entry.cookieHd, "translation", Vector2.zero);
                 entry.cookieHdScale = VlbReflection.GetVector2(entry.cookieHd, "scale", Vector2.one);
                 entry.hasCookieHdBaseline = true;
+            }
+
+            if (entry.sd != null && !entry.hasSdSkewBaseline)
+            {
+                entry.sdSkewBaseline = VlbReflection.GetVector3(entry.sd, "skewingLocalForwardDirection", Vector3.forward);
+                entry.hasSdSkewBaseline = true;
             }
         }
 
@@ -384,6 +394,15 @@ namespace ArtNet.Runtime
             if (overrides.overrideSdIntensityMultiplier)
                 VlbReflection.SetFloat(entry.sd, "intensityMultiplier", Mathf.Max(0f, overrides.sdIntensityMultiplier));
 
+            if (entry.hasSdSkewBaseline)
+            {
+                Quaternion shakeRotation = Quaternion.Euler(state.beamShakeAngleDeg.x, state.beamShakeAngleDeg.y, 0f);
+                Vector3 shakenDirection = shakeRotation * entry.sdSkewBaseline.normalized;
+                if (Mathf.Approximately(shakenDirection.z, 0f))
+                    shakenDirection.z = 0.0001f;
+                VlbReflection.SetVector3(entry.sd, "skewingLocalForwardDirection", shakenDirection);
+            }
+
             // Keep the runtime values in sync after changing the SD properties above.
             VlbReflection.Invoke(entry.sd, "UpdateAfterManualPropertyChange");
             // SD has no cookie support. Its native homogeneous beam can still represent the
@@ -419,6 +438,13 @@ namespace ArtNet.Runtime
             VlbReflection.SetFloat(entry.sd, "coneRadiusStart", entry.irisSdOriginalRadius);
             VlbReflection.Invoke(entry.sd, "AssignPropertiesFromAttachedSpotLight");
             entry.irisSdApplied = false;
+        }
+
+        private static void RestoreSdSkew(Entry entry)
+        {
+            if (entry.sd == null || !entry.hasSdSkewBaseline) return;
+            VlbReflection.SetVector3(entry.sd, "skewingLocalForwardDirection", entry.sdSkewBaseline);
+            VlbReflection.Invoke(entry.sd, "UpdateAfterManualPropertyChange");
         }
 
         private static class VlbReflection
@@ -493,6 +519,11 @@ namespace ArtNet.Runtime
                 SetValue(component, name, value);
             }
 
+            public static void SetVector3(Component component, string name, Vector3 value)
+            {
+                SetValue(component, name, value);
+            }
+
             public static void SetObject(Component component, string name, object value)
             {
                 SetValue(component, name, value);
@@ -522,6 +553,16 @@ namespace ArtNet.Runtime
                 var member = GetMember(component.GetType(), name);
                 object value = GetValue(component, member);
                 return value is Vector2 vector ? vector : fallback;
+            }
+
+            public static Vector3 GetVector3(Component component, string name, Vector3 fallback)
+            {
+                if (component == null)
+                    return fallback;
+
+                var member = GetMember(component.GetType(), name);
+                object value = GetValue(component, member);
+                return value is Vector3 vector ? vector : fallback;
             }
 
             public static float GetFloat(Component component, string name, float fallback)

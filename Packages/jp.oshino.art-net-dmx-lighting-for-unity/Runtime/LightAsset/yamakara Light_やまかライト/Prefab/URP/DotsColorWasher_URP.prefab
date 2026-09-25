@@ -1695,54 +1695,27 @@ MonoBehaviour:
   - {fileID: 4467154712495972214}
   panTransform: {fileID: 0}
   tiltTransform: {fileID: 0}
-  lensRenderer: {fileID: 8033579625737206285}
-  extraLensRenderers:
-  - {fileID: 7951351083934623245}
-  - {fileID: 4126460257343251770}
-  - {fileID: 503298186490975866}
-  - {fileID: 5994208495373718706}
-  - {fileID: 7715197085830032009}
-  - {fileID: 599340302440153312}
-  - {fileID: 2251953214450539596}
-  - {fileID: 3945635637180873722}
-  syncLensToDmx: 1
-  syncLensColorToDmx: 0
-  syncLensDimmerToDmx: 1
-  lensColorProperty: _DmxColor
-  lensDimmerProperty: _DmxDimmer
-  lensDimmerScale: 1
-  goboWheel: {fileID: 0}
-  syncLightCookieToGobo: 1
-  syncLensGoboToDmx: 1
-  syncBeamGoboToDmx: 1
-  maxGoboRotateDegPerSec: 360
-  enableGoboShake: 1
-  syncGoboRotationToCookieTransform: 1
-  goboCookieRollTransform: {fileID: 0}
-  goboCookieRollAxis: {x: 0, y: 0, z: 1}
-  goboCookieRollOffsetDeg: 0
-  lensGoboTextureProperty: _GoboTexture
-  lensGoboRotationProperty: _GoboRotationDeg
-  lensGoboEnabledProperty: _GoboEnabled
-  beamGoboTextureProperty: _GoboTexture
-  beamGoboRotationProperty: _GoboRotationDeg
-  beamGoboEnabledProperty: _GoboEnabled
   beamRenderMode: 0
+  syncBeamColorToDmx: 1
+  syncBeamDimmerToDmx: 1
+  syncBeamGoboToDmx: 1
+  syncBeamGoboRotationToDmx: 1
+  syncBeamPrismToDmx: 1
+  syncBeamZoomToDmx: 1
   overrideVlbHdIntensityMultiplier: 1
   vlbHdIntensityMultiplier: 0.01
   overrideVlbSdIntensityMultiplier: 1
   vlbSdIntensityMultiplier: 0.01
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
+  overrideVlbHdGoboCookieContribution: 1
+  vlbHdGoboCookieContribution: 1
   syncPseudoBeamToDmx: 0
   _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
   _vlbPipelineDefaultsInitialized: 1
   beamRenderer: {fileID: 0}
-  extraBeamRenderers: []
-  syncBeamColorToDmx: 1
-  syncBeamDimmerToDmx: 1
-  syncBeamPrismToDmx: 1
-  syncBeamZoomToDmx: 1
+  extraPseudoBeamRenderers: []
   syncBeamNoiseVolumeToBeam: 1
   beamColorProperty: _DmxColor
   beamDimmerProperty: _DmxDimmer
@@ -1788,6 +1761,53 @@ MonoBehaviour:
   beamSoftShellIntensity: 0.2
   beamSoftShellEdgeSoftness: 0.9
   beamSoftShellNoiseStrength: 0.25
+  lensRenderer: {fileID: 8033579625737206285}
+  extraLensRenderers:
+  - {fileID: 7951351083934623245}
+  - {fileID: 4126460257343251770}
+  - {fileID: 503298186490975866}
+  - {fileID: 5994208495373718706}
+  - {fileID: 7715197085830032009}
+  - {fileID: 599340302440153312}
+  - {fileID: 2251953214450539596}
+  - {fileID: 3945635637180873722}
+  lensMaterialBindings: []
+  syncLensToDmx: 1
+  syncLensColorToDmx: 0
+  syncLensDimmerToDmx: 1
+  lensColorProperty: _DmxColor
+  lensDimmerProperty: _DmxDimmer
+  lensDimmerScale: 1
+  lensApertureFeather: 0
+  syncLensGoboToDmx: 1
+  syncLensGoboZoomToDmx: 1
+  lensGoboTextureProperty: _GoboTexture
+  lensGoboRotationProperty: _GoboRotationDeg
+  lensGoboEnabledProperty: _GoboEnabled
+  lensGoboRotationDirection: 0
+  lensGoboShakePositionDirection: 0
+  lensGoboShakeRotationDirection: 0
+  lensPrismGoboMode: 1
+  legacyUseDedicatedGoboLensShader: 0
+  goboLensEmission: 2
+  goboLensScale: 1
+  goboLensZoomNarrowScale: 0.5
+  goboLensZoomWideScale: 1
+  goboLensBlur: 0
+  goboLensHorizontalOffset: 0
+  goboLensVerticalOffset: 0
+  goboLensHotspotStrength: 0.35
+  goboWheel: {fileID: 0}
+  syncLightCookieToGobo: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 0}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
+  beamGoboTextureProperty: _GoboTexture
+  beamGoboRotationProperty: _GoboRotationDeg
+  beamGoboEnabledProperty: _GoboEnabled
   syncZoomToLight: 1
   minOuterSpotAngle: 5
   maxOuterSpotAngle: 50
@@ -1809,8 +1829,8 @@ MonoBehaviour:
   auxiliaryIntensityScale: 1
   auxiliaryVolumetricIntensityScale: 1
   prismBrightnessDistribution: 1
-  prismZoomCorrection: 0
-  prismGoboSpacingScale: 1
+  prismGoboSpacingMode: 0
+  manualPrismGoboSpacingScale: 1
   prismGoboScaleVlb: 1
   auxiliaryLightShadows: 0
   prismCookieShader: {fileID: 0}
@@ -1901,6 +1921,9 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 1
     absoluteChannel: 1
+  syncIrisToDmx: 1
+  irisProfile: {fileID: 0}
+  irisInstance: 1
 --- !u!114 &-4708839406783963790
 MonoBehaviour:
   m_ObjectHideFlags: 0

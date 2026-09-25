@@ -22,6 +22,7 @@ namespace ArtNet.Editor
         private const string VlbSdTypeName = "VLB.VolumetricLightBeamSD";
         private const string VlbHdTypeName = "VLB.VolumetricLightBeamHD";
         private const string VlbCookieHdTypeName = "VLB.VolumetricCookieHD";
+        private const string VlbSdDynamicOcclusionTypeName = "VLB.DynamicOcclusionRaycasting";
         private const int UrpRenderPipelineEnumValue = 1;
         private const int VlbBeamRenderModeEnumValue = 2;
         private const int DepthPrimingDisabledEnumValue = 0;
@@ -728,6 +729,7 @@ namespace ArtNet.Editor
             var sdType = FindType(VlbSdTypeName);
             var hdType = FindType(VlbHdTypeName);
             var cookieType = FindType(VlbCookieHdTypeName);
+            var sdOcclusionType = FindType(VlbSdDynamicOcclusionTypeName);
             var changed = false;
 
             if (mode == BeamMode.SD)
@@ -735,9 +737,11 @@ namespace ArtNet.Editor
                 changed |= RemoveComponentIfPresent(gameObject, hdType);
                 changed |= RemoveComponentIfPresent(gameObject, cookieType);
                 changed |= AddComponentIfMissing(gameObject, sdType);
+                changed |= AddComponentIfMissing(gameObject, sdOcclusionType);
             }
             else
             {
+                changed |= RemoveComponentIfPresent(gameObject, sdOcclusionType);
                 changed |= RemoveComponentIfPresent(gameObject, sdType);
                 changed |= AddComponentIfMissing(gameObject, hdType);
                 changed |= AddComponentIfMissing(gameObject, cookieType);

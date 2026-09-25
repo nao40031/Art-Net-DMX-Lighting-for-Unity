@@ -545,6 +545,8 @@ MonoBehaviour:
   vlbSdIntensityMultiplier: 0.01
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
+  overrideVlbHdGoboCookieContribution: 1
+  vlbHdGoboCookieContribution: 1
   syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
   _beamSyncSettingsMigrated: 1
@@ -607,15 +609,19 @@ MonoBehaviour:
   lensDimmerScale: 1
   lensApertureFeather: 0
   syncLensGoboToDmx: 1
+  syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
   lensGoboEnabledProperty: _GoboEnabled
   lensGoboRotationDirection: 0
-  lensGoboShakeDirection: 0
+  lensGoboShakePositionDirection: 0
+  lensGoboShakeRotationDirection: 0
   lensPrismGoboMode: 1
   legacyUseDedicatedGoboLensShader: 0
   goboLensEmission: 2
   goboLensScale: 1
+  goboLensZoomNarrowScale: 0.5
+  goboLensZoomWideScale: 1
   goboLensBlur: 0
   goboLensHorizontalOffset: 0
   goboLensVerticalOffset: 0
@@ -744,6 +750,9 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 1
     absoluteChannel: 1
+  syncIrisToDmx: 1
+  irisProfile: {fileID: 0}
+  irisInstance: 1
 --- !u!114 &3617892565423662184
 MonoBehaviour:
   m_ObjectHideFlags: 0

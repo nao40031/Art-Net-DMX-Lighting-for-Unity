@@ -19,6 +19,7 @@ namespace ArtNet.Editor
         private const string VlbSdTypeName = "VLB.VolumetricLightBeamSD";
         private const string VlbHdTypeName = "VLB.VolumetricLightBeamHD";
         private const string VlbCookieHdTypeName = "VLB.VolumetricCookieHD";
+        private const string VlbSdDynamicOcclusionTypeName = "VLB.DynamicOcclusionRaycasting";
         private const int HdrpRenderPipelineEnumValue = 2;
         private const int VlbBeamRenderModeEnumValue = 2;
         private const string MenuPath = "Art-Net/VLB/HDRP Setup";
@@ -341,9 +342,10 @@ namespace ArtNet.Editor
         private static bool ApplyBeamMode(GameObject gameObject, BeamMode mode)
         {
             var sd = FindType(VlbSdTypeName); var hd = FindType(VlbHdTypeName); var cookie = FindType(VlbCookieHdTypeName);
+            var sdOcclusion = FindType(VlbSdDynamicOcclusionTypeName);
             return mode == BeamMode.SD
-                ? RemoveComponentIfPresent(gameObject, hd) | RemoveComponentIfPresent(gameObject, cookie) | AddComponentIfMissing(gameObject, sd)
-                : RemoveComponentIfPresent(gameObject, sd) | AddComponentIfMissing(gameObject, hd) | AddComponentIfMissing(gameObject, cookie);
+                ? RemoveComponentIfPresent(gameObject, hd) | RemoveComponentIfPresent(gameObject, cookie) | AddComponentIfMissing(gameObject, sd) | AddComponentIfMissing(gameObject, sdOcclusion)
+                : RemoveComponentIfPresent(gameObject, sdOcclusion) | RemoveComponentIfPresent(gameObject, sd) | AddComponentIfMissing(gameObject, hd) | AddComponentIfMissing(gameObject, cookie);
         }
 
         private static bool ApplyHdrpVlbDefaults(DmxFixtureComponent fixture)
