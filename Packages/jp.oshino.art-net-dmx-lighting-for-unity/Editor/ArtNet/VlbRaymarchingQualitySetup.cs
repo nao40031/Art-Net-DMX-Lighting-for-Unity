@@ -6,30 +6,31 @@ using UnityEngine;
 namespace ArtNet.Editor
 {
     /// <summary>
-    /// Creates the shared VLB HD raymarching preset without a compile-time VLB dependency.
+    /// Resolves VLB's standard High raymarching preset without a compile-time VLB dependency.
     /// </summary>
     internal static class VlbRaymarchingQualitySetup
     {
         private const string ConfigTypeName = "VLB.Config";
         private const string BeamHdTypeName = "VLB.VolumetricLightBeamHD";
         private const string QualityTypeName = "VLB.RaymarchingQuality";
-        private const string PresetName = "Very High";
-        private const int PresetStepCount = 40;
+        private const string PresetName = "High";
+        private const int PresetStepCount = 20;
+        private const int PresetUniqueId = 3;
 
         internal readonly struct Status
         {
             public readonly bool configFound;
-            public readonly bool veryHighAvailable;
-            public readonly bool veryHighIsDefault;
+            public readonly bool highAvailable;
+            public readonly bool highUsesStandardId;
 
-            public Status(bool configFound, bool veryHighAvailable, bool veryHighIsDefault)
+            public Status(bool configFound, bool highAvailable, bool highUsesStandardId)
             {
                 this.configFound = configFound;
-                this.veryHighAvailable = veryHighAvailable;
-                this.veryHighIsDefault = veryHighIsDefault;
+                this.highAvailable = highAvailable;
+                this.highUsesStandardId = highUsesStandardId;
             }
 
-            public bool IsReady => configFound && veryHighAvailable && veryHighIsDefault;
+            public bool IsReady => configFound && highAvailable && highUsesStandardId;
         }
 
         public static Status InspectStatus()
@@ -39,14 +40,12 @@ namespace ArtNet.Editor
 
             var quality = FindQuality(config);
             var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
-            if (!(id is int qualityId)) return new Status(true, false, false);
-
-            var serializedConfig = new SerializedObject(config);
-            var defaultQuality = serializedConfig.FindProperty("m_DefaultRaymarchingQualityUniqueID");
-            return new Status(true, true, defaultQuality != null && defaultQuality.intValue == qualityId);
+            return id is int qualityId
+                ? new Status(true, true, qualityId == PresetUniqueId)
+                : new Status(true, false, false);
         }
 
-        public static bool EnsureVeryHigh(out string error)
+        public static bool EnsureHigh(out string error)
         {
             error = null;
             var config = FindConfig();
@@ -56,8 +55,22 @@ namespace ArtNet.Editor
                 return false;
             }
 
-            if (FindQuality(config) != null)
-                return true;
+            var existingQuality = FindQuality(config);
+            if (existingQuality != null)
+            {
+                var existingId = existingQuality.GetType().GetProperty("uniqueID")?.GetValue(existingQuality);
+                if (existingId is int id && id == PresetUniqueId)
+                    return true;
+
+                error = $"VLB Config already contains High (20) with ID {existingId}. Standard High must use ID {PresetUniqueId}.";
+                return false;
+            }
+
+            if (IsQualityIdInUse(config, PresetUniqueId))
+            {
+                error = $"VLB Config already uses ID {PresetUniqueId} for another raymarching quality. Change that quality manually before adding standard High (20).";
+                return false;
+            }
 
             var qualityType = FindType(QualityTypeName);
             var newMethod = qualityType?.GetMethod("New", BindingFlags.Static | BindingFlags.Public, null,
@@ -69,23 +82,9 @@ namespace ArtNet.Editor
                 return false;
             }
 
-            var forcedId = 4;
-            var countProperty = config.GetType().GetProperty("raymarchingQualitiesCount", BindingFlags.Instance | BindingFlags.Public);
-            var getMethod = config.GetType().GetMethod("GetRaymarchingQualityForIndex", BindingFlags.Instance | BindingFlags.Public);
-            if (countProperty != null && getMethod != null)
-            {
-                var count = (int)countProperty.GetValue(config);
-                for (var i = 0; i < count; i++)
-                {
-                    var quality = getMethod.Invoke(config, new object[] { i });
-                    var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
-                    if (id is int value) forcedId = Math.Max(forcedId, value + 1);
-                }
-            }
-
             try
             {
-                var quality = newMethod.Invoke(null, new object[] { PresetName, forcedId, PresetStepCount });
+                var quality = newMethod.Invoke(null, new object[] { PresetName, PresetUniqueId, PresetStepCount });
                 addMethod.Invoke(config, new[] { quality });
                 EditorUtility.SetDirty(config);
                 RefreshShaders(config);
@@ -104,43 +103,31 @@ namespace ArtNet.Editor
             }
         }
 
-        public static bool FixVeryHighDefault(out string error)
+        public static bool FixHigh(out string error)
         {
-            if (!EnsureVeryHigh(out error)) return false;
+            if (!EnsureHigh(out error)) return false;
 
             var config = FindConfig();
             var quality = config == null ? null : FindQuality(config);
             var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
             if (!(id is int qualityId))
             {
-                error = "Very High (40) could not be resolved from the VLB Config asset.";
+                error = "High (20) could not be resolved from the VLB Config asset.";
                 return false;
             }
-
-            var serializedConfig = new SerializedObject(config);
-            var defaultQuality = serializedConfig.FindProperty("m_DefaultRaymarchingQualityUniqueID");
-            if (defaultQuality == null)
+            if (qualityId != PresetUniqueId)
             {
-                error = "This VLB Config version does not expose its default raymarching quality setting.";
+                error = $"High (20) must use standard ID {PresetUniqueId}, but VLB Config uses ID {qualityId}.";
                 return false;
-            }
-
-            serializedConfig.Update();
-            if (defaultQuality.intValue != qualityId)
-            {
-                defaultQuality.intValue = qualityId;
-                serializedConfig.ApplyModifiedPropertiesWithoutUndo();
-                EditorUtility.SetDirty(config);
-                AssetDatabase.SaveAssets();
             }
 
             error = null;
             return true;
         }
 
-        public static bool IsVeryHighApplied(GameObject gameObject)
+        public static bool IsHighApplied(GameObject gameObject)
         {
-            if (gameObject == null || !TryGetVeryHighQualityId(out var qualityId)) return false;
+            if (gameObject == null || !TryGetHighQualityId(out var qualityId)) return false;
             return IsQualityApplied(gameObject, qualityId);
         }
 
@@ -160,7 +147,7 @@ namespace ArtNet.Editor
             var beam = beamType == null ? null : gameObject.GetComponent(beamType);
             if (beam == null) return false;
 
-            if (!TryGetVeryHighQualityId(out var qualityId)) return false;
+            if (!TryGetHighQualityId(out var qualityId)) return false;
             return ApplyQualityToGameObject(gameObject, qualityId);
         }
 
@@ -205,15 +192,33 @@ namespace ArtNet.Editor
             return changed;
         }
 
-        public static bool TryGetVeryHighQualityId(out int qualityId)
+        public static bool TryGetHighQualityId(out int qualityId)
         {
             qualityId = default;
             var config = FindConfig();
             var quality = config == null ? null : FindQuality(config);
             var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
-            if (!(id is int value)) return false;
+            if (!(id is int value) || value != PresetUniqueId) return false;
             qualityId = value;
             return true;
+        }
+
+        private static bool IsQualityIdInUse(ScriptableObject config, int qualityId)
+        {
+            var type = config.GetType();
+            var countProperty = type.GetProperty("raymarchingQualitiesCount", BindingFlags.Instance | BindingFlags.Public);
+            var getMethod = type.GetMethod("GetRaymarchingQualityForIndex", BindingFlags.Instance | BindingFlags.Public);
+            if (countProperty == null || getMethod == null) return false;
+
+            var count = (int)countProperty.GetValue(config);
+            for (var i = 0; i < count; i++)
+            {
+                var quality = getMethod.Invoke(config, new object[] { i });
+                var id = quality?.GetType().GetProperty("uniqueID")?.GetValue(quality);
+                if (id is int value && value == qualityId)
+                    return true;
+            }
+            return false;
         }
 
         private static ScriptableObject FindConfig()

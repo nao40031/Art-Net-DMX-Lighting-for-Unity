@@ -288,7 +288,7 @@ MonoBehaviour:
   m_FallOffEndMultiplier: 1
   m_AttenuationEquation: 1
   m_SideSoftness: 1
-  m_RaymarchingQualityID: 647570373
+  m_RaymarchingQualityID: 3
   m_JitteringFactor: 0
   m_JitteringFrameRate: 60
   m_JitteringLerpRange:
