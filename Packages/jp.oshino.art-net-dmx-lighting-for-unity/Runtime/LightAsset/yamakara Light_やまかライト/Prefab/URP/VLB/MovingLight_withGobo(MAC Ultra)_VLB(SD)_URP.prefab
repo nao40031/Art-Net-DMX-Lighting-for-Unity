@@ -52,7 +52,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -481,6 +481,8 @@ MonoBehaviour:
   vlbSdIntensityMultiplier: 0.01
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
+  overrideVlbHdGoboCookieContribution: 1
+  vlbHdGoboCookieContribution: 1
   syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
   _beamSyncSettingsMigrated: 1
@@ -1563,6 +1565,9 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 48
     absoluteChannel: 48
+  syncIrisToDmx: 1
+  irisProfile: {fileID: 0}
+  irisInstance: 1
 --- !u!4 &8876304756517623177 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
