@@ -8,7 +8,7 @@ namespace ArtNet.Editor
     /// <summary>Reference mappings only; never replaces an existing fixture asset.</summary>
     public static class IrisExamples
     {
-        [MenuItem("Tools/ArtNet/Iris/Create Reference Definitions")]
+        [MenuItem("Art-Net/Iris/Create Reference Definitions")]
         public static void Create()
         {
             const string folder = "Assets/ArtNetIrisExamples";

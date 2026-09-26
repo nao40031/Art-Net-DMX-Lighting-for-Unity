@@ -9,7 +9,7 @@ namespace ArtNet.Editor
     public static class IrisValidation
     {
         private static int checks;
-        [MenuItem("Tools/ArtNet/Iris/Run Validation")]
+        [MenuItem("Art-Net/Iris/Run Validation")]
         public static void Run()
         {
             checks = 0;
