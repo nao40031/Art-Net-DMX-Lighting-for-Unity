@@ -270,8 +270,7 @@ Transform:
   m_LocalPosition: {x: 0.032, y: -0.015, z: 0.026}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
-  m_Children:
-  - {fileID: 7341186712468150202}
+  m_Children: []
   m_Father: {fileID: 4739125878636549903}
   m_LocalEulerAnglesHint: {x: 182.164, y: 85.175, z: 0}
 --- !u!108 &12558065280958730
@@ -721,89 +720,6 @@ MonoBehaviour:
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
   m_ObsoleteContactShadows: 0
---- !u!1001 &2053582538423626504
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.274
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 5.44
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.841
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071067
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -238966371585807959, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 58c22bdff9fdfa6429e9f2a93a8470fd, type: 2}
-    - target: {fileID: 874224889034588341, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_Name
-      value: "\u30EC\u30F3\u30BA\u9762"
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      propertyPath: m_Name
-      value: ParLight_ver12_WithLigh&Dmx
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7341186712468150202}
-    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 9120878139393355818}
-    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4008560296621501141}
-    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 9147979985698976242}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1411206298453158540}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3617892565423662184}
-  m_SourcePrefab: {fileID: 100100000, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
 --- !u!1 &7341186712468150201
 GameObject:
   m_ObjectHideFlags: 0
@@ -836,7 +752,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 9120878139393355818}
+  m_Father: {fileID: 4739125878636549903}
   m_LocalEulerAnglesHint: {x: -177.841, y: 89.188, z: -0.15100098}
 --- !u!33 &7341186712468150203
 MeshFilter:
@@ -913,6 +829,89 @@ MonoBehaviour:
   rebuildInEditMode: 1
   assignMaterialOnRebuild: 1
   material: {fileID: 2100000, guid: 10b17586dd164ef38009273b68cd9ddf, type: 2}
+--- !u!1001 &2053582538423626504
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.274
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5.44
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.841
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071067
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -238966371585807959, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: 58c22bdff9fdfa6429e9f2a93a8470fd, type: 2}
+    - target: {fileID: 874224889034588341, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_Name
+      value: "\u30EC\u30F3\u30BA\u9762"
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      propertyPath: m_Name
+      value: ParLight_ver12_WithLigh&Dmx_HDRP
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7341186712468150202}
+    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9120878139393355818}
+    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4008560296621501141}
+    - targetCorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9147979985698976242}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1411206298453158540}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3617892565423662184}
+  m_SourcePrefab: {fileID: 100100000, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
 --- !u!1 &1206581665617565273 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
@@ -938,25 +937,25 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 0}
   tiltTransform: {fileID: 0}
-  lensRenderer: {fileID: 6976303601353376417}
-  extraLensRenderers: []
-  syncLensToDmx: 1
-  syncLensColorToDmx: 0
-  syncLensDimmerToDmx: 1
-  lensColorProperty: _DmxColor
-  lensDimmerProperty: _DmxDimmer
-  lensDimmerScale: 1
   beamRenderMode: 0
-  syncPseudoBeamToDmx: 1
-  _beamRenderModeMigrated: 1
-  _beamSyncSettingsMigrated: 1
-  beamRenderer: {fileID: 7341186712468150204}
-  extraBeamRenderers: []
   syncBeamColorToDmx: 0
   syncBeamDimmerToDmx: 1
+  syncBeamGoboToDmx: 1
   syncBeamGoboRotationToDmx: 1
   syncBeamPrismToDmx: 1
   syncBeamZoomToDmx: 1
+  overrideVlbHdIntensityMultiplier: 1
+  vlbHdIntensityMultiplier: 0.00001
+  overrideVlbSdIntensityMultiplier: 1
+  vlbSdIntensityMultiplier: 0.01
+  overrideVlbHdrpExposureWeight: 1
+  vlbHdrpExposureWeight: 0
+  syncPseudoBeamToDmx: 1
+  _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
+  _vlbPipelineDefaultsInitialized: 1
+  beamRenderer: {fileID: 7341186712468150204}
+  extraPseudoBeamRenderers: []
   syncBeamNoiseVolumeToBeam: 1
   beamColorProperty: _DmxColor
   beamDimmerProperty: _DmxDimmer
@@ -968,7 +967,105 @@ MonoBehaviour:
   beamLengthProperty: _BeamLength
   beamStartRadiusProperty: _BeamStartRadius
   beamEndRadiusProperty: _BeamEndRadius
+  beamNoiseVolume: {fileID: 0}
   beamNoiseVolumeEnabled: 0
+  beamNoiseVolumeStrength: 1
+  beamNoiseVolumeGoboScale: 1
+  beamNoiseVolumePrismRotationScale: 0
+  beamNoiseVolumeScale: 1
+  beamNoiseVolumeRadialScale: 4
+  beamNoiseVolumeLengthScale: 12
+  beamNoiseVolumeSpeed: 0.1
+  beamNoiseVolumeContrast: 1
+  beamNoiseVolumeOffset: {x: 0, y: 0, z: 0}
+  beamNoiseVolumeScrollSpace: 0
+  beamNoiseVolumeScrollAxis: 2
+  beamNoiseVolumeScrollReverse: 0
+  beamNoiseVolumeProperty: _BeamNoiseVolume
+  beamNoiseVolumeEnabledProperty: _BeamNoiseVolumeEnabled
+  beamNoiseVolumeStrengthProperty: _BeamNoiseVolumeStrength
+  beamNoiseVolumeScaleProperty: _BeamNoiseVolumeScale
+  beamNoiseVolumeRadialScaleProperty: _BeamNoiseVolumeRadialScale
+  beamNoiseVolumeLengthScaleProperty: _BeamNoiseVolumeLengthScale
+  beamNoiseVolumeSpeedProperty: _BeamNoiseVolumeSpeed
+  beamNoiseVolumeContrastProperty: _BeamNoiseVolumeContrast
+  beamNoiseVolumeOffsetProperty: _BeamNoiseVolumeOffset
+  beamNoiseVolumeScrollDirectionProperty: _BeamNoiseVolumeScrollDirection
+  beamDimmerScale: 1
+  beamDimmerFloor: 0
+  beamZoomRadiusScale: 1
+  beamZoomMinEndRadius: 0.01
+  beamZoomMaxEndRadius: 25
+  enableBeamSoftShell: 0
+  beamSoftShellRadiusScale: 1.35
+  beamSoftShellIntensity: 0.2
+  beamSoftShellEdgeSoftness: 0.9
+  beamSoftShellNoiseStrength: 0.25
+  lensRenderer: {fileID: 6976303601353376417}
+  extraLensRenderers: []
+  lensMaterialBindings: []
+  syncLensToDmx: 1
+  syncLensColorToDmx: 0
+  syncLensDimmerToDmx: 1
+  lensColorProperty: _DmxColor
+  lensDimmerProperty: _DmxDimmer
+  lensDimmerScale: 1
+  lensApertureFeather: 0
+  syncLensGoboToDmx: 1
+  syncLensGoboZoomToDmx: 1
+  lensGoboTextureProperty: _GoboTexture
+  lensGoboRotationProperty: _GoboRotationDeg
+  lensGoboEnabledProperty: _GoboEnabled
+  lensGoboRotationDirection: 0
+  lensGoboShakePositionDirection: 0
+  lensGoboShakeRotationDirection: 0
+  lensPrismGoboMode: 1
+  legacyUseDedicatedGoboLensShader: 0
+  goboLensEmission: 2
+  goboLensScale: 1
+  goboLensZoomNarrowScale: 0.5
+  goboLensZoomWideScale: 1
+  goboLensBlur: 0
+  goboLensHorizontalOffset: 0
+  goboLensVerticalOffset: 0
+  goboLensHotspotStrength: 0.35
+  goboWheel: {fileID: 0}
+  syncLightCookieToGobo: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 0}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
+  beamGoboTextureProperty: _GoboTexture
+  beamGoboRotationProperty: _GoboRotationDeg
+  beamGoboEnabledProperty: _GoboEnabled
+  syncZoomToLight: 1
+  minOuterSpotAngle: 5
+  maxOuterSpotAngle: 50
+  invertZoom: 0
+  zoomInnerSpotPercent: 80
+  prismDefinition: {fileID: 0}
+  enablePrism: 1
+  prismDrawMode: 0
+  prismRenderMode: 1
+  projectionOnlyPrimaryIntensityScale: 0.65
+  disableAuxiliaryVolumetricInProjectionOnly: 1
+  auxiliaryCookieRotationMode: 0
+  maxPrismRotateDegPerSec: 360
+  prismCompositeCookieSize: 512
+  prismCompositeRotationStepDeg: 1
+  maxPrismCompositeFacets: 8
+  maxPrismAuxiliaryFacets: 8
+  auxiliarySpreadMultiplierDeg: 10
+  auxiliaryIntensityScale: 1
+  auxiliaryVolumetricIntensityScale: 1
+  prismBrightnessDistribution: 1
+  prismGoboSpacingMode: 0
+  manualPrismGoboSpacingScale: 1
+  prismGoboScaleVlb: 1
+  auxiliaryLightShadows: 0
+  prismCookieShader: {fileID: 0}
   lightResponseMode: 1
   halogenSourceRiseTime: 0.5
   halogenSourceFallTime: 0.85
@@ -1011,7 +1108,23 @@ MonoBehaviour:
   ch4: 0
   ch5: 0
   monitorItems:
-  - function: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 1
+    absoluteCh: 1
+    value: 0
+  - useElementSchema: 0
+    function: 0
+    label: Dimmer
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
     relativeCh: 1
     absoluteCh: 1
     value: 0
@@ -1019,26 +1132,30 @@ MonoBehaviour:
   logIntervalSec: 1
   logOnlyWhenDataArrived: 1
   includeHeaderInLog: 1
-  skipApplyIfNoRelevantChannelChange: 1
-  enableAdaptiveVolumetrics: 0
-  adaptiveVolumetricsCamera: {fileID: 0}
-  useMainCameraWhenAdaptiveCameraMissing: 0
-  adaptiveVolumetricsOffBelowDimmer: 0.03
-  adaptiveVolumetricsFullAtDimmer: 0.35
-  enableAdaptiveVolumetricsHighCut: 0
-  adaptiveVolumetricsOffAboveDimmer: 0.98
-  adaptiveVolumetricsNearDistance: 2
-  adaptiveVolumetricsFarDistance: 18
-  adaptiveVolumetricsCutoff: 0.01
-  adaptiveVolumetricsMultiplierScale: 1
-  adaptiveVolumetricsSmoothing: 8
-  useFixtureCenterForAdaptiveDistance: 0
   _activeProfileLabel: 
   _activeModeLabel: Generic Dimmer
   _resolvedItems:
   - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 1
     absoluteChannel: 1
+  - function: 0
+    useElementSchema: 0
+    label: Dimmer
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 1
+    absoluteChannel: 1
+  syncIrisToDmx: 1
+  irisProfile: {fileID: 0}
+  irisInstance: 1
 --- !u!114 &3617892565423662184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1059,11 +1176,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  skipRedundantApply: 1
-  intensityEpsilon: 0.01
-  colorEpsilon: 0.0001
-  captureBaseVolumetricOnInitialize: 1
-  volumetricEpsilon: 0.0001
 --- !u!4 &4739125878636549903 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2469367254990357497, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
