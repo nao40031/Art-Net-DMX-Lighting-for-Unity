@@ -321,6 +321,13 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "jp.oshino.art-net-dmx-lighting-for-unity": {
+      "version": "https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#upm/release",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "1da8f701d701bcde7a32635eef90e478d9119ad3"
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,
