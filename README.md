@@ -43,7 +43,7 @@ MagicQ show data is included and can be obtained through GitHub's Download ZIP o
 
 Copy the files you need to `C:\Users\<username>\Documents\MagicQ\show`.
 
-## Install the plugin with UPM
+## Install the plugin with Unity Package Manager
 
 Use this method to add only the plugin to an existing Unity project. To obtain the sample scenes and MagicQ show data as well, follow [Getting the project](#getting-the-project-recommended).
 
