@@ -43,6 +43,20 @@ MagicQ show data is included and can be obtained through GitHub's Download ZIP o
 
 Copy the files you need to `C:\Users\<username>\Documents\MagicQ\show`.
 
+## Install the plugin with UPM
+
+Use this method to add only the plugin to an existing Unity project. To obtain the sample scenes and MagicQ show data as well, follow [Getting the project](#getting-the-project-recommended).
+
+Git must be installed because Unity Package Manager uses it to retrieve the package.
+
+1. In Unity, open `Window > Package Manager`.
+2. Select `Add package from git URL...` from the `+` button in the upper-left corner.
+3. Enter the following URL, then select `Add`.
+
+```text
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#upm/release
+```
+
 ## Getting the project (recommended)
 
 This repository includes Git LFS-managed files such as `.unity` and `.fbx`. A Git clone is recommended because a GitHub ZIP download may contain LFS pointer files instead of their actual contents.

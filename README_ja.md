@@ -33,6 +33,20 @@ https://x.com/Oshino_Tech/status/2025485134578028589?s=20
 
 - [Art-Net DMX Lighting for Unity by Oshino](https://sleepy-smoke-ee3.notion.site/Art-Net-DMX-Lighting-for-Unity-by-Oshino-313d1c2c96f580be8e67eef37628ef5f?source=copy_link)
 
+## UPMでプラグインを導入する
+
+既存のUnityプロジェクトへプラグインのみを導入する場合は、こちらの方法を使用してください。サンプルシーンやMagicQ Showデータも取得する場合は、[プロジェクトの取得方法](#プロジェクトの取得方法)を使用してください。
+
+Unity Package ManagerがGit経由でパッケージを取得するため、あらかじめGitをインストールしてください。
+
+1. Unityで `Window > Package Manager` を開きます。
+2. 左上の `+` ボタンから `Add package from git URL...` を選択します。
+3. 以下のURLを入力し、`Add` をクリックします。
+
+```text
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#upm/release
+```
+
 ## プロジェクトの取得方法
 
 このリポジトリには Git LFS 管理ファイル（`.unity` / `.fbx` など）が含まれます。  
