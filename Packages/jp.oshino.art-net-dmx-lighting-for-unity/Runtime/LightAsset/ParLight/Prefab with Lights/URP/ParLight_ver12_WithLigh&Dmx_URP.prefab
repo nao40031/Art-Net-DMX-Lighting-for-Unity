@@ -532,7 +532,7 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 0}
   tiltTransform: {fileID: 0}
-  beamRenderMode: 1
+  beamRenderMode: 0
   syncBeamColorToDmx: 0
   syncBeamDimmerToDmx: 1
   syncBeamGoboToDmx: 1

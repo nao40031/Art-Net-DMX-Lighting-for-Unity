@@ -530,7 +530,7 @@ MonoBehaviour:
   beamGoboTextureProperty: _GoboTexture
   beamGoboRotationProperty: _GoboRotationDeg
   beamGoboEnabledProperty: _GoboEnabled
-  beamRenderMode: 1
+  beamRenderMode: 0
   overrideVlbHdIntensityMultiplier: 1
   vlbHdIntensityMultiplier: 0.00001
   overrideVlbSdIntensityMultiplier: 1
