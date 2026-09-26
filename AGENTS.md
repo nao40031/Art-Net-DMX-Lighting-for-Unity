@@ -106,3 +106,36 @@
 - 未検証事項や残リスク
 
 作業途中で判断が必要になった場合は、実装を進める前にユーザーへ確認してください。
+
+
+## Unity CLIによるAI検証
+
+C#コードを変更した場合は、可能な限りUnity CLIで実際のコンパイル確認を行う。
+
+基本コマンド:
+
+~~~powershell
+powershell -ExecutionPolicy Bypass -File .\tools\unity-check.ps1
+~~~
+
+関連するUnity Test Frameworkテストがある場合:
+
+~~~powershell
+powershell -ExecutionPolicy Bypass -File .\tools\unity-test.ps1 -Mode EditMode
+~~~
+
+必要に応じてPlayModeも実行する。
+
+~~~powershell
+powershell -ExecutionPolicy Bypass -File .\tools\unity-test.ps1 -Mode PlayMode
+~~~
+
+検証時のルール:
+
+- コンパイルエラーが出た場合は、まず unity-check.ps1 が抽出したエラーだけを読む。
+- 巨大なUnityログ全体は、抽出結果だけで原因を特定できない場合に限って読む。
+- Library/、Temp/、Logs/ を無目的に全走査しない。
+- エラー修正後は再度CLI検証し、成功するまで確認する。
+- 同一プロジェクトをUnity Editorで開いたまま別のUnity EditorプロセスをCLI起動しない。
+- CLI検証が実行できない場合は、理由と未検証事項を最終報告に明記する。
+- スクリプトの詳細は tools/README.md を参照する。
