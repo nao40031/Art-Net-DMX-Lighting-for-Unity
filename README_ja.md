@@ -33,7 +33,7 @@ https://x.com/Oshino_Tech/status/2025485134578028589?s=20
 
 - [Art-Net DMX Lighting for Unity by Oshino](https://sleepy-smoke-ee3.notion.site/Art-Net-DMX-Lighting-for-Unity-by-Oshino-313d1c2c96f580be8e67eef37628ef5f?source=copy_link)
 
-## Unity Package Managerでプラグインを導入する
+## Unity Package Managerによるプラグイン導入方法
 
 既存のUnityプロジェクトへプラグインのみを導入する場合は、こちらの方法を使用してください。サンプルシーンやMagicQ Showデータも取得する場合は、[プロジェクトの取得方法](#プロジェクトの取得方法)を使用してください。
 
