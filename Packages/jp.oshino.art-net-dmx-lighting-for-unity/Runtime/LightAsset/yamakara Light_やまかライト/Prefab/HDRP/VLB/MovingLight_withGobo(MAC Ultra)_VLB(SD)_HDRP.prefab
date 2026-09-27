@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2415676272866749}
   - component: {fileID: 5435452863099544097}
   - component: {fileID: 7965137842066642395}
- - component: {fileID: 1555806051967644497}
+  - component: {fileID: 1555806051967644497}
   - component: {fileID: 8123456789012345601}
   m_Layer: 0
   m_Name: Spot Light
