@@ -1,0 +1,67 @@
+# Changelog
+
+## Unreleased
+
+## 0.3.0
+
+- Add bilingual Japanese and English Inspector tooltips, help messages, headers, and editor-tool guidance throughout the package.
+- Normalize user-facing acronym labels such as DMX, HDRP, VLB, SD, and HD.
+- Add the Generic Prefab Replacer editor tool for configurable scene-object replacement.
+- Add the MagicQ calibration CSV exporter with bilingual Japanese and English guidance.
+- Add configurable HDRP and URP gobo-lens rendering, material setup, validation, zoom, rotation, shake, hotspot, aperture, and prism controls.
+- Finalize the bundled URP light assets and preconfigured VLB SD / HD prefabs for MAC Ultra and E3 Spot fixtures.
+- Tune the HDRP MAC Ultra prism pseudo-beam defaults.
+- Remove the obsolete duplicate HDRP gobo-lens shader implementation.
+
+## 0.2.1
+
+- Rename the light asset root from `Runtime/LightAsset/やまかライト` to `Runtime/LightAsset/yamakara Light_やまかライト`.
+
+## 0.2.0
+
+- Rename `Runtime/LightAsset/やまかライト/Prefab/Normal` to `Prefab/HDRP` to identify the render-pipeline-specific prefab set.
+
+## 0.1.9
+
+- Bundle the optional VLB prefab under `Runtime/LightAsset/やまかライト/Prefab/HDRP/VLB` instead of distributing it as a Package Manager sample.
+
+## 0.1.8
+
+- Register the optional VLB prefab as a Package Manager sample.
+- Document the Package Manager import workflow for the optional VLB sample.
+
+## 0.1.7
+
+- Moves the normal Git installation URL from the public-project `release` branch to the dedicated `upm/release` branch.
+
+## 0.1.6
+
+- Places the **Auto Discover in Children** button directly below the Timeline Playback `Sources` list.
+
+## 0.1.5
+
+- Documents the `release`-branch Git URL for Package Manager updates and the tagged URL for version-pinned installs.
+
+## 0.1.4
+
+- Replaces automatic Timeline source discovery with the explicit **Auto Discover in Children** Inspector action.
+- Validates all candidate Universe numbers before replacing Sources and reports duplicate object names in an Editor dialog.
+
+## 0.1.3
+
+- Adds auto-discovery of Timeline Playback universe sources and an `ArtNet Universe` prefab for multi-universe playback.
+- Organizes `ArtNet.prefab` so each universe owns its own `ArtNetChannels` and `Animator` components.
+
+## 0.1.2
+
+- Adds `Runtime/ArtNet/Prefabs/ArtNet.prefab` for drag-and-drop setup of live Art-Net input, recording, and Timeline playback.
+
+## 0.1.1
+
+- Removes development and verification assets under `LightAsset/Archive` from the distributed UPM package.
+
+## 0.1.0
+
+- Initial UPM package release.
+- Includes Art-Net/DMX runtime, fixture definitions, editor tools, and VLB-free lighting prefabs.
+- Adds an optional VLB prefab as a Package Manager sample.

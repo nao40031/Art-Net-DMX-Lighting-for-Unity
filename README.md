@@ -54,7 +54,7 @@ Git must be installed because Unity Package Manager uses it to retrieve the pack
 3. Enter the following URL, then select `Add`.
 
 ```text
-https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#upm/release
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#release
 ```
 
 ## Getting the project (recommended)

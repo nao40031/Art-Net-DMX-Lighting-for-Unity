@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1825f853867e4e4a842deda5016d9bd, type: 3}
+  m_Name: MAC Ultra Performance_Prism Definition
+  m_EditorClassIdentifier: 
+  slots:
+  - name: Open
+    dmxMin: 0
+    dmxMax: 10
+    isOpen: 1
+    facetCount: 1
+    spread: 0
+    facetScale: 1
+    rotationOffsetDeg: 0
+    intensityScale: 1
+    additionalRanges: []
+  - name: 4 Facet Prism
+    dmxMin: 11
+    dmxMax: 255
+    isOpen: 0
+    facetCount: 4
+    spread: 0.601
+    facetScale: 0.55
+    rotationOffsetDeg: 0
+    intensityScale: 1
+    additionalRanges: []

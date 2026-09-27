@@ -1,0 +1,18 @@
+{
+    "name": "ArtNet.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:de8f99bcb151bcf42b98828e4aa73249"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

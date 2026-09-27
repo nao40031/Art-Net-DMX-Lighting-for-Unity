@@ -44,7 +44,7 @@ Unity Package ManagerがGit経由でパッケージを取得するため、あ�
 3. 以下のURLを入力し、`Add` をクリックします。
 
 ```text
-https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#upm/release
+https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity.git?path=/Packages/jp.oshino.art-net-dmx-lighting-for-unity#release
 ```
 
 ## プロジェクトの取得方法
