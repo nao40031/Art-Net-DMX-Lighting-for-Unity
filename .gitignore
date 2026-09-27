@@ -80,5 +80,9 @@ Assets/Editor
 Assets/MagicaCloth2
 Assets/RecordDMXold
 
+# The Asset-side LightAsset folder meta is generated locally. Its former GUID is
+# intentionally owned by the UPM package at Runtime/LightAsset.meta.
+/Assets/LightAsset.meta
+
 # idea
 .idea
