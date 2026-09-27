@@ -1,4 +1,4 @@
-name: Sync release UPM lock
+name: Sync release UPM package
 
 on:
   push:
@@ -22,40 +22,21 @@ jobs:
           ref: release
           fetch-depth: 0
 
-      - name: Update locked Art-Net package revision
+      - name: Sync Art-Net package from UPM release
         env:
           UPM_COMMIT: ${{ github.sha }}
         run: |
-          node <<'NODE'
-          const fs = require('fs');
+          git checkout "$UPM_COMMIT" -- Packages/jp.oshino.art-net-dmx-lighting-for-unity
+          git checkout HEAD -- Packages/jp.oshino.art-net-dmx-lighting-for-unity/README.md
 
-          const path = 'Packages/packages-lock.json';
-          const packageKey = '"jp.oshino.art-net-dmx-lighting-for-unity": {';
-          const content = fs.readFileSync(path, 'utf8');
-          const packageStart = content.indexOf(packageKey);
-          const packageEnd = content.indexOf('\n    },', packageStart);
-
-          if (packageStart < 0 || packageEnd < 0) {
-            throw new Error('Art-Net package lock entry was not found.');
-          }
-
-          const entry = content.slice(packageStart, packageEnd);
-          const updatedEntry = entry.replace(/("hash": ")[^"]+(")/, `$1${process.env.UPM_COMMIT}$2`);
-          if (updatedEntry === entry) {
-            throw new Error('Art-Net package lock hash was not found.');
-          }
-
-          fs.writeFileSync(path, content.slice(0, packageStart) + updatedEntry + content.slice(packageEnd));
-          NODE
-
-      - name: Commit and push lock update
+      - name: Commit and push package update
         run: |
-          if git diff --quiet -- Packages/packages-lock.json; then
+          if git diff --quiet -- Packages/jp.oshino.art-net-dmx-lighting-for-unity; then
             exit 0
           fi
           git diff --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add Packages/packages-lock.json
-          git commit -m 'Sync release lock with UPM package'
+          git add Packages/jp.oshino.art-net-dmx-lighting-for-unity
+          git commit -m 'Sync release package with UPM'
           git push origin HEAD:release
