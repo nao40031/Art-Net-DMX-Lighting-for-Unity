@@ -290,7 +290,7 @@ Light:
   m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -825,14 +825,137 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 0}
   tiltTransform: {fileID: 0}
+  beamRenderMode: 0
+  syncBeamColorToDmx: 1
+  syncBeamDimmerToDmx: 1
+  syncBeamGoboToDmx: 1
+  syncBeamGoboRotationToDmx: 1
+  syncBeamPrismToDmx: 1
+  syncBeamZoomToDmx: 1
+  overrideVlbHdIntensityMultiplier: 1
+  vlbHdIntensityMultiplier: 0.00001
+  overrideVlbSdIntensityMultiplier: 1
+  vlbSdIntensityMultiplier: 0.00001
+  overrideVlbHdrpExposureWeight: 1
+  vlbHdrpExposureWeight: 0
+  overrideVlbHdGoboCookieContribution: 1
+  vlbHdGoboCookieContribution: 1
+  syncPseudoBeamToDmx: 0
+  _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
+  _vlbPipelineDefaultsInitialized: 1
+  beamRenderer: {fileID: 0}
+  extraPseudoBeamRenderers: []
+  syncBeamNoiseVolumeToBeam: 1
+  beamColorProperty: _DmxColor
+  beamDimmerProperty: _DmxDimmer
+  beamPrismEnabledProperty: _DmxPrismEnabled
+  beamPrismFacetCountProperty: _DmxPrismFacetCount
+  beamPrismSpreadProperty: _DmxPrismSpread
+  beamPrismRotationProperty: _DmxPrismRotation
+  beamPrismIntensityProperty: _DmxPrismIntensity
+  beamLengthProperty: _BeamLength
+  beamStartRadiusProperty: _BeamStartRadius
+  beamEndRadiusProperty: _BeamEndRadius
+  beamNoiseVolume: {fileID: 0}
+  beamNoiseVolumeEnabled: 0
+  beamNoiseVolumeStrength: 1
+  beamNoiseVolumeGoboScale: 1
+  beamNoiseVolumePrismRotationScale: 0
+  beamNoiseVolumeScale: 1
+  beamNoiseVolumeRadialScale: 4
+  beamNoiseVolumeLengthScale: 12
+  beamNoiseVolumeSpeed: 0.1
+  beamNoiseVolumeContrast: 1
+  beamNoiseVolumeOffset: {x: 0, y: 0, z: 0}
+  beamNoiseVolumeScrollSpace: 0
+  beamNoiseVolumeScrollAxis: 2
+  beamNoiseVolumeScrollReverse: 0
+  beamNoiseVolumeProperty: _BeamNoiseVolume
+  beamNoiseVolumeEnabledProperty: _BeamNoiseVolumeEnabled
+  beamNoiseVolumeStrengthProperty: _BeamNoiseVolumeStrength
+  beamNoiseVolumeScaleProperty: _BeamNoiseVolumeScale
+  beamNoiseVolumeRadialScaleProperty: _BeamNoiseVolumeRadialScale
+  beamNoiseVolumeLengthScaleProperty: _BeamNoiseVolumeLengthScale
+  beamNoiseVolumeSpeedProperty: _BeamNoiseVolumeSpeed
+  beamNoiseVolumeContrastProperty: _BeamNoiseVolumeContrast
+  beamNoiseVolumeOffsetProperty: _BeamNoiseVolumeOffset
+  beamNoiseVolumeScrollDirectionProperty: _BeamNoiseVolumeScrollDirection
+  beamDimmerScale: 1
+  beamDimmerFloor: 0
+  beamZoomRadiusScale: 1
+  beamZoomMinEndRadius: 0.01
+  beamZoomMaxEndRadius: 25
+  enableBeamSoftShell: 0
+  beamSoftShellRadiusScale: 1.35
+  beamSoftShellIntensity: 0.2
+  beamSoftShellEdgeSoftness: 0.9
+  beamSoftShellNoiseStrength: 0.25
   lensRenderer: {fileID: 0}
   extraLensRenderers: []
+  lensMaterialBindings: []
   syncLensToDmx: 1
   syncLensColorToDmx: 1
   syncLensDimmerToDmx: 1
   lensColorProperty: _DmxColor
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
+  lensApertureFeather: 0
+  syncLensGoboToDmx: 1
+  syncLensGoboZoomToDmx: 1
+  lensGoboTextureProperty: _GoboTexture
+  lensGoboRotationProperty: _GoboRotationDeg
+  lensGoboEnabledProperty: _GoboEnabled
+  lensGoboRotationDirection: 0
+  lensGoboShakePositionDirection: 0
+  lensGoboShakeRotationDirection: 0
+  lensPrismGoboMode: 1
+  legacyUseDedicatedGoboLensShader: 0
+  goboLensEmission: 2
+  goboLensScale: 1
+  goboLensZoomNarrowScale: 0.5
+  goboLensZoomWideScale: 1
+  goboLensBlur: 0
+  goboLensHorizontalOffset: 0
+  goboLensVerticalOffset: 0
+  goboLensHotspotStrength: 0.35
+  goboWheel: {fileID: 0}
+  syncLightCookieToGobo: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 0}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
+  beamGoboTextureProperty: _GoboTexture
+  beamGoboRotationProperty: _GoboRotationDeg
+  beamGoboEnabledProperty: _GoboEnabled
+  syncZoomToLight: 1
+  minOuterSpotAngle: 5
+  maxOuterSpotAngle: 50
+  invertZoom: 0
+  zoomInnerSpotPercent: 80
+  prismDefinition: {fileID: 0}
+  enablePrism: 1
+  prismDrawMode: 0
+  prismRenderMode: 1
+  projectionOnlyPrimaryIntensityScale: 0.65
+  disableAuxiliaryVolumetricInProjectionOnly: 1
+  auxiliaryCookieRotationMode: 0
+  maxPrismRotateDegPerSec: 360
+  prismCompositeCookieSize: 512
+  prismCompositeRotationStepDeg: 1
+  maxPrismCompositeFacets: 8
+  maxPrismAuxiliaryFacets: 8
+  auxiliarySpreadMultiplierDeg: 10
+  auxiliaryIntensityScale: 1
+  auxiliaryVolumetricIntensityScale: 1
+  prismBrightnessDistribution: 0
+  prismGoboSpacingMode: 0
+  manualPrismGoboSpacingScale: 1
+  prismGoboScaleVlb: 1
+  auxiliaryLightShadows: 1
+  prismCookieShader: {fileID: 0}
   lightResponseMode: 0
   halogenSourceRiseTime: 0.06
   halogenSourceFallTime: 0.1
@@ -856,6 +979,7 @@ MonoBehaviour:
   tiltOffsetDeg: 0
   panTiltSmoothing: 12
   enableContinuousPanTiltUpdate: 1
+  applyImmediateInEditMode: 1
   panTiltSpeedMinDegPerSec: 30
   panTiltSpeedMaxDegPerSec: 720
   resetTriggerThreshold: 250
@@ -874,7 +998,23 @@ MonoBehaviour:
   ch4: 0
   ch5: 0
   monitorItems:
-  - function: 0
+  - useElementSchema: 1
+    function: 0
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
+    relativeCh: 1
+    absoluteCh: 1
+    value: 0
+  - useElementSchema: 0
+    function: 0
+    label: Dimmer
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
     relativeCh: 1
     absoluteCh: 1
     value: 0
@@ -886,8 +1026,26 @@ MonoBehaviour:
   _activeModeLabel: Generic Dimmer
   _resolvedItems:
   - function: 0
+    useElementSchema: 1
+    label: NoFeature1.Value.Single
+    attribute: 0
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 1
     absoluteChannel: 1
+  - function: 0
+    useElementSchema: 0
+    label: Dimmer
+    attribute: 0
+    instance: 0
+    role: 0
+    byteRole: 0
+    relativeChannel: 1
+    absoluteChannel: 1
+  syncIrisToDmx: 1
+  irisProfile: {fileID: 0}
+  irisInstance: 1
 --- !u!114 &3617892565423662184
 MonoBehaviour:
   m_ObjectHideFlags: 0
