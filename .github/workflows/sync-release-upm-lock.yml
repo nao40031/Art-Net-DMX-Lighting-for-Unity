@@ -31,10 +31,10 @@ jobs:
 
       - name: Commit and push package update
         run: |
-          if git diff --quiet -- Packages/jp.oshino.art-net-dmx-lighting-for-unity; then
+          if git diff --cached --quiet -- Packages/jp.oshino.art-net-dmx-lighting-for-unity; then
             exit 0
           fi
-          git diff --check
+          git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add Packages/jp.oshino.art-net-dmx-lighting-for-unity
