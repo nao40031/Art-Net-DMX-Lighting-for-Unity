@@ -1,0 +1,4 @@
+# Lean, Normal, and Heavy are user-level profiles. Do not pin model or agent
+# behavior here: project settings override a selected profile.
+# The role files in .codex/agents/ are retained for an explicit Heavy session;
+# ordinary project work is controlled by the active profile.
