@@ -60,9 +60,8 @@ sysinfo.txt
 *.aab
 *.unitypackage
 
-# Volumetric Light Beam installer archive and its Unity-generated metadata.
-/Assets/VolumetricLightBeamPackage/VolumetricLightBeam.unitypackage
-/Assets/VolumetricLightBeamPackage/VolumetricLightBeam.unitypackage.meta
+# Volumetric Light Beam installer files are local-only.
+/Assets/VolumetricLightBeamPackage/
 
 # Crashlytics generated file
 crashlytics-build.properties
