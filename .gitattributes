@@ -7,6 +7,7 @@
 *.physicsMaterial2D merge=unityyamlmerge eol=lf
 *.physicsMaterial merge=unityyamlmerge eol=lf
 *.asset merge=unityyamlmerge eol=lf
+Assets/VolumetricLightBeam/Samples/Scenes/demoScene_hdrp/LightingData.asset -text -merge
 *.meta merge=unityyamlmerge eol=lf
 *.controller merge=unityyamlmerge eol=lf
 ## git-lfs ##
