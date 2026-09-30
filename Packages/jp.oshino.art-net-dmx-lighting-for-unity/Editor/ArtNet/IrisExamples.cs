@@ -15,17 +15,17 @@ namespace ArtNet.Editor
             if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder("Assets", "ArtNetIrisExamples");
             var profile = ScriptableObject.CreateInstance<IrisProfile>();
             AssetDatabase.CreateAsset(profile, AssetDatabase.GenerateUniqueAssetPath(folder + "/IrisProfile.asset"));
-            var generic = ScriptableObject.CreateInstance<FixtureDefinition>();
+            var generic = ScriptableObject.CreateInstance<FixtureType>();
             generic.displayName = "Generic Iris - isolated test channels";
             generic.irisProfile = profile;
-            generic.modes.Add(new FixtureModeDefinition { modeName = "8-bit: CH1 Iris", channelCount = 1,
+            generic.modes.Add(new FixtureMode { modeName = "8-bit: CH1 Iris", channelCount = 1,
                 elements = new List<FixtureChannelElement> { new FixtureChannelElement { attribute = FixtureAttribute.Iris } } });
-            generic.modes.Add(new FixtureModeDefinition { modeName = "16-bit: CH1 coarse / CH2 fine", channelCount = 2,
+            generic.modes.Add(new FixtureMode { modeName = "16-bit: CH1 coarse / CH2 fine", channelCount = 2,
                 elements = new List<FixtureChannelElement> {
                     new FixtureChannelElement { attribute = FixtureAttribute.Iris, byteRole = FixtureByteRole.Coarse },
                     new FixtureChannelElement { attribute = FixtureAttribute.Iris, byteRole = FixtureByteRole.Fine } } });
             AssetDatabase.CreateAsset(generic, AssetDatabase.GenerateUniqueAssetPath(folder + "/GenericIris.asset"));
-            var mac = ScriptableObject.CreateInstance<FixtureDefinition>();
+            var mac = ScriptableObject.CreateInstance<FixtureType>();
             mac.displayName = "MAC Ultra Performance - Iris channels ONLY";
             mac.irisProfile = profile;
             mac.modes.Add(CreateMacMode(false));
@@ -36,9 +36,9 @@ namespace ArtNet.Editor
             Debug.Log("Iris reference assets created. MAC definitions contain only Iris, not a complete fixture. Copy the Iris elements into your fixture. Minimum diameter, Hz and waveform are tunable approximations, not measured MAC specifications.");
         }
 
-        internal static FixtureModeDefinition CreateMacMode(bool extended)
+        internal static FixtureMode CreateMacMode(bool extended)
         {
-            var mode = new FixtureModeDefinition { modeName = extended ? "Extended Iris reference" : "Basic Iris reference", channelCount = extended ? 25 : 24 };
+            var mode = new FixtureMode { modeName = extended ? "Extended Iris reference" : "Basic Iris reference", channelCount = extended ? 25 : 24 };
             for (int i = 0; i < mode.channelCount; i++) mode.elements.Add(new FixtureChannelElement());
             mode.elements[23] = new FixtureChannelElement { attribute = FixtureAttribute.Iris,
                 byteRole = extended ? FixtureByteRole.Coarse : FixtureByteRole.Single,

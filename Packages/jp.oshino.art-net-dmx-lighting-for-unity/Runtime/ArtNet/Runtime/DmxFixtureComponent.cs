@@ -1,4 +1,4 @@
-﻿/*!
+/*!
  * Copyright (c) 2026 Oshino
  *
  * Released under the MIT license.
@@ -37,7 +37,8 @@ namespace ArtNet.Runtime
         public int startAddress = 1;
 
         [Header("Profile (Fixture/Mode)")]
-        public FixtureDefinition fixture;
+        [InspectorName("Fixture Type")]
+        public FixtureType fixture;
 
         // RigControllerが参照するため public。Inspector上はMode名表示でも内部値はindex。
         [SerializeField] public int mode = 0;
@@ -437,8 +438,9 @@ namespace ArtNet.Runtime
         // ------------------------------------------------------------
 
         [Header("Gobo")]
-        [Tooltip("DMX値とゴボテクスチャを対応付ける定義。\nDefinition that maps DMX values to gobo Textures.")]
-        [SerializeField] private GoboWheelDefinition goboWheel;
+        [Tooltip("DMX値とゴボテクスチャを対応付けるProfileです。\n\nProfile that maps DMX values to gobo Textures.")]
+        [InspectorName("Gobo Wheel Profile")]
+        [SerializeField] private GoboWheelProfile goboWheel;
 
         [Tooltip("ライトのcookieへゴボを同期します。\nSynchronizes the gobo to the Light cookie.")]
         [SerializeField, HideInInspector] private bool syncLightCookieToGobo = true;
@@ -518,10 +520,11 @@ namespace ArtNet.Runtime
         }
 
         [Header("Prism")]
-        [Tooltip("DMX値とプリズムスロットを対応付ける定義。\nDefinition that maps DMX values to prism slots.")]
-        [SerializeField] private PrismDefinition prismDefinition;
+        [Tooltip("DMX値とプリズムスロットを対応付けるProfileです。\n\nProfile that maps DMX values to prism slots.")]
+        [FormerlySerializedAs("prismDefinition")]
+        [SerializeField] private PrismProfile prismProfile;
 
-        [Tooltip("プリズム機能を有効にします。オフの場合、Prism DefinitionとDMX値が設定されていてもプリズム描画は行いません。\nEnables the prism feature. When disabled, no prism is rendered even if a Prism Definition and DMX value are set.")]
+        [Tooltip("プリズム機能を有効にします。オフの場合、Prism ProfileとDMX値が設定されていてもプリズム描画は行いません。\nEnables the prism feature. When disabled, no prism is rendered even if a Prism Profile and DMX value are set.")]
         [SerializeField] private bool enablePrism = true;
 
         [Tooltip("プリズムの描画モード。Projection Onlyは床・壁への投影中心、Full Auxiliary Lightsは影を含む高品質な補助Light、Projection + Shader Beamは投影と分割ビームを併用します。VLBモードではHD・SDともに補助VLBビームを使用します。\n\nPrism rendering mode. Projection Only focuses on floor and wall projection, Full Auxiliary Lights uses high-quality auxiliary Lights including shadows, and Projection + Shader Beam combines projection with split beams. In VLB mode, both HD and SD use auxiliary VLB beams.")]
@@ -779,7 +782,7 @@ namespace ArtNet.Runtime
         [Range(1, 512)] public int monitorCh5 = 5;
 
         [Header("Monitoring (Auto / Relative)")]
-        [Tooltip("FixtureDefinitionのModeで解決されたFixtureFunctionを自動で一覧表示します。\nAutomatically lists Fixture Functions resolved from the Mode in Fixture Definition.")]
+        [Tooltip("Fixture TypeのModeで解決されたFixtureFunctionを自動で一覧表示します。\n\nAutomatically lists Fixture Functions resolved from the Mode in Fixture Type.")]
         [SerializeField] private bool monitorIncludeResolvedFunctions = true;
 
         [Tooltip("startAddress基準の相対ch（1=Start）を追加監視します（例: 1,2,3,10）。\nAdditionally monitors channels relative to startAddress, where 1 is Start. Example: 1, 2, 3, 10.")]
@@ -1027,7 +1030,7 @@ namespace ArtNet.Runtime
 
         private readonly Dictionary<FixtureFunction, int> _relativeMap = new();
         private readonly Dictionary<ElementKey, ElementBinding> _elementMap = new();
-        private readonly Dictionary<WheelKey, GoboWheelDefinition> _goboWheelMap = new();
+        private readonly Dictionary<WheelKey, GoboWheelProfile> _goboWheelMap = new();
         private readonly Dictionary<Light, Color> _directLightInitialColors = new();
         private readonly Dictionary<Light, float> _directLightInitialIntensities = new();
         private readonly Dictionary<Light, Texture> _directLightInitialCookies = new();
@@ -1367,10 +1370,10 @@ namespace ArtNet.Runtime
         /// </summary>
         public PanTiltSpeedResolution GetPanTiltSpeedResolution()
         {
-            if (!TryGetActiveModeDefinition(out var modeDefinition))
+            if (!TryGetActiveMode(out var fixtureMode))
                 return new PanTiltSpeedResolution { mode = PanTiltSpeedMode.Unresolved, appliedSpeedDegPerSec = -1f, currentDmxValue = -1 };
 
-            if (TryGetContinuousPanTiltSpeedSource(modeDefinition, out int continuousChannel))
+            if (TryGetContinuousPanTiltSpeedSource(fixtureMode, out int continuousChannel))
             {
                 float appliedSpeed = Application.isPlaying ? _lastPanTiltSpeedDegPerSec : -1f;
                 return new PanTiltSpeedResolution
@@ -1385,10 +1388,10 @@ namespace ArtNet.Runtime
                 };
             }
 
-            if (TryGetPanTiltSpeedPresetSource(modeDefinition, out int presetChannel, out var defaultRange))
+            if (TryGetPanTiltSpeedPresetSource(fixtureMode, out int presetChannel, out var defaultRange))
             {
-                var activeRange = FindPresetRangeForPreset(modeDefinition, presetChannel, _panTiltSpeedPreset) ?? defaultRange;
-                var profile = FindPanTiltSpeedProfile(modeDefinition, _panTiltSpeedPreset);
+                var activeRange = FindPresetRangeForPreset(fixtureMode, presetChannel, _panTiltSpeedPreset) ?? defaultRange;
+                var profile = FindPanTiltSpeedProfile(fixtureMode, _panTiltSpeedPreset);
                 float fallbackSpeed = ResolvePanTiltPresetMaxDegPerSec(_panTiltSpeedPreset);
                 float panSpeed = profile != null && profile.panMaxDegPerSec > 0f ? profile.panMaxDegPerSec : fallbackSpeed;
                 float tiltSpeed = profile != null && profile.tiltMaxDegPerSec > 0f ? profile.tiltMaxDegPerSec : fallbackSpeed;
@@ -1418,25 +1421,25 @@ namespace ArtNet.Runtime
             };
         }
 
-        private bool TryGetActiveModeDefinition(out FixtureModeDefinition modeDefinition)
+        private bool TryGetActiveMode(out FixtureMode fixtureMode)
         {
-            modeDefinition = null;
+            fixtureMode = null;
             if (fixture?.modes == null || fixture.modes.Count == 0)
                 return false;
 
             int modeIndex = Mathf.Clamp(mode, 0, fixture.modes.Count - 1);
-            modeDefinition = fixture.modes[modeIndex];
-            return modeDefinition != null;
+            fixtureMode = fixture.modes[modeIndex];
+            return fixtureMode != null;
         }
 
-        private static bool TryGetContinuousPanTiltSpeedSource(FixtureModeDefinition modeDefinition, out int relativeChannel)
+        private static bool TryGetContinuousPanTiltSpeedSource(FixtureMode fixtureMode, out int relativeChannel)
         {
             relativeChannel = 0;
-            if (modeDefinition?.UsesChannelElements() == true && modeDefinition.elements != null)
+            if (fixtureMode?.UsesChannelElements() == true && fixtureMode.elements != null)
             {
-                for (int i = 0; i < modeDefinition.elements.Count; i++)
+                for (int i = 0; i < fixtureMode.elements.Count; i++)
                 {
-                    var element = modeDefinition.elements[i];
+                    var element = fixtureMode.elements[i];
                     if (element != null && element.attribute == FixtureAttribute.Pan && element.instance == 1 && element.role == FixtureChannelRole.Speed)
                     {
                         relativeChannel = i + 1;
@@ -1445,12 +1448,12 @@ namespace ArtNet.Runtime
                 }
             }
 
-            if (modeDefinition?.channels == null)
+            if (fixtureMode?.channels == null)
                 return false;
 
-            for (int i = 0; i < modeDefinition.channels.Count; i++)
+            for (int i = 0; i < fixtureMode.channels.Count; i++)
             {
-                var channel = modeDefinition.channels[i];
+                var channel = fixtureMode.channels[i];
                 if (channel != null && channel.function == FixtureFunction.PanTiltSpeed)
                 {
                     relativeChannel = Mathf.Clamp(channel.channel, 1, 512);
@@ -1461,16 +1464,16 @@ namespace ArtNet.Runtime
             return false;
         }
 
-        private static bool TryGetPanTiltSpeedPresetSource(FixtureModeDefinition modeDefinition, out int relativeChannel, out FixtureChannelRange defaultRange)
+        private static bool TryGetPanTiltSpeedPresetSource(FixtureMode fixtureMode, out int relativeChannel, out FixtureChannelRange defaultRange)
         {
             relativeChannel = 0;
             defaultRange = null;
-            if (modeDefinition?.elements == null)
+            if (fixtureMode?.elements == null)
                 return false;
 
-            for (int i = 0; i < modeDefinition.elements.Count; i++)
+            for (int i = 0; i < fixtureMode.elements.Count; i++)
             {
-                var element = modeDefinition.elements[i];
+                var element = fixtureMode.elements[i];
                 if (element == null || element.attribute != FixtureAttribute.Control || element.instance != 1 ||
                     (element.role != FixtureChannelRole.Control && element.role != FixtureChannelRole.Value) || element.ranges == null)
                     continue;
@@ -1495,12 +1498,12 @@ namespace ArtNet.Runtime
             return relativeChannel > 0;
         }
 
-        private static FixtureChannelRange FindPresetRangeForPreset(FixtureModeDefinition modeDefinition, int relativeChannel, PanTiltSpeedPreset preset)
+        private static FixtureChannelRange FindPresetRangeForPreset(FixtureMode fixtureMode, int relativeChannel, PanTiltSpeedPreset preset)
         {
-            if (modeDefinition?.elements == null || relativeChannel <= 0 || relativeChannel > modeDefinition.elements.Count)
+            if (fixtureMode?.elements == null || relativeChannel <= 0 || relativeChannel > fixtureMode.elements.Count)
                 return null;
 
-            var element = modeDefinition.elements[relativeChannel - 1];
+            var element = fixtureMode.elements[relativeChannel - 1];
             if (element?.ranges == null)
                 return null;
 
@@ -1514,9 +1517,9 @@ namespace ArtNet.Runtime
             return null;
         }
 
-        private static FixturePanTiltSpeedProfile FindPanTiltSpeedProfile(FixtureModeDefinition modeDefinition, PanTiltSpeedPreset preset)
+        private static FixturePanTiltSpeedProfile FindPanTiltSpeedProfile(FixtureMode fixtureMode, PanTiltSpeedPreset preset)
         {
-            if (modeDefinition?.panTiltSpeedProfiles == null)
+            if (fixtureMode?.panTiltSpeedProfiles == null)
                 return null;
 
             FixtureRangeType rangeType = preset switch
@@ -1526,9 +1529,9 @@ namespace ArtNet.Runtime
                 _ => FixtureRangeType.PanTiltSpeedStandard
             };
 
-            for (int i = 0; i < modeDefinition.panTiltSpeedProfiles.Count; i++)
+            for (int i = 0; i < fixtureMode.panTiltSpeedProfiles.Count; i++)
             {
-                var profile = modeDefinition.panTiltSpeedProfiles[i];
+                var profile = fixtureMode.panTiltSpeedProfiles[i];
                 if (profile != null && profile.preset == rangeType)
                     return profile;
             }
@@ -1618,7 +1621,7 @@ namespace ArtNet.Runtime
             }
         }
 
-        private void BuildElementMapping(FixtureModeDefinition md)
+        private void BuildElementMapping(FixtureMode md)
         {
             int count = Mathf.Clamp(md.channelCount, 1, 512);
 
@@ -1688,7 +1691,7 @@ namespace ArtNet.Runtime
             if (monitorItems == null) monitorItems = new List<DmxMonitorItem>();
             monitorItems.Clear();
 
-            // 1) FixtureDefinition modeで解決した関数群を追加
+            // 1) FixtureType modeで解決した関数群を追加
             if (monitorIncludeResolvedFunctions && _resolvedItems != null)
             {
                 for (int i = 0; i < _resolvedItems.Count; i++)
@@ -2246,7 +2249,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelDefinition(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
+            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelProfile(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
             UpdatePrismTargetsFromElementDmx(universe512);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
@@ -2314,7 +2317,7 @@ namespace ArtNet.Runtime
                 }
             }
 
-            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelDefinition(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
+            UpdateGoboTargetsFromDmx(goboValue, goboRotationValue, ResolveGoboWheelProfile(1), hasGoboRotationSpeedOverride, goboRotationSpeedOverride);
             UpdatePrismTargetsFromElementDmx(universe512);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
@@ -2951,10 +2954,10 @@ namespace ArtNet.Runtime
                 tiltMaxDegPerSec = fallbackSpeed
             };
 
-            if (hasContinuousSpeed || !TryGetActiveModeDefinition(out var modeDefinition))
+            if (hasContinuousSpeed || !TryGetActiveMode(out var fixtureMode))
                 return result;
 
-            var profile = FindPanTiltSpeedProfile(modeDefinition, _panTiltSpeedPreset);
+            var profile = FindPanTiltSpeedProfile(fixtureMode, _panTiltSpeedPreset);
             if (profile == null)
                 return result;
 
@@ -3091,7 +3094,7 @@ namespace ArtNet.Runtime
             return new Color(Mathf.Clamp01(color.r), Mathf.Clamp01(color.g), Mathf.Clamp01(color.b), 1f);
         }
 
-        private GoboWheelDefinition ResolveGoboWheelDefinition(int instance)
+        private GoboWheelProfile ResolveGoboWheelProfile(int instance)
         {
             if (_goboWheelMap.TryGetValue(new WheelKey(FixtureAttribute.GoboWheel, instance), out var wheel) && wheel != null)
                 return wheel;
@@ -4572,9 +4575,9 @@ namespace ArtNet.Runtime
             _prismRotationOffsetDeg = 0f;
             _prismIntensityScale = 1f;
 
-            if (prismDefinition != null)
+            if (prismProfile != null)
             {
-                var slot = prismDefinition.ResolveSlot(prismValue);
+                var slot = prismProfile.ResolveSlot(prismValue);
                 if (slot != null)
                 {
                     _prismEnabled = !slot.isOpen && slot.facetCount > 1;
@@ -4603,7 +4606,7 @@ namespace ArtNet.Runtime
                 _prismRotationDeg = Mathf.Repeat(_prismRotationDeg + (_prismRotationSpeedDegPerSec * Time.deltaTime), 360f);
         }
 
-        private void UpdateGoboTargetsFromDmx(int goboValue, int goboRotationValue, GoboWheelDefinition wheelDefinition = null, bool overrideGoboRotationSpeed = false, float goboRotationSpeedOverride = 0f)
+        private void UpdateGoboTargetsFromDmx(int goboValue, int goboRotationValue, GoboWheelProfile wheelProfile = null, bool overrideGoboRotationSpeed = false, float goboRotationSpeedOverride = 0f)
         {
             _goboEnabled = false;
             _goboTexture = null;
@@ -4620,7 +4623,7 @@ namespace ArtNet.Runtime
             _goboShakeApplyWithZoom = false;
             _goboShakeAllowDuringGoboRotation = true;
 
-            var wheel = wheelDefinition != null ? wheelDefinition : goboWheel;
+            var wheel = wheelProfile != null ? wheelProfile : goboWheel;
             if (wheel != null)
             {
                 if (wheel.TryResolveSlotRange(goboValue, out var slot, out var range))

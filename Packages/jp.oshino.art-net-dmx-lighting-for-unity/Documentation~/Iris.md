@@ -4,12 +4,12 @@
 
 Irisは開口の外周を遮り、ゴボの倍率を変えずに照射範囲を絞ります。Zoomは投影角とゴボの倍率を変えます。この実装ではUnity LightのSpot AngleはIrisから変更しません。両者は同時に使用できます。
 
-機種固有のチャンネル番号・DMX範囲はFixture Definition、光学的な最小径・動作速度はIris Profileに分離しています。MAC Ultra専用分岐はランタイムにありません。既存FixtureにProfileを設定しない限り、Irisは従来の描画を変更しません。
+機種固有のチャンネル番号・DMX範囲はFixture Type、光学的な最小径・動作速度はIris Profileに分離しています。MAC Ultra専用分岐はランタイムにありません。既存FixtureにProfileを設定しない限り、Irisは従来の描画を変更しません。
 
 ## 設定
 
 1. ProjectのCreate > ArtNet > DMX > Iris Profileでプロファイルを作成します。
-2. Fixture Definitionの`Iris Profile`へ割り当てます。個体差を持たせる場合はDmx Fixture Component側の`Iris Profile`で上書きできます。
+2. Fixture Typeの`Iris Profile`へ割り当てます。個体差を持たせる場合はDmx Fixture Component側の`Iris Profile`で上書きできます。
 3. Fixtureの使用ModeのChannel Elementsで該当チャンネルを`Attribute = Iris`、`Instance = 1`、`Role = Value`または`Position`にします。
 4. 8bitは`Byte Role = Single`。16bitは上位／下位の各チャンネルを`Coarse`／`Fine`にし、Attribute・Instance・Roleを一致させます。範囲はCoarse側に16bit整数で登録します。
 5. Dmx Fixture Componentの`Sync Iris To DMX`を有効にします。複数Iris定義がある場合は`Iris Instance`を選択します。
@@ -56,7 +56,7 @@ RenderTexture/Materialはライトごとに再利用し、入力テクスチャ�
 
 ## 参考データ
 
-`Tools > ArtNet > Iris > Create Reference Definitions`で`Assets/ArtNetIrisExamples`に設定例を作成できます。既存ファイルは上書きしません。
+`Art-Net > Iris > Create Reference Definitions`で`Assets/ArtNetIrisExamples`に設定例を作成できます。既存ファイルは上書きしません。
 
 - Generic: CH1の8bit、CH1/2の16bit。0=最小、最大値=全開。
 - MAC Ultra参考: Basic CH24、Extended CH24/25。これは**Irisチャンネルだけの定義**で、完全なMAC Ultra Fixtureではありません。使用中のFixtureを複製し、対応するIris要素とProfileを転記してください。
@@ -84,4 +84,4 @@ Timelineの入力経路も共通ですが、パルス位相はランタイムの
 
 Unity 6000.0.48f1。ランタイムC#はHAS_HDRP有効／無効の両条件、変更したエディタC#もコンパイル確認。制御・DMX入力結合・GPU Cookieの40項目をTemp内の独立プロジェクトで検証しました（EditModeではOnDisableを明示呼び出し）。元プロジェクト全体のバッチ実行は、AssetsとPackagesに重複する既存PrefabOverrideReverterWindowのコンパイルエラーにより停止しました。この無関係な重複は変更していません。6構成の実シーン目視検証は未完了です。
 
-主な変更ファイルは`Runtime/ArtNet/Runtime`の`IrisProfile.cs`、`IrisController.cs`、`IrisCookie.cs`、`DmxFixtureIris.cs`、既存`DmxFixtureComponent.cs`／`FixtureDefinition.cs`／`FixtureRenderState.cs`／`VlbBeamAdapter.cs`、同ディレクトリ下のIris／PseudoBeam／GoboLensシェーダーです。`Editor/ArtNet`に設定例生成と検証メニューを追加し、既存Inspectorに説明を追加しています。
+主な変更ファイルは`Runtime/ArtNet/Runtime`の`IrisProfile.cs`、`IrisController.cs`、`IrisCookie.cs`、`DmxFixtureIris.cs`、既存`DmxFixtureComponent.cs`／`FixtureType.cs`／`FixtureRenderState.cs`／`VlbBeamAdapter.cs`、同ディレクトリ下のIris／PseudoBeam／GoboLensシェーダーです。`Editor/ArtNet`に設定例生成と検証メニューを追加し、既存Inspectorに説明を追加しています。

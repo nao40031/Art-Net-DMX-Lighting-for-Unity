@@ -145,7 +145,7 @@ namespace ArtNet.Editor
 
                 default:
                     EditorGUILayout.LabelField("Speed Mode", "Unresolved");
-                    EditorGUILayout.LabelField("Source", "Fixture Definition / Mode");
+                    EditorGUILayout.LabelField("Source", "Fixture Type / Mode");
                     if (GUILayout.Button("Open Source Setting"))
                         FocusComponentSetting(fixture, "fixture");
                     break;
@@ -163,7 +163,7 @@ namespace ArtNet.Editor
         {
             DrawWrappedSourceLabel("Control Source", label);
             if (GUILayout.Button("Open Control Source"))
-                FixtureDefinitionSourceNavigator.Open(fixture.fixture, fixture.mode, resolution.controlRelativeChannel, resolution.activePresetRange);
+                FixtureTypeSourceNavigator.Open(fixture.fixture, fixture.mode, resolution.controlRelativeChannel, resolution.activePresetRange);
         }
 
         private static void DrawSpeedRangeSource(DmxFixtureComponent fixture)
@@ -179,7 +179,7 @@ namespace ArtNet.Editor
             if (GUILayout.Button("Open Speed Profile"))
             {
                 if (fixture.fixture == null) return;
-                FixtureDefinitionSourceNavigator.OpenSpeedProfile(fixture.fixture, fixture.mode, presetName);
+                FixtureTypeSourceNavigator.OpenSpeedProfile(fixture.fixture, fixture.mode, presetName);
             }
         }
 
@@ -316,13 +316,13 @@ namespace ArtNet.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("syncIrisToDmx"),
                 new GUIContent("Sync Iris To DMX", "DMXでアイリスを制御します。\nControls the iris from DMX."));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("irisProfile"),
-                new GUIContent("Iris Profile", "Fixture DefinitionのIris Profileを上書きします。\nOverrides the Iris Profile from the Fixture Definition."));
+                new GUIContent("Iris Profile", "Fixture TypeのIris Profileを上書きします。\n\nOverrides the Iris Profile from the Fixture Type."));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("irisInstance"),
                 new GUIContent("Iris Instance", "複数のIris属性を使う場合の番号です。\nInstance number when multiple Iris attributes are defined."));
             EditorGUILayout.HelpBox(
-                "IrisはFixture DefinitionのIris ProfileとChannel Elementsで設定します（このコンポーネントで上書き可能）。\n" +
+                "IrisはFixture TypeのIris ProfileとChannel Elementsで設定します（このコンポーネントで上書き可能）。\n" +
                 "Zoomと異なりゴボの倍率を変えず外周を遮ります。VLB HDはCookie合成、SDは円形ビームの幅で再現します。\n\n" +
-                "Configure Iris in the Fixture Definition with an Iris Profile and Channel Elements (the component override above is optional).\n" +
+                "Configure Iris in the Fixture Type with an Iris Profile and Channel Elements (the component override above is optional).\n" +
                 "Unlike Zoom, Iris masks the outer area without changing gobo magnification. VLB HD uses Cookie composition; SD approximates it with beam width.",
                 MessageType.Info);
         }
@@ -610,9 +610,9 @@ namespace ArtNet.Editor
         }
     }
 
-    internal static class FixtureDefinitionSourceNavigator
+    internal static class FixtureTypeSourceNavigator
     {
-        private static FixtureDefinition _definition;
+        private static FixtureType _fixtureType;
         private static int _modeIndex = -1;
         private static int _relativeChannel;
         private static FixtureChannelRange _range;
@@ -622,11 +622,11 @@ namespace ArtNet.Editor
         private static bool _highlightUpdateRegistered;
         private const double HighlightDurationSeconds = 1.5d;
 
-        internal static void Open(FixtureDefinition definition, int modeIndex, int relativeChannel, FixtureChannelRange range)
+        internal static void Open(FixtureType definition, int modeIndex, int relativeChannel, FixtureChannelRange range)
         {
             if (definition == null) return;
 
-            _definition = definition;
+            _fixtureType = definition;
             _modeIndex = modeIndex;
             _relativeChannel = relativeChannel;
             _range = range;
@@ -634,10 +634,10 @@ namespace ArtNet.Editor
             _speedProfileIndex = -1;
             _highlightExpiresAt = EditorApplication.timeSinceStartup + HighlightDurationSeconds;
             RegisterHighlightExpiry();
-            EditorApplication.delayCall += SelectSourceDefinition;
+            EditorApplication.delayCall += SelectSourceType;
         }
 
-        internal static void OpenSpeedProfile(FixtureDefinition definition, int modeIndex, string presetName)
+        internal static void OpenSpeedProfile(FixtureType definition, int modeIndex, string presetName)
         {
             if (definition?.modes == null || modeIndex < 0 || modeIndex >= definition.modes.Count) return;
 
@@ -655,7 +655,7 @@ namespace ArtNet.Editor
             {
                 if (profiles[i] != null && profiles[i].preset == preset)
                 {
-                    _definition = definition;
+                    _fixtureType = definition;
                     _modeIndex = modeIndex;
                     _relativeChannel = 0;
                     _range = null;
@@ -663,32 +663,32 @@ namespace ArtNet.Editor
                     _speedProfileIndex = i;
                     _highlightExpiresAt = EditorApplication.timeSinceStartup + HighlightDurationSeconds;
                     RegisterHighlightExpiry();
-                    EditorApplication.delayCall += SelectSourceDefinition;
+                    EditorApplication.delayCall += SelectSourceType;
                     return;
                 }
             }
         }
 
-        private static void SelectSourceDefinition()
+        private static void SelectSourceType()
         {
-            if (_definition == null) return;
-            Selection.activeObject = _definition;
-            EditorGUIUtility.PingObject(_definition);
+            if (_fixtureType == null) return;
+            Selection.activeObject = _fixtureType;
+            EditorGUIUtility.PingObject(_fixtureType);
             ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
-        internal static bool TryGetTarget(FixtureDefinition definition, out int modeIndex, out int relativeChannel, out FixtureChannelRange range, out int rangeIndex, out int speedProfileIndex)
+        internal static bool TryGetTarget(FixtureType definition, out int modeIndex, out int relativeChannel, out FixtureChannelRange range, out int rangeIndex, out int speedProfileIndex)
         {
             modeIndex = _modeIndex;
             relativeChannel = _relativeChannel;
             range = _range;
             rangeIndex = _rangeIndex;
             speedProfileIndex = _speedProfileIndex;
-            return definition != null && definition == _definition && modeIndex >= 0 && (relativeChannel > 0 || speedProfileIndex >= 0) &&
+            return definition != null && definition == _fixtureType && modeIndex >= 0 && (relativeChannel > 0 || speedProfileIndex >= 0) &&
                    EditorApplication.timeSinceStartup < _highlightExpiresAt;
         }
 
-        private static int FindRangeIndex(FixtureDefinition definition, int modeIndex, int relativeChannel, FixtureChannelRange range)
+        private static int FindRangeIndex(FixtureType definition, int modeIndex, int relativeChannel, FixtureChannelRange range)
         {
             if (definition?.modes == null || modeIndex < 0 || modeIndex >= definition.modes.Count ||
                 relativeChannel <= 0 || range == null)

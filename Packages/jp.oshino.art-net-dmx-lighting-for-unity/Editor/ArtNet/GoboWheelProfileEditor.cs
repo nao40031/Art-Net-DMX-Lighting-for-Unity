@@ -11,8 +11,8 @@ using UnityEngine;
 
 namespace ArtNet.EditorTools
 {
-    [CustomEditor(typeof(GoboWheelDefinition))]
-    public class GoboWheelDefinitionEditor : UnityEditor.Editor
+    [CustomEditor(typeof(GoboWheelProfile))]
+    public class GoboWheelProfileEditor : UnityEditor.Editor
     {
         private SerializedProperty _slots;
 

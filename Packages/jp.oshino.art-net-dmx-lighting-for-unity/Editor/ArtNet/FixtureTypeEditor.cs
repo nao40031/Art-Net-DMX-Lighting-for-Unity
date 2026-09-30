@@ -11,15 +11,15 @@ using UnityEngine;
 
 namespace ArtNet.Editor
 {
-    [CustomEditor(typeof(FixtureDefinition))]
-    public sealed class FixtureDefinitionEditor : UnityEditor.Editor
+    [CustomEditor(typeof(FixtureType))]
+    public sealed class FixtureTypeEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            var definition = target as FixtureDefinition;
-            bool hasHighlightedSource = FixtureDefinitionSourceNavigator.TryGetTarget(definition, out int modeIndex, out int relativeChannel, out var range, out int rangeIndex, out int speedProfileIndex);
+            var definition = target as FixtureType;
+            bool hasHighlightedSource = FixtureTypeSourceNavigator.TryGetTarget(definition, out int modeIndex, out int relativeChannel, out var range, out int rangeIndex, out int speedProfileIndex);
             if (hasHighlightedSource)
             {
                 ExpandSourceProperties(modeIndex, relativeChannel, range);
@@ -32,11 +32,11 @@ namespace ArtNet.Editor
                           (string.IsNullOrWhiteSpace(rangeName) ? string.Empty : $" / {rangeName}"));
             }
 
-            DrawDefinitionProperties(hasHighlightedSource, modeIndex, relativeChannel, rangeIndex, speedProfileIndex);
+            DrawTypeProperties(hasHighlightedSource, modeIndex, relativeChannel, rangeIndex, speedProfileIndex);
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawDefinitionProperties(bool hasHighlightedSource, int highlightedModeIndex, int highlightedRelativeChannel, int highlightedRangeIndex, int highlightedSpeedProfileIndex)
+        private void DrawTypeProperties(bool hasHighlightedSource, int highlightedModeIndex, int highlightedRelativeChannel, int highlightedRangeIndex, int highlightedSpeedProfileIndex)
         {
             var property = serializedObject.GetIterator();
             bool enterChildren = true;
@@ -237,7 +237,7 @@ namespace ArtNet.Editor
             }
         }
 
-        private static string GetModeName(FixtureDefinition definition, int modeIndex)
+        private static string GetModeName(FixtureType definition, int modeIndex)
         {
             if (definition?.modes == null || modeIndex < 0 || modeIndex >= definition.modes.Count)
                 return "(No Mode)";

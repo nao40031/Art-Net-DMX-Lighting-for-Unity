@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 466f185267f601341a0f5b77bc5cd89f, type: 3}
-  m_Name: E3Spot_GoboWheelDefinition
+  m_Name: E3Spot_GoboWheelProfile
   m_EditorClassIdentifier: 
   slots:
   - name: Gobo1

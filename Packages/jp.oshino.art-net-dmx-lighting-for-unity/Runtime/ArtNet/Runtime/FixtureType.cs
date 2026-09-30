@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace ArtNet.Runtime
 {
@@ -256,7 +257,7 @@ namespace ArtNet.Runtime
         [Min(1)]
         public int instance = 1;
 
-        public GoboWheelDefinition goboWheel;
+        public GoboWheelProfile goboWheel;
     }
 
     [Serializable]
@@ -283,7 +284,7 @@ namespace ArtNet.Runtime
     }
 
     [Serializable]
-    public class FixtureModeDefinition
+    public class FixtureMode
     {
         [Tooltip("表示用のモード名（例: Mode 3 / Extended 16bit）\nMode name displayed in the Inspector, for example Mode 3 or Extended 16-bit.")]
         public string modeName = "Mode 1";
@@ -312,8 +313,9 @@ namespace ArtNet.Runtime
         }
     }
 
-    [CreateAssetMenu(menuName = "ArtNet/DMX/Fixture Definition", fileName = "FixtureDefinition")]
-    public class FixtureDefinition : ScriptableObject
+    [MovedFrom(true, sourceNamespace: "ArtNet.Runtime", sourceClassName: "FixtureDefinition")]
+    [CreateAssetMenu(menuName = "ArtNet/DMX/Fixture Type", fileName = "FixtureType")]
+    public class FixtureType : ScriptableObject
     {
         public IrisProfile irisProfile;
         [Header("Identity (for humans/logs)")]
@@ -323,7 +325,7 @@ namespace ArtNet.Runtime
         public string displayName;
 
         [Header("Modes")]
-        public List<FixtureModeDefinition> modes = new();
+        public List<FixtureMode> modes = new();
 
         [ContextMenu("Sync Element Lists To Channel Counts")]
         public void SyncElementListsToChannelCounts()
@@ -342,23 +344,23 @@ namespace ArtNet.Runtime
 
             for (int i = 0; i < modes.Count; i++)
             {
-                var modeDefinition = modes[i];
-                if (modeDefinition == null) continue;
+                var fixtureMode = modes[i];
+                if (fixtureMode == null) continue;
 
-                int count = Mathf.Clamp(modeDefinition.channelCount, 1, 512);
-                modeDefinition.channelCount = count;
+                int count = Mathf.Clamp(fixtureMode.channelCount, 1, 512);
+                fixtureMode.channelCount = count;
 
-                if (modeDefinition.elements == null)
-                    modeDefinition.elements = new List<FixtureChannelElement>();
+                if (fixtureMode.elements == null)
+                    fixtureMode.elements = new List<FixtureChannelElement>();
 
-                if (!forceCreate && modeDefinition.elements.Count == 0)
+                if (!forceCreate && fixtureMode.elements.Count == 0)
                     continue;
 
-                while (modeDefinition.elements.Count < count)
-                    modeDefinition.elements.Add(new FixtureChannelElement());
+                while (fixtureMode.elements.Count < count)
+                    fixtureMode.elements.Add(new FixtureChannelElement());
 
-                while (modeDefinition.elements.Count > count)
-                    modeDefinition.elements.RemoveAt(modeDefinition.elements.Count - 1);
+                while (fixtureMode.elements.Count > count)
+                    fixtureMode.elements.RemoveAt(fixtureMode.elements.Count - 1);
             }
         }
 

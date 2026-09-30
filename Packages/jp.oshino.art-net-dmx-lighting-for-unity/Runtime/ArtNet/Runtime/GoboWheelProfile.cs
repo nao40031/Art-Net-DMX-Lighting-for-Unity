@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace ArtNet.Runtime
 {
@@ -164,8 +165,9 @@ namespace ArtNet.Runtime
         }
     }
 
-    [CreateAssetMenu(menuName = "ArtNet/DMX/Gobo Wheel Definition", fileName = "GoboWheelDefinition")]
-    public class GoboWheelDefinition : ScriptableObject
+    [MovedFrom(true, sourceNamespace: "ArtNet.Runtime", sourceClassName: "GoboWheelDefinition")]
+    [CreateAssetMenu(menuName = "ArtNet/DMX/Gobo Wheel Profile", fileName = "GoboWheelProfile")]
+    public class GoboWheelProfile : ScriptableObject
     {
         [Tooltip("DMX value ranges mapped to gobo slots.")]
         public List<GoboSlot> slots = new();

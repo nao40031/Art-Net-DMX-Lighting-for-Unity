@@ -101,7 +101,7 @@ namespace ArtNet.Editor
         private void DrawSourceOptions()
         {
             EditorGUILayout.LabelField("Export Contents", EditorStyles.boldLabel);
-            _includeDefinitions = EditorGUILayout.ToggleLeft("Fixture / Gobo / Prism Definitions", _includeDefinitions);
+            _includeDefinitions = EditorGUILayout.ToggleLeft("Fixture / Gobo / Prism Profiles", _includeDefinitions);
             _includeUrpPrefabs = EditorGUILayout.ToggleLeft("URP Prefabs", _includeUrpPrefabs);
             _includeUrpVlbPrefabs = EditorGUILayout.ToggleLeft("URP VLB Prefabs", _includeUrpVlbPrefabs);
             _includeHdrpPrefabs = EditorGUILayout.ToggleLeft("HDRP Prefabs", _includeHdrpPrefabs);
@@ -238,9 +238,9 @@ namespace ArtNet.Editor
             var seeds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (_includeDefinitions)
             {
-                AddAssetsOfType(seeds, typeof(FixtureDefinition), RuntimeRoot + "/ArtNet/FixtureDefinition");
-                AddAssetsOfType(seeds, typeof(GoboWheelDefinition), RuntimeRoot + "/ArtNet/GoboWheelDefinition");
-                AddAssetsOfType(seeds, typeof(PrismDefinition), RuntimeRoot + "/ArtNet/Prism Definition");
+                AddAssetsOfType(seeds, typeof(FixtureType), RuntimeRoot + "/ArtNet/FixtureType");
+                AddAssetsOfType(seeds, typeof(GoboWheelProfile), RuntimeRoot + "/ArtNet/GoboWheelProfile");
+                AddAssetsOfType(seeds, typeof(PrismProfile), RuntimeRoot + "/ArtNet/Prism Profile");
             }
 
             foreach (string prefabPath in FindPrefabPaths())
@@ -305,9 +305,9 @@ namespace ArtNet.Editor
         private static string GetCategory(string sourcePath)
         {
             string path = Normalize(sourcePath);
-            if (path.IndexOf("/FixtureDefinition/", StringComparison.OrdinalIgnoreCase) >= 0) return "Fixture Definition";
-            if (path.IndexOf("/GoboWheelDefinition/", StringComparison.OrdinalIgnoreCase) >= 0) return "Gobo Definition";
-            if (path.IndexOf("/Prism Definition/", StringComparison.OrdinalIgnoreCase) >= 0) return "Prism Definition";
+            if (path.IndexOf("/FixtureType/", StringComparison.OrdinalIgnoreCase) >= 0) return "Fixture Type";
+            if (path.IndexOf("/GoboWheelProfile/", StringComparison.OrdinalIgnoreCase) >= 0) return "Gobo Wheel Profile";
+            if (path.IndexOf("/PrismProfile/", StringComparison.OrdinalIgnoreCase) >= 0) return "Prism Profile";
             if (path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase)) return "Prefab";
             return "Dependency";
         }
