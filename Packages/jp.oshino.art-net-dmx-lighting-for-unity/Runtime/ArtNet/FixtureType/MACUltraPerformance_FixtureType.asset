@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d7931bb03141c24a862d747383aae68, type: 3}
   m_Name: MACUltraPerformance
   m_EditorClassIdentifier: 
+  irisProfile: {fileID: 11400000, guid: f64be412c48142198ded493a149dcddc, type: 2}
   manufacturer: Martin
   model: MAC Ultra Performance
   revision: Basic 48ch
@@ -224,11 +225,43 @@ MonoBehaviour:
         mappingPreset: 3
         normalizedFrom: 0
         normalizedTo: 1
-    - attribute: 0
+    - attribute: 16
       instance: 1
       role: 0
       byteRole: 0
-      ranges: []
+      ranges:
+      - name: Open to closed
+        dmxMin: 0
+        dmxMax: 200
+        type: 5
+        mappingContext: 3
+        mappingPreset: 1
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Pulse fast to slow
+        dmxMin: 201
+        dmxMax: 225
+        type: 11
+        mappingContext: 3
+        mappingPreset: 1
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Hold
+        dmxMin: 226
+        dmxMax: 230
+        type: 18
+        mappingContext: 3
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Reverse pulse slow to fast
+        dmxMin: 231
+        dmxMax: 255
+        type: 19
+        mappingContext: 3
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
     - attribute: 17
       instance: 1
       role: 0
