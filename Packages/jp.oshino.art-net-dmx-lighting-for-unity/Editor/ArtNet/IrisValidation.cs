@@ -79,7 +79,7 @@ namespace ArtNet.Editor
         private static void ValidateFixture(IrisProfile profile)
         {
             var go = new GameObject("Iris validation temporary fixture");
-            var definition = ScriptableObject.CreateInstance<FixtureDefinition>();
+            var definition = ScriptableObject.CreateInstance<FixtureType>();
             var source = new Texture2D(2, 2);
             try
             {

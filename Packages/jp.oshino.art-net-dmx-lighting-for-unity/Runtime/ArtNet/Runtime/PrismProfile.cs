@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace ArtNet.Runtime
 {
@@ -100,8 +101,9 @@ namespace ArtNet.Runtime
         }
     }
 
-    [CreateAssetMenu(menuName = "ArtNet/DMX/Prism Definition", fileName = "PrismDefinition")]
-    public class PrismDefinition : ScriptableObject
+    [MovedFrom(true, sourceNamespace: "ArtNet.Runtime", sourceClassName: "PrismDefinition")]
+    [CreateAssetMenu(menuName = "ArtNet/DMX/Prism Profile", fileName = "PrismProfile")]
+    public class PrismProfile : ScriptableObject
     {
         public List<PrismSlot> slots = new();
 

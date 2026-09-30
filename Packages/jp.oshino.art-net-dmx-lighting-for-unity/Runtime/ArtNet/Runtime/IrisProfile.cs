@@ -4,7 +4,7 @@ namespace ArtNet.Runtime
 {
     public enum IrisNoFunction { Hold, Open, PositionChannel }
 
-    /// <summary>Optical/motion calibration only. Channel numbers and ranges belong to FixtureDefinition.</summary>
+    /// <summary>Optical/motion calibration only. Channel numbers and ranges belong to FixtureType.</summary>
     [CreateAssetMenu(menuName = "ArtNet/DMX/Iris Profile", fileName = "IrisProfile")]
     public sealed class IrisProfile : ScriptableObject
     {

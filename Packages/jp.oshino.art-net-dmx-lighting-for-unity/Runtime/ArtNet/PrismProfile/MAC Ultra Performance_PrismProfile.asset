@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c1825f853867e4e4a842deda5016d9bd, type: 3}
-  m_Name: MAC Ultra Performance_Prism Definition
+  m_Name: MAC Ultra Performance_PrismProfile
   m_EditorClassIdentifier: 
   slots:
   - name: Open
