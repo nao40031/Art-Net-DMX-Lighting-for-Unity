@@ -592,8 +592,8 @@ MonoBehaviour:
   beamSoftShellEdgeSoftness: 0.9
   beamSoftShellNoiseStrength: 0.25
   syncZoomToLight: 1
-  minOuterSpotAngle: 5
-  maxOuterSpotAngle: 50
+  minOuterSpotAngle: 8
+  maxOuterSpotAngle: 54
   invertZoom: 0
   zoomInnerSpotPercent: 80
   prismDefinition: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
