@@ -52,7 +52,9 @@ namespace ArtNet.Runtime
             if (_light == null) return;
 
             float d = ApplyCurve(state.lightDimmer01);
-            _light.intensity = state.forceLightOff ? 0f : (state.syncLightDimmerToDmx ? d * maxIntensity : _initialIntensity);
+            float baseIntensity = state.syncLightDimmerToDmx ? d * maxIntensity : _initialIntensity;
+            float frostTransmission = state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f;
+            _light.intensity = state.forceLightOff ? 0f : baseIntensity * frostTransmission;
             _light.color = state.syncLightColorToDmx ? state.color : _initialColor;
             _light.cookie = state.syncLightGoboToDmx ? (state.goboEnabled ? state.goboTexture : null) : _initialCookie;
 

@@ -26,6 +26,12 @@ namespace ArtNet.Runtime
         public bool goboEnabled;
         public bool irisEnabled;
         public Vector4 irisShape;
+        public bool frostEnabled;
+        public float frostAmount01;
+        public float frostCookieBlur;
+        public float frostLensBlur;
+        public float frostEdgeSoftness;
+        public float frostTransmission;
         public Texture goboTexture;
         public float goboRotationDeg;
         public Vector2 goboOffsetUv;

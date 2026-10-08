@@ -494,7 +494,7 @@ MonoBehaviour:
   maxOuterSpotAngle: 54
   invertZoom: 0
   zoomInnerSpotPercent: 80
-  prismProfile: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
+  prismProfile: {fileID: 0}
   enablePrism: 1
   prismDrawMode: 2
   prismRenderMode: 1
@@ -759,8 +759,8 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Frost1.Value.Single
+    attribute: 15
     instance: 1
     role: 0
     byteRole: 0
@@ -1226,8 +1226,8 @@ MonoBehaviour:
     absoluteChannel: 20
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Frost1.Value.Single
+    attribute: 15
     instance: 1
     role: 0
     byteRole: 0
@@ -1476,6 +1476,8 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 48
     absoluteChannel: 48
+  syncFrostToDmx: 1
+  frostProfile: {fileID: 0}
   syncIrisToDmx: 1
   irisProfile: {fileID: 0}
   irisInstance: 1

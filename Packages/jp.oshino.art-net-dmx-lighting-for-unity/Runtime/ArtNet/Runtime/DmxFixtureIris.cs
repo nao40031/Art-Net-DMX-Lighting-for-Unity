@@ -8,7 +8,6 @@ namespace ArtNet.Runtime
 {
     public partial class DmxFixtureComponent
     {
-        [Header("Iris (all light / beam modes)")]
         public bool syncIrisToDmx = true;
         [Tooltip("灯体単位で上書きするIris Profileです。未設定時はFixture Typeの共有Iris Profileを使用します。\n\nOptional per-fixture Iris Profile override. Otherwise uses the Fixture Type's shared Iris Profile.")]
         public IrisProfile irisProfile;

@@ -415,7 +415,10 @@ namespace ArtNet.Runtime
             float cookieContribution = overrides.overrideHdGoboCookieContribution
                 ? overrides.hdGoboCookieContribution
                 : state.lightDimmer01;
-            ApplyPrismCookieHd(entry.cookieHd, hasCookie, state.goboTexture, cookieContribution, hasCookie ? Vector2.one * cookieScale : Vector2.one);
+            Texture cookieTexture = state.frostEnabled && entry.light != null && entry.light.cookie != null
+                ? entry.light.cookie
+                : state.goboTexture;
+            ApplyPrismCookieHd(entry.cookieHd, hasCookie, cookieTexture, cookieContribution, hasCookie ? Vector2.one * cookieScale : Vector2.one);
             if (hasCookie)
                 VlbReflection.SetFloat(entry.cookieHd, "rotation", state.syncLightGoboRotationToDmx ? state.goboRotationDeg : 0f);
             if (hasCookie)

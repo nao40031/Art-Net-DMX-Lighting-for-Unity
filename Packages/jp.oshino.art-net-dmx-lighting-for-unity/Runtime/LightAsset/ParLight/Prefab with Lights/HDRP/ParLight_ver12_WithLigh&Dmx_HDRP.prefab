@@ -1156,6 +1156,8 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 1
     absoluteChannel: 1
+  syncFrostToDmx: 1
+  frostProfile: {fileID: 0}
   syncIrisToDmx: 1
   irisProfile: {fileID: 0}
   irisInstance: 1

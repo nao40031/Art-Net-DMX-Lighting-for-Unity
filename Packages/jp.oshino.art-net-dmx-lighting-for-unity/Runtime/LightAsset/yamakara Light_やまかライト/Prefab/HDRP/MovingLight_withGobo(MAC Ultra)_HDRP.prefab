@@ -596,7 +596,7 @@ MonoBehaviour:
   maxOuterSpotAngle: 54
   invertZoom: 0
   zoomInnerSpotPercent: 80
-  prismDefinition: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
+  prismProfile: {fileID: 0}
   enablePrism: 1
   prismDrawMode: 2
   prismRenderMode: 1
