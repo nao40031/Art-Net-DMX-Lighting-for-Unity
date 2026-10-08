@@ -524,7 +524,7 @@ namespace ArtNet.Runtime
         }
 
         [Header("Prism")]
-        [Tooltip("DMX値とプリズムスロットを対応付けるProfileです。\n\nProfile that maps DMX values to prism slots.")]
+        [Tooltip("灯体単位で上書きするPrism Profileです。未設定時はFixture Typeの共有Prism Profileを使用します。\n\nOptional per-fixture Prism Profile override. Otherwise uses the Fixture Type's shared Prism Profile.")]
         [FormerlySerializedAs("prismDefinition")]
         [SerializeField] private PrismProfile prismProfile;
 
@@ -666,6 +666,9 @@ namespace ArtNet.Runtime
         private int _beamEndRadiusId;
         private int _beamIntensityId;
         private int _beamEdgeSoftnessId;
+        private int _beamFrostBlurId;
+        private int _beamFrostSoftnessId;
+        private int _beamFrostTransmissionId;
         private int _beamNoiseStrengthId;
         private int _beamNoiseVolumeId;
         private int _beamNoiseVolumeEnabledId;
@@ -1245,6 +1248,7 @@ namespace ArtNet.Runtime
 
         private void OnDisable()
         {
+            ReleaseFrost();
             ReleaseIris();
             RestorePrimaryVolumetricDefaults();
             DisablePrismAuxiliaryLights();
@@ -1253,6 +1257,7 @@ namespace ArtNet.Runtime
 
         private void OnDestroy()
         {
+            ReleaseFrost();
             ReleaseIris();
             RestorePrimaryVolumetricDefaults();
             ReleasePrismResources();
@@ -1564,6 +1569,7 @@ namespace ArtNet.Runtime
 
         public void ResolveMapping()
         {
+            ReleaseFrost();
             ReleaseIris();
             ResetPanTiltSpeedPresetState();
             _relativeMap.Clear();
@@ -1677,17 +1683,20 @@ namespace ArtNet.Runtime
                 _elementMap[key] = binding;
             }
 
-            if (md.wheelBindings == null) return;
-
-            for (int i = 0; i < md.wheelBindings.Count; i++)
+            if (md.wheelBindings != null)
             {
-                var binding = md.wheelBindings[i];
-                if (binding == null) continue;
-                if (binding.goboWheel == null) continue;
+                for (int i = 0; i < md.wheelBindings.Count; i++)
+                {
+                    var binding = md.wheelBindings[i];
+                    if (binding == null) continue;
+                    if (binding.goboWheel == null) continue;
 
-                var key = new WheelKey(binding.attribute, binding.instance);
-                _goboWheelMap[key] = binding.goboWheel;
+                    var key = new WheelKey(binding.attribute, binding.instance);
+                    _goboWheelMap[key] = binding.goboWheel;
+                }
             }
+
+            ResolveFrostBindings(md);
         }
 
         private void RebuildMonitorItemsSkeleton()
@@ -2031,6 +2040,7 @@ namespace ArtNet.Runtime
             if (TryGetRelativeChannel(FixtureFunction.Prism, out int prismRel))
                 prismValue = Read8Abs(universe512, startAddress + prismRel - 1);
             UpdatePrismTargetsFromDmx(prismValue, false, 0f, false, 0f);
+            ReadLegacyFrost(universe512);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（ある機種のみ適用） ---
@@ -2152,6 +2162,7 @@ namespace ArtNet.Runtime
             if (TryGetRelativeChannel(FixtureFunction.Prism, out int prismRel))
                 prismValue = Read8Abs(universe512, startAddress + prismRel - 1);
             UpdatePrismTargetsFromDmx(prismValue, false, 0f, false, 0f);
+            ReadLegacyFrost(universe512);
             UpdateLightTargetsFromDmx(dim01, rgb);
 
             // --- Pan/Tilt Speed（ある機種のみ適用） ---
@@ -2209,6 +2220,7 @@ namespace ArtNet.Runtime
         private void ApplyElementMode(int[] universe512)
         {
             ReadIris(universe512);
+            ReadFrost(universe512);
             if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
                 TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
             {
@@ -2277,6 +2289,7 @@ namespace ArtNet.Runtime
         private void ApplyElementMode(byte[] universe512)
         {
             ReadIris(universe512);
+            ReadFrost(universe512);
             if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
                 TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
             {
@@ -3535,6 +3548,7 @@ namespace ArtNet.Runtime
             // been applied, otherwise they retain the previous DMX colour/intensity/zoom.
             ApplyPrismAuxiliaryLights(state);
             ApplyPrimaryIris(state);
+            ApplyPrimaryFrost(state);
             ApplyPrimaryVolumetricForAlternativeBeamModes(suppressPrimaryLight);
             ApplyVlbBeamDmx(state);
             ApplyLensDmx(state);
@@ -3590,7 +3604,9 @@ namespace ArtNet.Runtime
                 Vector2 initialSpotAngles = _directLightInitialSpotAngles[l];
 
                 l.color = state.syncLightColorToDmx ? state.color : initialColor;
-                l.intensity = state.forceLightOff ? 0f : (state.syncLightDimmerToDmx ? state.lightDimmer01 * 10f : initialIntensity);
+                float baseIntensity = state.syncLightDimmerToDmx ? state.lightDimmer01 * 10f : initialIntensity;
+                float frostTransmission = state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f;
+                l.intensity = state.forceLightOff ? 0f : baseIntensity * frostTransmission;
                 l.cookie = state.syncLightGoboToDmx ? (state.goboEnabled ? state.goboTexture : null) : initialCookie;
                 if (state.syncLightZoomToDmx && state.zoomEnabled)
                 {
@@ -3705,7 +3721,7 @@ namespace ArtNet.Runtime
                 _lensMpb.SetFloat(_goboLensInfluenceId, 1f);
                 _lensMpb.SetFloat(_goboLensEmissionId, Mathf.Max(0f, goboLensEmission));
                 _lensMpb.SetFloat(_goboLensScaleId, GetLensGoboScale(state));
-                _lensMpb.SetFloat(_goboLensBlurId, Mathf.Clamp(goboLensBlur, 0f, 0.02f));
+                _lensMpb.SetFloat(_goboLensBlurId, Mathf.Clamp(goboLensBlur + state.frostLensBlur, 0f, 0.02f));
                 _lensMpb.SetFloat(_lensApertureFeatherId, Mathf.Clamp(lensApertureFeather, 0f, 0.5f));
                 _lensMpb.SetFloat(_goboLensHotspotStrengthId, Mathf.Max(0f, goboLensHotspotStrength));
                 _lensMpb.SetFloat(_lensPrismGoboModeId, lensPrismGoboMode && state.prismEnabled ? 1f : 0f);
@@ -3797,6 +3813,9 @@ namespace ArtNet.Runtime
             _beamEndRadiusId = Shader.PropertyToID(beamEndRadiusProperty);
             _beamIntensityId = Shader.PropertyToID("_BeamIntensity");
             _beamEdgeSoftnessId = Shader.PropertyToID("_BeamEdgeSoftness");
+            _beamFrostBlurId = Shader.PropertyToID("_DmxFrostBlur");
+            _beamFrostSoftnessId = Shader.PropertyToID("_DmxFrostSoftness");
+            _beamFrostTransmissionId = Shader.PropertyToID("_DmxFrostTransmission");
             _beamNoiseStrengthId = Shader.PropertyToID("_BeamNoiseStrength");
             _beamNoiseVolumeId = Shader.PropertyToID(beamNoiseVolumeProperty);
             _beamNoiseVolumeEnabledId = Shader.PropertyToID(beamNoiseVolumeEnabledProperty);
@@ -3824,7 +3843,7 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            if (!state.irisEnabled && _irisRenderers.Count == 0 && !syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx && !syncBeamPrismToDmx && !syncBeamZoomToDmx && !syncBeamNoiseVolumeToBeam)
+            if (!state.irisEnabled && !state.frostEnabled && _irisRenderers.Count == 0 && !syncBeamColorToDmx && !syncBeamDimmerToDmx && !syncBeamGoboToDmx && !syncBeamPrismToDmx && !syncBeamZoomToDmx && !syncBeamNoiseVolumeToBeam)
             {
                 DisablePrismPseudoBeamFacets();
                 DisableSinglePseudoBeamSoftShell();
@@ -3911,6 +3930,9 @@ namespace ArtNet.Runtime
 
             _beamMpb.Clear();
             _beamMpb.SetVector(IrisShapeId, state.irisEnabled ? state.irisShape : new Vector4(1, 0, 0, 0));
+            _beamMpb.SetFloat(_beamFrostBlurId, state.frostEnabled ? state.frostCookieBlur : 0f);
+            _beamMpb.SetFloat(_beamFrostSoftnessId, state.frostEnabled ? state.frostEdgeSoftness : 0f);
+            _beamMpb.SetFloat(_beamFrostTransmissionId, state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f);
             if (syncBeamColorToDmx)
                 _beamMpb.SetColor(_beamColorId, state.color);
             if (syncBeamDimmerToDmx)
@@ -4446,18 +4468,49 @@ namespace ArtNet.Runtime
                     goboShakeOffsetUv = Vector2.zero;
                 }
             }
+
+            bool frostEnabled = syncFrostToDmx && _frostEnabled;
+            bool zoomEnabled = syncBeamZoomToDmx && _zoomEnabled;
+            float outerSpotAngle;
+            float innerSpotPercent;
+            if (zoomEnabled)
+            {
+                outerSpotAngle = _zoomOuterSpotAngleDeg;
+                innerSpotPercent = _zoomInnerSpotPercent;
+            }
+            else if (frostEnabled)
+            {
+                GetFrostBaseSpotAngles(out outerSpotAngle, out innerSpotPercent);
+            }
+            else
+            {
+                ReleaseFrostSpotBase();
+                outerSpotAngle = targetLight != null ? targetLight.spotAngle : maxOuterSpotAngle;
+                innerSpotPercent = targetLight != null && targetLight.spotAngle > 0f
+                    ? targetLight.innerSpotAngle / targetLight.spotAngle * 100f
+                    : 0f;
+            }
+            if (frostEnabled)
+                ApplyFrostToSpotAngles(ref outerSpotAngle, ref innerSpotPercent, _frostBeamRadiusScale, _frostEdgeSoftness);
+
             return new FixtureRenderState
             {
                 lightDimmer01 = lightDim01,
                 irisEnabled = syncIrisToDmx && _iris.Active && ActiveIrisProfile != null,
                 irisShape = IrisShape,
+                frostEnabled = frostEnabled,
+                frostAmount01 = _frostAmount01,
+                frostCookieBlur = _frostCookieBlur,
+                frostLensBlur = _frostLensBlur,
+                frostEdgeSoftness = _frostEdgeSoftness,
+                frostTransmission = frostEnabled ? _frostTransmission : 1f,
                 lensDimmer01 = lensDim01,
                 color = rgb,
                 syncLightColorToDmx = syncBeamColorToDmx,
                 syncLightDimmerToDmx = syncBeamDimmerToDmx,
                 syncLightGoboToDmx = syncBeamGoboToDmx,
                 syncLightGoboRotationToDmx = syncBeamGoboRotationToDmx,
-                syncLightZoomToDmx = syncBeamZoomToDmx,
+                syncLightZoomToDmx = syncBeamZoomToDmx || frostEnabled,
                 syncBeamPrismToDmx = syncBeamPrismToDmx,
                 goboEnabled = goboEnabled && goboTextureForRender != null,
                 goboTexture = goboTextureForRender,
@@ -4466,9 +4519,9 @@ namespace ArtNet.Runtime
                 goboShakeRotationOffsetDeg = goboShakeRotationOffsetDeg,
                 goboShakeOffsetUv = goboShakeOffsetUv,
                 beamShakeAngleDeg = GetDisplayBeamShakeAngleDeg(),
-                zoomEnabled = syncBeamZoomToDmx && _zoomEnabled,
-                outerSpotAngleDeg = _zoomOuterSpotAngleDeg,
-                innerSpotPercent = _zoomInnerSpotPercent,
+                zoomEnabled = zoomEnabled || frostEnabled,
+                outerSpotAngleDeg = outerSpotAngle,
+                innerSpotPercent = innerSpotPercent,
                 prismEnabled = syncBeamPrismToDmx && IsPrismDrawingEnabled(),
                 prismFacetCount = _prismFacetCount,
                 prismSpread = _prismSpread,
@@ -4582,9 +4635,10 @@ namespace ArtNet.Runtime
             _prismRotationOffsetDeg = 0f;
             _prismIntensityScale = 1f;
 
-            if (prismProfile != null)
+            var activePrismProfile = prismProfile != null ? prismProfile : (fixture != null ? fixture.prismProfile : null);
+            if (activePrismProfile != null)
             {
-                var slot = prismProfile.ResolveSlot(prismValue);
+                var slot = activePrismProfile.ResolveSlot(prismValue);
                 if (slot != null)
                 {
                     _prismEnabled = !slot.isOpen && slot.facetCount > 1;
@@ -5452,6 +5506,7 @@ namespace ArtNet.Runtime
 
             Light light = aux.light;
             cookie = ApplyIrisCookie(light, cookie, state);
+            cookie = ApplyFrostCookie(light, cookie, state);
             bool hasHdrp = false;
 #if HAS_HDRP
             hasHdrp = aux.hd != null;
@@ -5464,7 +5519,8 @@ namespace ArtNet.Runtime
             float sourceIntensity = state.syncLightDimmerToDmx
                 ? Mathf.Clamp01(state.lightDimmer01) * maxIntensity
                 : GetPrismSourceInitialIntensity(source, maxIntensity);
-            float intensity = sourceIntensity * perFacetScale;
+            float frostTransmission = state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f;
+            float intensity = sourceIntensity * perFacetScale * frostTransmission;
             Color color = source != null ? source.color : Color.white;
             float cookieContribution = state.syncLightDimmerToDmx ? Mathf.Clamp01(state.lightDimmer01) : 1f;
 

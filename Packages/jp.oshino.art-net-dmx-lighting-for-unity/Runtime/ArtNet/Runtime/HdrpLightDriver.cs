@@ -41,6 +41,7 @@ namespace ArtNet.Runtime
         private Texture _initialCookie;
         private Vector2 _initialSpotAngles;
         private bool _hasInitialColor;
+        private bool _frostApplied;
 
         public float InitialIntensity => _hasInitialColor ? _initialIntensity : (_light != null ? _light.intensity : 0f);
 
@@ -66,7 +67,9 @@ namespace ArtNet.Runtime
             if (_light == null) return;
 
             float d = ApplyCurve(state.lightDimmer01);
-            float intensity = state.forceLightOff ? 0f : (state.syncLightDimmerToDmx ? d * maxIntensity : _initialIntensity);
+            float baseIntensity = state.syncLightDimmerToDmx ? d * maxIntensity : _initialIntensity;
+            float frostTransmission = state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f;
+            float intensity = state.forceLightOff ? 0f : baseIntensity * frostTransmission;
             Texture cookie = state.goboEnabled ? state.goboTexture : Texture2D.whiteTexture;
 
             _light.color = state.syncLightColorToDmx ? state.color : _initialColor;
@@ -75,7 +78,7 @@ namespace ArtNet.Runtime
             {
                 try
                 {
-                    if (state.forceLightOff || state.syncLightDimmerToDmx)
+                    if (state.forceLightOff || state.syncLightDimmerToDmx || state.frostEnabled || _frostApplied)
                         _hd.SetIntensity(intensity, ToLightUnit(unit));
                     if (state.syncLightGoboToDmx)
                         _hd.SetCookie(cookie);
@@ -96,7 +99,7 @@ namespace ArtNet.Runtime
                 }
                 catch
                 {
-                    if (state.forceLightOff || state.syncLightDimmerToDmx)
+                    if (state.forceLightOff || state.syncLightDimmerToDmx || state.frostEnabled || _frostApplied)
                         _light.intensity = intensity;
                     if (state.syncLightGoboToDmx)
                         _light.cookie = state.goboEnabled ? state.goboTexture : null;
@@ -113,7 +116,7 @@ namespace ArtNet.Runtime
             }
             else
             {
-                if (state.forceLightOff || state.syncLightDimmerToDmx)
+                if (state.forceLightOff || state.syncLightDimmerToDmx || state.frostEnabled || _frostApplied)
                     _light.intensity = intensity;
                 if (state.syncLightGoboToDmx)
                     _light.cookie = state.goboEnabled ? state.goboTexture : null;
@@ -127,6 +130,8 @@ namespace ArtNet.Runtime
                     _light.innerSpotAngle = _initialSpotAngles.y;
                 }
             }
+
+            _frostApplied = state.frostEnabled;
         }
 
         private void ApplyGenericZoom(FixtureRenderState state)

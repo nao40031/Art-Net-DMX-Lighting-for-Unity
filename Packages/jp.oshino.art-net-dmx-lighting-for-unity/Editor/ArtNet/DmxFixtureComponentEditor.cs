@@ -33,6 +33,9 @@ namespace ArtNet.Editor
                 if (ShouldDrawIrisBefore(property.propertyPath))
                     DrawIrisSection();
 
+                if (ShouldDrawFrostBefore(property.propertyPath))
+                    DrawFrostSection();
+
                 if (property.propertyPath == "panTiltSpeedMinDegPerSec")
                     DrawPanTiltSpeedResolution();
 
@@ -53,6 +56,33 @@ namespace ArtNet.Editor
                 // independent of partial-class field serialization order.
                 if (IsIrisProperty(property.propertyPath))
                 {
+                    enterChildren = false;
+                    continue;
+                }
+
+                if (IsFrostProperty(property.propertyPath))
+                {
+                    enterChildren = false;
+                    continue;
+                }
+
+                if (property.propertyPath == "goboWheel")
+                {
+                    DrawGoboWheelProfile(property);
+                    enterChildren = false;
+                    continue;
+                }
+
+                if (property.propertyPath == "prismProfile")
+                {
+                    DrawPrismProfile(property);
+                    enterChildren = false;
+                    continue;
+                }
+
+                if (property.propertyPath == "prismCookieShader")
+                {
+                    DrawPrismCookieShader(property);
                     enterChildren = false;
                     continue;
                 }
@@ -304,6 +334,16 @@ namespace ArtNet.Editor
             return propertyPath == "lightResponseMode";
         }
 
+        private static bool ShouldDrawFrostBefore(string propertyPath)
+        {
+            return propertyPath == "lightResponseMode";
+        }
+
+        private static bool IsFrostProperty(string propertyPath)
+        {
+            return propertyPath == "syncFrostToDmx" || propertyPath == "frostProfile";
+        }
+
         private static bool IsIrisProperty(string propertyPath)
         {
             return propertyPath == "syncIrisToDmx" || propertyPath == "irisProfile" || propertyPath == "irisInstance";
@@ -316,7 +356,8 @@ namespace ArtNet.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("syncIrisToDmx"),
                 new GUIContent("Sync Iris To DMX", "DMXでアイリスを制御します。\nControls the iris from DMX."));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("irisProfile"),
-                new GUIContent("Iris Profile", "Fixture TypeのIris Profileを上書きします。\n\nOverrides the Iris Profile from the Fixture Type."));
+                new GUIContent("Iris Profile Override", "Fixture TypeのIris Profileを上書きします。\n\nOverrides the Iris Profile from the Fixture Type."));
+            DrawAppliedReference("Applied Iris Profile", GetAppliedIrisProfile(out string irisSource), irisSource);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("irisInstance"),
                 new GUIContent("Iris Instance", "複数のIris属性を使う場合の番号です。\nInstance number when multiple Iris attributes are defined."));
             EditorGUILayout.HelpBox(
@@ -325,6 +366,146 @@ namespace ArtNet.Editor
                 "Configure Iris in the Fixture Type with an Iris Profile and Channel Elements (the component override above is optional).\n" +
                 "Unlike Zoom, Iris masks the outer area without changing gobo magnification. VLB HD uses Cookie composition; SD approximates it with beam width.",
                 MessageType.Info);
+        }
+
+        private void DrawFrostSection()
+        {
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Frost (all light / beam modes)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("syncFrostToDmx"),
+                new GUIContent("Sync Frost To DMX", "DMXでフロストを制御します。\nControls the frost from DMX."));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("frostProfile"),
+                new GUIContent("Frost Profile Override", "Fixture TypeまたはModeのFrost Profileを灯体単位で上書きします。\n\nOverrides the Frost Profile from the Fixture Type or Mode for this fixture."));
+            DrawAppliedReference("Applied Frost Profile", GetAppliedFrostProfile(out string frostSource), frostSource);
+        }
+
+        private void DrawGoboWheelProfile(SerializedProperty property)
+        {
+            EditorGUILayout.PropertyField(property, new GUIContent("Gobo Wheel Profile (Component Fallback)",
+                "ModeのGobo Wheel bindingが設定されている場合はそちらが優先されます。\n\nUsed when the active Fixture Type Mode has no Gobo Wheel binding."));
+            var fallback = property.objectReferenceValue as GoboWheelProfile;
+            DrawAppliedReference("Applied Gobo Wheel Profile", GetAppliedGoboWheelProfile(fallback, out string source), source);
+        }
+
+        private void DrawPrismCookieShader(SerializedProperty property)
+        {
+            EditorGUILayout.PropertyField(property, new GUIContent("Prism Cookie Shader Override", property.tooltip));
+            Shader applied = property.objectReferenceValue as Shader;
+            string source = "Dmx Fixture Component override";
+            if (applied == null)
+            {
+                applied = Resources.Load<Shader>("ArtNet/PrismCookieComposite");
+                source = applied != null ? "Built-in Resources fallback" : "No resolved shader";
+                if (applied == null)
+                {
+                    applied = Shader.Find("Hidden/ArtNet/PrismCookieComposite");
+                    source = applied != null ? "Built-in Shader.Find fallback" : "No resolved shader";
+                }
+            }
+            DrawAppliedReference("Applied Prism Cookie Shader", applied, source);
+        }
+
+        private void DrawPrismProfile(SerializedProperty property)
+        {
+            EditorGUILayout.PropertyField(property, new GUIContent("Prism Profile Override",
+                "Fixture TypeのPrism Profileを灯体単位で上書きします。\n\nOverrides the Prism Profile from the Fixture Type for this fixture."));
+            DrawAppliedReference("Applied Prism Profile", GetAppliedPrismProfile(property.objectReferenceValue as PrismProfile, out string source), source);
+        }
+
+        private IrisProfile GetAppliedIrisProfile(out string source)
+        {
+            source = "Multiple fixtures selected";
+            if (targets.Length != 1 || target is not DmxFixtureComponent fixture)
+                return null;
+            if (fixture.irisProfile != null)
+            {
+                source = "Dmx Fixture Component override";
+                return fixture.irisProfile;
+            }
+            source = fixture.fixture != null && fixture.fixture.irisProfile != null ? "Fixture Type" : "No profile configured";
+            return fixture.fixture != null ? fixture.fixture.irisProfile : null;
+        }
+
+        private FrostProfile GetAppliedFrostProfile(out string source)
+        {
+            source = "Multiple fixtures selected";
+            if (targets.Length != 1 || target is not DmxFixtureComponent fixture)
+                return null;
+            if (fixture.frostProfile != null)
+            {
+                source = "Dmx Fixture Component override";
+                return fixture.frostProfile;
+            }
+
+            var mode = GetActiveMode(fixture);
+            if (mode?.frostBindings != null)
+            {
+                for (int i = mode.frostBindings.Count - 1; i >= 0; i--)
+                {
+                    var binding = mode.frostBindings[i];
+                    if (binding != null && Mathf.Max(1, binding.instance) == 1 && binding.profile != null)
+                    {
+                        source = "Fixture Type Mode / Frost Binding (Instance 1)";
+                        return binding.profile;
+                    }
+                }
+            }
+
+            source = fixture.fixture != null && fixture.fixture.frostProfile != null ? "Fixture Type" : "Built-in generic fallback";
+            return fixture.fixture != null ? fixture.fixture.frostProfile : null;
+        }
+
+        private PrismProfile GetAppliedPrismProfile(PrismProfile overrideProfile, out string source)
+        {
+            source = "Multiple fixtures selected";
+            if (targets.Length != 1 || target is not DmxFixtureComponent fixture)
+                return null;
+            if (overrideProfile != null)
+            {
+                source = "Dmx Fixture Component override";
+                return overrideProfile;
+            }
+            source = fixture.fixture != null && fixture.fixture.prismProfile != null ? "Fixture Type" : "No profile configured";
+            return fixture.fixture != null ? fixture.fixture.prismProfile : null;
+        }
+
+        private GoboWheelProfile GetAppliedGoboWheelProfile(GoboWheelProfile fallback, out string source)
+        {
+            source = "Multiple fixtures selected";
+            if (targets.Length != 1 || target is not DmxFixtureComponent fixture)
+                return null;
+
+            var mode = GetActiveMode(fixture);
+            if (mode?.wheelBindings != null)
+            {
+                for (int i = mode.wheelBindings.Count - 1; i >= 0; i--)
+                {
+                    var binding = mode.wheelBindings[i];
+                    if (binding != null && binding.attribute == FixtureAttribute.GoboWheel && Mathf.Max(1, binding.instance) == 1 && binding.goboWheel != null)
+                    {
+                        source = "Fixture Type Mode / Gobo Wheel Binding (Instance 1)";
+                        return binding.goboWheel;
+                    }
+                }
+            }
+
+            source = fallback != null ? "Dmx Fixture Component fallback" : "No profile configured";
+            return fallback;
+        }
+
+        private static FixtureMode GetActiveMode(DmxFixtureComponent fixture)
+        {
+            if (fixture == null || fixture.fixture?.modes == null || fixture.fixture.modes.Count == 0)
+                return null;
+            int modeIndex = Mathf.Clamp(fixture.mode, 0, fixture.fixture.modes.Count - 1);
+            return fixture.fixture.modes[modeIndex];
+        }
+
+        private static void DrawAppliedReference(string label, Object reference, string source)
+        {
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.ObjectField(new GUIContent(label, "現在ランタイムで使用される参照先です。\n\nThe reference currently used at runtime."), reference, reference != null ? reference.GetType() : typeof(Object), false);
+            EditorGUILayout.LabelField("Source", source, EditorStyles.miniLabel);
         }
 
         private static GUIContent CreateDisplayContent(SerializedProperty property)

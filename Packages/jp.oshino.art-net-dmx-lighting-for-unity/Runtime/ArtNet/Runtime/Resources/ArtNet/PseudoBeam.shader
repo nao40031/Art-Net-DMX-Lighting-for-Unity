@@ -17,6 +17,9 @@ Shader "ArtNet/Pseudo Beam"
         _BeamFalloffPower ("Falloff Power", Float) = 1
         _BeamEdgeSoftness ("Edge Softness", Range(0, 1)) = 0.35
         _BeamEdgePower ("Edge Power", Float) = 1.5
+        _DmxFrostBlur ("Frost Blur", Range(0, 0.08)) = 0
+        _DmxFrostSoftness ("Frost Softness", Range(0, 1)) = 0
+        _DmxFrostTransmission ("Frost Transmission", Range(0, 1)) = 1
 
         [Header(Fog_Surface_Noise)] _BeamNoiseStrength ("Strength", Range(0, 1)) = 0
         _BeamNoiseScale ("Scale", Float) = 6
@@ -118,6 +121,9 @@ Shader "ArtNet/Pseudo Beam"
             float _BeamFalloffPower;
             float _BeamEdgeSoftness;
             float _BeamEdgePower;
+            float _DmxFrostBlur;
+            float _DmxFrostSoftness;
+            float _DmxFrostTransmission;
             float _BeamNoiseStrength;
             float _BeamNoiseScale;
             float _BeamNoiseSpeed;
@@ -192,7 +198,12 @@ Shader "ArtNet/Pseudo Beam"
 
                 float inside = step(0.0, rotated.x) * step(rotated.x, 1.0) *
                                step(0.0, rotated.y) * step(rotated.y, 1.0);
-                float gobo = tex2D(_GoboTexture, rotated).r;
+                float2 blur = float2(_DmxFrostBlur, 0.0);
+                float gobo = tex2D(_GoboTexture, rotated).r * 0.4;
+                gobo += tex2D(_GoboTexture, rotated + blur).r * 0.15;
+                gobo += tex2D(_GoboTexture, rotated - blur).r * 0.15;
+                gobo += tex2D(_GoboTexture, rotated + blur.yx).r * 0.15;
+                gobo += tex2D(_GoboTexture, rotated - blur.yx).r * 0.15;
                 return lerp(1.0, gobo * inside, saturate(_GoboEnabled) * saturate(_GoboInfluence));
             }
 
@@ -265,7 +276,8 @@ Shader "ArtNet/Pseudo Beam"
                 float distanceFade = lerp(1.0, saturate(_BeamTipOpacity), fadeT);
                 float lengthFade = legacyLengthFade * distanceFade;
                 float normalFacing = saturate(abs(dot(normalize(input.normalWS), normalize(input.viewDirWS))));
-                float edgeFade = lerp(1.0, pow(normalFacing, max(0.01, _BeamEdgePower)), saturate(_BeamEdgeSoftness));
+                float edgeSoftness = saturate(_BeamEdgeSoftness + _DmxFrostSoftness * (1.0 - _BeamEdgeSoftness));
+                float edgeFade = lerp(1.0, pow(normalFacing, max(0.01, _BeamEdgePower)), edgeSoftness);
                 float noiseScale = max(0.001, _BeamNoiseScale);
                 float2 noiseUv = float2(
                     uv.x * noiseScale + _Time.y * _BeamNoiseSpeed,
@@ -284,7 +296,7 @@ Shader "ArtNet/Pseudo Beam"
                 float projectedGobo = SampleProjectedGobo(uv);
                 float gobo = lerp(uvGobo, projectedGobo, saturate(_BeamGoboProjection));
                 float beam = lerp(1.0, facetMask, prismEnabled) * lengthFade * edgeFade * noiseMask * gobo;
-                float intensity = dimmer * max(0.0, _DmxPrismIntensity) * max(0.0, _BeamIntensity) * beam;
+                float intensity = dimmer * saturate(_DmxFrostTransmission) * max(0.0, _DmxPrismIntensity) * max(0.0, _BeamIntensity) * beam;
 
                 return float4(_DmxColor.rgb * intensity, intensity);
             }

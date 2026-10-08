@@ -46,7 +46,8 @@ namespace ArtNet.Runtime
         GoboRotation = 17,
         SpecialFunction = 18,
         DimmerSpeedMode = 19,
-        ColorMacro = 20
+        ColorMacro = 20,
+        Frost = 21
     }
 
     [Serializable]
@@ -261,6 +262,17 @@ namespace ArtNet.Runtime
     }
 
     [Serializable]
+    public class FixtureFrostBinding
+    {
+        [Tooltip("同じ灯体に複数のフロスト機構がある場合の1始まりの番号です。\n\nOne-based instance number when a fixture has multiple frost mechanisms.")]
+        [Min(1)]
+        public int instance = 1;
+
+        [Tooltip("このフロスト段の光学特性です。未設定時はFixture Typeの共通Frost Profileを使用します。\n\nOptical characteristics for this frost stage. When unset, the Fixture Type's shared Frost Profile is used.")]
+        public FrostProfile profile;
+    }
+
+    [Serializable]
     public class FixturePanTiltSpeedProfile
     {
         [Tooltip("Pan/Tilt速度プリセットに対応するRange Type。\n\nRange Type that activates this Pan/Tilt speed profile.")]
@@ -303,6 +315,9 @@ namespace ArtNet.Runtime
         [Tooltip("Wheel definitions bound by Attribute + Instance. Used by GoboWheel slots now.")]
         public List<FixtureWheelBinding> wheelBindings = new();
 
+        [Tooltip("Frost AttributeのInstanceと光学プロファイルの対応です。複数段のフロストを個別に定義できます。\n\nMaps Frost Attribute instances to optical profiles. Multiple frost stages can be defined independently.")]
+        public List<FixtureFrostBinding> frostBindings = new();
+
         [Header("Pan/Tilt Speed Profiles")]
         [Tooltip("プリセット方式のPan/Tilt速度プロファイル。未設定の灯体はDmx Fixture Componentの既存速度設定を使用。\n\nPan/Tilt speed profiles for preset-based fixtures. Fixtures without profiles use the existing Dmx Fixture Component speed settings.")]
         public List<FixturePanTiltSpeedProfile> panTiltSpeedProfiles = new();
@@ -318,6 +333,10 @@ namespace ArtNet.Runtime
     public class FixtureType : ScriptableObject
     {
         public IrisProfile irisProfile;
+        [Tooltip("モード側で個別指定されていないフロスト段に使用する共通プロファイルです。\n\nShared profile used by frost stages that do not specify a profile in the mode.")]
+        public FrostProfile frostProfile;
+        [Tooltip("この灯体の共通プリズムプロファイルです。Dmx Fixture Component側で個別に上書きできます。\n\nShared prism profile for this fixture. It can be overridden per fixture in Dmx Fixture Component.")]
+        public PrismProfile prismProfile;
         [Header("Identity (for humans/logs)")]
         public string manufacturer;
         public string model;

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: MACUltraPerformance
   m_EditorClassIdentifier: 
   irisProfile: {fileID: 11400000, guid: f64be412c48142198ded493a149dcddc, type: 2}
+  frostProfile: {fileID: 11400000, guid: 4b2c8adfda114772b28c2b759f46f106, type: 2}
+  prismProfile: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
   manufacturer: Martin
   model: MAC Ultra Performance
   revision: Basic 48ch
@@ -170,11 +172,19 @@ MonoBehaviour:
       role: 0
       byteRole: 0
       ranges: []
-    - attribute: 0
+    - attribute: 15
       instance: 1
       role: 0
       byteRole: 0
-      ranges: []
+      ranges:
+      - name: No Frost to Full Frost
+        dmxMin: 0
+        dmxMax: 255
+        type: 0
+        mappingContext: 4
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
     - attribute: 14
       instance: 1
       role: 1
@@ -421,6 +431,9 @@ MonoBehaviour:
     - attribute: 12
       instance: 1
       goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}
+    frostBindings:
+    - instance: 1
+      profile: {fileID: 11400000, guid: 4b2c8adfda114772b28c2b759f46f106, type: 2}
     panTiltSpeedProfiles:
     - preset: 20
       panMaxDegPerSec: 140
