@@ -562,6 +562,7 @@ MonoBehaviour:
   lensDimmerScale: 1
   lensApertureFeather: 0
   syncLensGoboToDmx: 1
+  syncLensIrisToDmx: 1
   syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
@@ -595,7 +596,7 @@ MonoBehaviour:
   maxOuterSpotAngle: 50
   invertZoom: 0
   zoomInnerSpotPercent: 80
-  prismDefinition: {fileID: 0}
+  prismProfile: {fileID: 0}
   enablePrism: 1
   prismDrawMode: 0
   prismRenderMode: 1
