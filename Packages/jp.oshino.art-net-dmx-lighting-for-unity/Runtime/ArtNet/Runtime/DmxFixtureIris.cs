@@ -81,22 +81,7 @@ namespace ArtNet.Runtime
         }
         private void ReleaseIris()
         {
-            if (_irisRenderers.Count > 0)
-            {
-                var block = new MaterialPropertyBlock();
-                foreach (var entry in _irisRenderers)
-                {
-                    if (entry.renderer == null) continue;
-                    block.Clear();
-                    if (entry.slot < 0) entry.renderer.GetPropertyBlock(block);
-                    else entry.renderer.GetPropertyBlock(block, entry.slot);
-                    block.SetVector(IrisShapeId, new Vector4(1, 0, 0, 0));
-                    block.SetFloat(IrisLensInfluenceId, 0);
-                    if (entry.slot < 0) entry.renderer.SetPropertyBlock(block);
-                    else entry.renderer.SetPropertyBlock(block, entry.slot);
-                }
-                _irisRenderers.Clear();
-            }
+            ResetLensIrisRenderers();
             foreach (var pair in _irisCookies)
             {
                 if (pair.Key != null && pair.Key.cookie == pair.Value.Output)
@@ -105,6 +90,25 @@ namespace ArtNet.Runtime
             }
             _irisCookies.Clear();
             _iris.Reset();
+        }
+
+        private void ResetLensIrisRenderers()
+        {
+            if (_irisRenderers.Count == 0) return;
+
+            var block = new MaterialPropertyBlock();
+            foreach (var entry in _irisRenderers)
+            {
+                if (entry.renderer == null) continue;
+                block.Clear();
+                if (entry.slot < 0) entry.renderer.GetPropertyBlock(block);
+                else entry.renderer.GetPropertyBlock(block, entry.slot);
+                block.SetVector(IrisShapeId, new Vector4(1, 0, 0, 0));
+                block.SetFloat(IrisLensInfluenceId, 0);
+                if (entry.slot < 0) entry.renderer.SetPropertyBlock(block);
+                else entry.renderer.SetPropertyBlock(block, entry.slot);
+            }
+            _irisRenderers.Clear();
         }
     }
 }

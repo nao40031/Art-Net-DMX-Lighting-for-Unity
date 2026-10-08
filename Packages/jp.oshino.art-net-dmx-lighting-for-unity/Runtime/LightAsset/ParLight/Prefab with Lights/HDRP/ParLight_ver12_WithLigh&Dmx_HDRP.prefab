@@ -879,7 +879,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -238966371585807959, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 58c22bdff9fdfa6429e9f2a93a8470fd, type: 2}
     - target: {fileID: 874224889034588341, guid: 099a1c4a368889148aaca691b0995e27, type: 3}
       propertyPath: m_Name
@@ -950,6 +950,8 @@ MonoBehaviour:
   vlbSdIntensityMultiplier: 0.01
   overrideVlbHdrpExposureWeight: 1
   vlbHdrpExposureWeight: 0
+  overrideVlbHdGoboCookieContribution: 1
+  vlbHdGoboCookieContribution: 1
   syncPseudoBeamToDmx: 1
   _beamRenderModeMigrated: 1
   _beamSyncSettingsMigrated: 1
@@ -1012,6 +1014,7 @@ MonoBehaviour:
   lensDimmerScale: 1
   lensApertureFeather: 0
   syncLensGoboToDmx: 1
+  syncLensIrisToDmx: 1
   syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
@@ -1045,7 +1048,7 @@ MonoBehaviour:
   maxOuterSpotAngle: 50
   invertZoom: 0
   zoomInnerSpotPercent: 80
-  prismDefinition: {fileID: 0}
+  prismProfile: {fileID: 0}
   enablePrism: 1
   prismDrawMode: 0
   prismRenderMode: 1
