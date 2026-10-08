@@ -121,8 +121,8 @@ GameObject:
   - component: {fileID: 5435452863099544097}
   - component: {fileID: 5615845126080219335}
   - component: {fileID: 4090314032435692040}
- - component: {fileID: 9007013425148412751}
   - component: {fileID: 8123456789012345604}
+  - component: {fileID: 9007013425148412751}
   m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
@@ -317,6 +317,31 @@ MonoBehaviour:
   _SortingOrder: 0
   _FadeOutBegin: -150
   _FadeOutEnd: -200
+--- !u!114 &8123456789012345604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 558dd6d156642974780bc97cd2ab1bd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  updateRate: 12
+  waitXFrames: 3
+  dimensions: 0
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  considerTriggers: 0
+  minOccluderArea: 0
+  minSurfaceRatio: 0.5
+  maxSurfaceDot: 0.25
+  planeAlignment: 0
+  planeOffset: 0.1
+  fadeDistanceToSurface: 0.25
 --- !u!114 &9007013425148412751
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -560,6 +585,7 @@ MonoBehaviour:
   lensDimmerScale: 1
   lensApertureFeather: 0
   syncLensGoboToDmx: 1
+  syncLensIrisToDmx: 1
   syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
@@ -593,7 +619,7 @@ MonoBehaviour:
   maxOuterSpotAngle: 50
   invertZoom: 0
   zoomInnerSpotPercent: 80
-  prismDefinition: {fileID: 0}
+  prismProfile: {fileID: 0}
   enablePrism: 1
   prismDrawMode: 0
   prismRenderMode: 1
@@ -1013,28 +1039,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
   m_PrefabInstance: {fileID: 3488826918228270366}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8123456789012345604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7960800072310362778}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 558dd6d156642974780bc97cd2ab1bd2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  updateRate: 12
-  waitXFrames: 3
-  dimensions: 0
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  considerTriggers: 0
-  minOccluderArea: 0
-  minSurfaceRatio: 0.5
-  maxSurfaceDot: 0.25
-  planeAlignment: 0
-  planeOffset: 0.1
-  fadeDistanceToSurface: 0.25

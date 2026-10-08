@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2415676272866749}
   - component: {fileID: 5435452863099544097}
   - component: {fileID: 995114904721219125}
- - component: {fileID: 6055491826154978673}
+  - component: {fileID: 6055491826154978673}
   - component: {fileID: 8123456789012345603}
   m_Layer: 0
   m_Name: Spot Light
@@ -211,6 +211,31 @@ MonoBehaviour:
   _SortingOrder: 0
   _FadeOutBegin: -150
   _FadeOutEnd: -200
+--- !u!114 &8123456789012345603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7960800072310362778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 558dd6d156642974780bc97cd2ab1bd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  updateRate: 12
+  waitXFrames: 3
+  dimensions: 0
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  considerTriggers: 0
+  minOccluderArea: 0
+  minSurfaceRatio: 0.5
+  maxSurfaceDot: 0.25
+  planeAlignment: 0
+  planeOffset: 0.1
+  fadeDistanceToSurface: 0.25
 --- !u!1 &8326611248887339198
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,6 +575,7 @@ MonoBehaviour:
   lensDimmerScale: 1
   lensApertureFeather: 0
   syncLensGoboToDmx: 1
+  syncLensIrisToDmx: 1
   syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
@@ -583,7 +609,7 @@ MonoBehaviour:
   maxOuterSpotAngle: 54
   invertZoom: 0
   zoomInnerSpotPercent: 80
-  prismDefinition: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
+  prismProfile: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
   enablePrism: 1
   prismDrawMode: 2
   prismRenderMode: 1
@@ -878,8 +904,8 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Iris1.Value.Single
+    attribute: 16
     instance: 1
     role: 0
     byteRole: 0
@@ -1058,10 +1084,10 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Control1.Control.Single
+    attribute: 23
     instance: 1
-    role: 0
+    role: 7
     byteRole: 0
     relativeCh: 42
     absoluteCh: 42
@@ -1342,8 +1368,8 @@ MonoBehaviour:
     absoluteChannel: 23
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Iris1.Value.Single
+    attribute: 16
     instance: 1
     role: 0
     byteRole: 0
@@ -1504,10 +1530,10 @@ MonoBehaviour:
     absoluteChannel: 41
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Control1.Control.Single
+    attribute: 23
     instance: 1
-    role: 0
+    role: 7
     byteRole: 0
     relativeChannel: 42
     absoluteChannel: 42
@@ -1573,28 +1599,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
   m_PrefabInstance: {fileID: 3488826918228270366}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8123456789012345603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7960800072310362778}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 558dd6d156642974780bc97cd2ab1bd2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  updateRate: 12
-  waitXFrames: 3
-  dimensions: 0
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  considerTriggers: 0
-  minOccluderArea: 0
-  minSurfaceRatio: 0.5
-  maxSurfaceDot: 0.25
-  planeAlignment: 0
-  planeOffset: 0.1
-  fadeDistanceToSurface: 0.25
