@@ -103,5 +103,5 @@ MonoBehaviour:
   pulseAperture: {x: 0, y: 1}
   feather: 0.01
   blades: 0
-  lensInfluence: 0
+  lensInfluence: 1
   cookieResolution: 256

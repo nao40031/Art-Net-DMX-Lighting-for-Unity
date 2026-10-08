@@ -377,6 +377,10 @@ namespace ArtNet.Runtime
         [Tooltip("レンズ表現へゴボを同期します。\nSynchronizes the gobo to the lens representation.")]
         [SerializeField] private bool syncLensGoboToDmx = true;
 
+        [Tooltip("DMX Irisに応じてレンズ面の開口を同期します。\n\nSynchronizes the lens-surface aperture with DMX Iris.")]
+        [InspectorName("Sync Lens Iris To DMX")]
+        [SerializeField] private bool syncLensIrisToDmx = true;
+
         [Tooltip("DMX Zoomに応じてレンズ面のゴボサイズを同期します。\nSynchronizes the gobo size on the lens surface with DMX Zoom.")]
         [InspectorName("Sync Lens Gobo Zoom To DMX")]
         [SerializeField] private bool syncLensGoboZoomToDmx = true;
@@ -3652,7 +3656,10 @@ namespace ArtNet.Runtime
         private void ApplyLensDmx(FixtureRenderState state)
         {
             if (!syncLensToDmx) return;
-            if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx && !state.irisEnabled && _irisRenderers.Count == 0) return;
+            bool lensIrisEnabled = syncLensIrisToDmx && state.irisEnabled && ActiveIrisProfile != null;
+            if (!lensIrisEnabled && _irisRenderers.Count > 0)
+                ResetLensIrisRenderers();
+            if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx && !lensIrisEnabled) return;
 
             bool hasMaterialBindings = lensMaterialBindings != null && lensMaterialBindings.Count > 0;
 
@@ -3668,8 +3675,8 @@ namespace ArtNet.Runtime
 
             // 共通のMPBに値をセットし、各Rendererに適用
             _lensMpb.Clear();
-            _lensMpb.SetVector(IrisShapeId, state.irisEnabled ? state.irisShape : new Vector4(1, 0, 0, 0));
-            _lensMpb.SetFloat(IrisLensInfluenceId, state.irisEnabled && ActiveIrisProfile != null ? ActiveIrisProfile.lensInfluence : 0);
+            _lensMpb.SetVector(IrisShapeId, lensIrisEnabled ? state.irisShape : new Vector4(1, 0, 0, 0));
+            _lensMpb.SetFloat(IrisLensInfluenceId, lensIrisEnabled ? ActiveIrisProfile.lensInfluence : 0);
             if (syncLensColorToDmx)
                 _lensMpb.SetColor(_lensColorId, state.color);
             if (syncLensDimmerToDmx)
@@ -3721,7 +3728,7 @@ namespace ArtNet.Runtime
                         continue;
 
                     binding.renderer.SetPropertyBlock(_lensMpb, binding.materialSlot);
-                    if (state.irisEnabled) _irisRenderers.Add((binding.renderer, binding.materialSlot));
+                    if (lensIrisEnabled) _irisRenderers.Add((binding.renderer, binding.materialSlot));
                 }
                 return;
             }
@@ -3729,7 +3736,7 @@ namespace ArtNet.Runtime
             if (lensRenderer != null)
             {
                 lensRenderer.SetPropertyBlock(_lensMpb);
-                if (state.irisEnabled) _irisRenderers.Add((lensRenderer, -1));
+                if (lensIrisEnabled) _irisRenderers.Add((lensRenderer, -1));
             }
 
             if (extraLensRenderers != null)
@@ -3740,7 +3747,7 @@ namespace ArtNet.Runtime
                     if (r != null)
                     {
                         r.SetPropertyBlock(_lensMpb);
-                        if (state.irisEnabled) _irisRenderers.Add((r, -1));
+                        if (lensIrisEnabled) _irisRenderers.Add((r, -1));
                     }
                 }
             }

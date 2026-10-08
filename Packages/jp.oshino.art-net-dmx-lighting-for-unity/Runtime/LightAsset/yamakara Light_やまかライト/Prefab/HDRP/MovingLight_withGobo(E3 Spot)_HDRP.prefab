@@ -50,7 +50,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -386,6 +386,72 @@ MonoBehaviour:
   targetLights: []
   panTransform: {fileID: 1013826615945173212}
   tiltTransform: {fileID: 3456986391419752059}
+  beamRenderMode: 0
+  syncBeamColorToDmx: 1
+  syncBeamDimmerToDmx: 1
+  syncBeamGoboToDmx: 1
+  syncBeamGoboRotationToDmx: 1
+  syncBeamPrismToDmx: 1
+  syncBeamZoomToDmx: 1
+  overrideVlbHdIntensityMultiplier: 1
+  vlbHdIntensityMultiplier: 0.00001
+  overrideVlbSdIntensityMultiplier: 1
+  vlbSdIntensityMultiplier: 0.00001
+  overrideVlbHdrpExposureWeight: 1
+  vlbHdrpExposureWeight: 0
+  overrideVlbHdGoboCookieContribution: 1
+  vlbHdGoboCookieContribution: 1
+  syncPseudoBeamToDmx: 0
+  _beamRenderModeMigrated: 1
+  _beamSyncSettingsMigrated: 1
+  _vlbPipelineDefaultsInitialized: 1
+  beamRenderer: {fileID: 0}
+  extraPseudoBeamRenderers: []
+  syncBeamNoiseVolumeToBeam: 1
+  beamColorProperty: _DmxColor
+  beamDimmerProperty: _DmxDimmer
+  beamPrismEnabledProperty: _DmxPrismEnabled
+  beamPrismFacetCountProperty: _DmxPrismFacetCount
+  beamPrismSpreadProperty: _DmxPrismSpread
+  beamPrismRotationProperty: _DmxPrismRotation
+  beamPrismIntensityProperty: _DmxPrismIntensity
+  beamLengthProperty: _BeamLength
+  beamStartRadiusProperty: _BeamStartRadius
+  beamEndRadiusProperty: _BeamEndRadius
+  beamNoiseVolume: {fileID: 0}
+  beamNoiseVolumeEnabled: 0
+  beamNoiseVolumeStrength: 1
+  beamNoiseVolumeGoboScale: 1
+  beamNoiseVolumePrismRotationScale: 0
+  beamNoiseVolumeScale: 1
+  beamNoiseVolumeRadialScale: 4
+  beamNoiseVolumeLengthScale: 12
+  beamNoiseVolumeSpeed: 0.1
+  beamNoiseVolumeContrast: 1
+  beamNoiseVolumeOffset: {x: 0, y: 0, z: 0}
+  beamNoiseVolumeScrollSpace: 0
+  beamNoiseVolumeScrollAxis: 2
+  beamNoiseVolumeScrollReverse: 0
+  beamNoiseVolumeProperty: _BeamNoiseVolume
+  beamNoiseVolumeEnabledProperty: _BeamNoiseVolumeEnabled
+  beamNoiseVolumeStrengthProperty: _BeamNoiseVolumeStrength
+  beamNoiseVolumeScaleProperty: _BeamNoiseVolumeScale
+  beamNoiseVolumeRadialScaleProperty: _BeamNoiseVolumeRadialScale
+  beamNoiseVolumeLengthScaleProperty: _BeamNoiseVolumeLengthScale
+  beamNoiseVolumeSpeedProperty: _BeamNoiseVolumeSpeed
+  beamNoiseVolumeContrastProperty: _BeamNoiseVolumeContrast
+  beamNoiseVolumeOffsetProperty: _BeamNoiseVolumeOffset
+  beamNoiseVolumeScrollDirectionProperty: _BeamNoiseVolumeScrollDirection
+  beamDimmerScale: 1
+  beamDimmerFloor: 0
+  beamZoomRadiusScale: 1
+  beamZoomMinEndRadius: 0.01
+  beamZoomMaxEndRadius: 25
+  enableBeamSoftShell: 0
+  beamSoftShellRadiusScale: 1.35
+  beamSoftShellIntensity: 0.2
+  beamSoftShellEdgeSoftness: 0.9
+  beamSoftShellNoiseStrength: 0.25
   lensRenderer: {fileID: 0}
   extraLensRenderers:
   - {fileID: 2523771333444109262}
@@ -400,32 +466,63 @@ MonoBehaviour:
   lensColorProperty: _DmxColor
   lensDimmerProperty: _DmxDimmer
   lensDimmerScale: 1
-  goboWheel: {fileID: 11400000, guid: 0dff2603d1a09174ea1238d2587ac1e5, type: 2}
-  syncLightCookieToGobo: 1
+  lensApertureFeather: 0
   syncLensGoboToDmx: 1
-  syncBeamGoboToDmx: 1
-  maxGoboRotateDegPerSec: 360
-  syncGoboRotationToCookieTransform: 1
-  goboCookieRollTransform: {fileID: 2415676272866749}
-  goboCookieRollAxis: {x: 0, y: 0, z: 1}
-  goboCookieRollOffsetDeg: 0
+  syncLensIrisToDmx: 1
+  syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
   lensGoboEnabledProperty: _GoboEnabled
   lensGoboRotationDirection: 0
+  lensGoboShakePositionDirection: 0
+  lensGoboShakeRotationDirection: 0
   lensPrismGoboMode: 1
+  legacyUseDedicatedGoboLensShader: 0
+  goboLensEmission: 2
+  goboLensScale: 1
+  goboLensZoomNarrowScale: 0.5
+  goboLensZoomWideScale: 1
+  goboLensBlur: 0
+  goboLensHorizontalOffset: 0
+  goboLensVerticalOffset: 0
+  goboLensHotspotStrength: 0.35
+  goboWheel: {fileID: 11400000, guid: 0dff2603d1a09174ea1238d2587ac1e5, type: 2}
+  syncLightCookieToGobo: 1
+  maxGoboRotateDegPerSec: 360
+  enableGoboShake: 1
+  syncGoboRotationToCookieTransform: 1
+  goboCookieRollTransform: {fileID: 2415676272866749}
+  goboCookieRollAxis: {x: 0, y: 0, z: 1}
+  goboCookieRollOffsetDeg: 0
   beamGoboTextureProperty: _GoboTexture
   beamGoboRotationProperty: _GoboRotationDeg
   beamGoboEnabledProperty: _GoboEnabled
-  syncPseudoBeamToDmx: 0
-  beamRenderer: {fileID: 0}
-  extraBeamRenderers: []
-  syncBeamColorToDmx: 1
-  syncBeamDimmerToDmx: 1
-  beamColorProperty: _DmxColor
-  beamDimmerProperty: _DmxDimmer
-  beamDimmerScale: 1
-  beamDimmerFloor: 0
+  syncZoomToLight: 1
+  minOuterSpotAngle: 5
+  maxOuterSpotAngle: 50
+  invertZoom: 0
+  zoomInnerSpotPercent: 80
+  prismProfile: {fileID: 0}
+  enablePrism: 1
+  prismDrawMode: 0
+  prismRenderMode: 1
+  projectionOnlyPrimaryIntensityScale: 0.65
+  disableAuxiliaryVolumetricInProjectionOnly: 1
+  auxiliaryCookieRotationMode: 0
+  maxPrismRotateDegPerSec: 360
+  prismCompositeCookieSize: 512
+  prismCompositeRotationStepDeg: 1
+  maxPrismCompositeFacets: 8
+  maxPrismAuxiliaryFacets: 8
+  auxiliarySpreadMultiplierDeg: 10
+  auxiliaryIntensityScale: 1
+  auxiliaryVolumetricIntensityScale: 1
+  prismBrightnessDistribution: 0
+  prismGoboSpacingMode: 0
+  manualPrismGoboSpacingScale: 1
+  prismGoboScaleVlb: 1
+  auxiliaryLightShadows: 1
+  prismCookieShader: {fileID: 0}
   lightResponseMode: 0
   halogenSourceRiseTime: 0.06
   halogenSourceFallTime: 0.1
@@ -468,75 +565,183 @@ MonoBehaviour:
   ch4: 0
   ch5: 0
   monitorItems:
-  - function: 4
+  - useElementSchema: 1
+    function: 0
+    label: Pan1.Position.Coarse
+    attribute: 19
+    instance: 1
+    role: 2
+    byteRole: 1
     relativeCh: 1
     absoluteCh: 1
     value: 0
-  - function: 5
+  - useElementSchema: 1
+    function: 0
+    label: Pan1.Position.Fine
+    attribute: 19
+    instance: 1
+    role: 2
+    byteRole: 2
     relativeCh: 2
     absoluteCh: 2
     value: 0
-  - function: 6
+  - useElementSchema: 1
+    function: 0
+    label: Tilt1.Position.Coarse
+    attribute: 20
+    instance: 1
+    role: 2
+    byteRole: 1
     relativeCh: 3
     absoluteCh: 3
     value: 0
-  - function: 7
+  - useElementSchema: 1
+    function: 0
+    label: Tilt1.Position.Fine
+    attribute: 20
+    instance: 1
+    role: 2
+    byteRole: 2
     relativeCh: 4
     absoluteCh: 4
     value: 0
-  - function: 15
+  - useElementSchema: 1
+    function: 0
+    label: Pan1.Speed.Single
+    attribute: 19
+    instance: 1
+    role: 5
+    byteRole: 0
     relativeCh: 5
     absoluteCh: 5
     value: 0
-  - function: 18
+  - useElementSchema: 1
+    function: 0
+    label: Control1.Control.Single
+    attribute: 23
+    instance: 1
+    role: 7
+    byteRole: 0
     relativeCh: 6
     absoluteCh: 6
     value: 0
-  - function: 1
+  - useElementSchema: 1
+    function: 0
+    label: Red1.Value.Single
+    attribute: 3
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeCh: 7
     absoluteCh: 7
     value: 0
-  - function: 2
+  - useElementSchema: 1
+    function: 0
+    label: Green1.Value.Single
+    attribute: 4
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeCh: 8
     absoluteCh: 8
     value: 0
-  - function: 3
+  - useElementSchema: 1
+    function: 0
+    label: Blue1.Value.Single
+    attribute: 5
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeCh: 9
     absoluteCh: 9
     value: 0
-  - function: 14
+  - useElementSchema: 1
+    function: 0
+    label: White1.Value.Single
+    attribute: 6
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeCh: 10
     absoluteCh: 10
     value: 0
-  - function: 20
+  - useElementSchema: 1
+    function: 0
+    label: ColorWheel1.Macro.Single
+    attribute: 11
+    instance: 1
+    role: 9
+    byteRole: 0
     relativeCh: 11
     absoluteCh: 11
     value: 0
-  - function: 10
+  - useElementSchema: 1
+    function: 0
+    label: GoboWheel1.SelectMode.Single
+    attribute: 12
+    instance: 1
+    role: 1
+    byteRole: 0
     relativeCh: 12
     absoluteCh: 12
     value: 0
-  - function: 17
+  - useElementSchema: 1
+    function: 0
+    label: GoboWheel1.Rotation.Single
+    attribute: 12
+    instance: 1
+    role: 3
+    byteRole: 0
     relativeCh: 13
     absoluteCh: 13
     value: 0
-  - function: 11
+  - useElementSchema: 1
+    function: 0
+    label: Prism1.SelectMode.Single
+    attribute: 14
+    instance: 1
+    role: 1
+    byteRole: 0
     relativeCh: 14
     absoluteCh: 14
     value: 0
-  - function: 8
+  - useElementSchema: 1
+    function: 0
+    label: Strobe1.Value.Single
+    attribute: 2
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeCh: 15
     absoluteCh: 15
     value: 0
-  - function: 12
+  - useElementSchema: 1
+    function: 0
+    label: Focus1.Value.Single
+    attribute: 18
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeCh: 16
     absoluteCh: 16
     value: 0
-  - function: 0
+  - useElementSchema: 1
+    function: 0
+    label: Dimmer1.Value.Single
+    attribute: 1
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeCh: 17
     absoluteCh: 17
     value: 0
-  - function: 19
+  - useElementSchema: 1
+    function: 0
+    label: Dimmer1.Speed.Single
+    attribute: 1
+    instance: 1
+    role: 5
+    byteRole: 0
     relativeCh: 18
     absoluteCh: 18
     value: 0
@@ -545,62 +750,173 @@ MonoBehaviour:
   logOnlyWhenDataArrived: 1
   includeHeaderInLog: 1
   _activeProfileLabel: 
-  _activeModeLabel: 18-Channel Mode
+  _activeModeLabel: 18-Channel Mode(Old)
   _resolvedItems:
-  - function: 4
+  - function: 0
+    useElementSchema: 1
+    label: Pan1.Position.Coarse
+    attribute: 19
+    instance: 1
+    role: 2
+    byteRole: 1
     relativeChannel: 1
     absoluteChannel: 1
-  - function: 5
+  - function: 0
+    useElementSchema: 1
+    label: Pan1.Position.Fine
+    attribute: 19
+    instance: 1
+    role: 2
+    byteRole: 2
     relativeChannel: 2
     absoluteChannel: 2
-  - function: 6
+  - function: 0
+    useElementSchema: 1
+    label: Tilt1.Position.Coarse
+    attribute: 20
+    instance: 1
+    role: 2
+    byteRole: 1
     relativeChannel: 3
     absoluteChannel: 3
-  - function: 7
+  - function: 0
+    useElementSchema: 1
+    label: Tilt1.Position.Fine
+    attribute: 20
+    instance: 1
+    role: 2
+    byteRole: 2
     relativeChannel: 4
     absoluteChannel: 4
-  - function: 15
+  - function: 0
+    useElementSchema: 1
+    label: Pan1.Speed.Single
+    attribute: 19
+    instance: 1
+    role: 5
+    byteRole: 0
     relativeChannel: 5
     absoluteChannel: 5
-  - function: 18
+  - function: 0
+    useElementSchema: 1
+    label: Control1.Control.Single
+    attribute: 23
+    instance: 1
+    role: 7
+    byteRole: 0
     relativeChannel: 6
     absoluteChannel: 6
-  - function: 1
+  - function: 0
+    useElementSchema: 1
+    label: Red1.Value.Single
+    attribute: 3
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 7
     absoluteChannel: 7
-  - function: 2
+  - function: 0
+    useElementSchema: 1
+    label: Green1.Value.Single
+    attribute: 4
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 8
     absoluteChannel: 8
-  - function: 3
+  - function: 0
+    useElementSchema: 1
+    label: Blue1.Value.Single
+    attribute: 5
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 9
     absoluteChannel: 9
-  - function: 14
+  - function: 0
+    useElementSchema: 1
+    label: White1.Value.Single
+    attribute: 6
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 10
     absoluteChannel: 10
-  - function: 20
+  - function: 0
+    useElementSchema: 1
+    label: ColorWheel1.Macro.Single
+    attribute: 11
+    instance: 1
+    role: 9
+    byteRole: 0
     relativeChannel: 11
     absoluteChannel: 11
-  - function: 10
+  - function: 0
+    useElementSchema: 1
+    label: GoboWheel1.SelectMode.Single
+    attribute: 12
+    instance: 1
+    role: 1
+    byteRole: 0
     relativeChannel: 12
     absoluteChannel: 12
-  - function: 17
+  - function: 0
+    useElementSchema: 1
+    label: GoboWheel1.Rotation.Single
+    attribute: 12
+    instance: 1
+    role: 3
+    byteRole: 0
     relativeChannel: 13
     absoluteChannel: 13
-  - function: 11
+  - function: 0
+    useElementSchema: 1
+    label: Prism1.SelectMode.Single
+    attribute: 14
+    instance: 1
+    role: 1
+    byteRole: 0
     relativeChannel: 14
     absoluteChannel: 14
-  - function: 8
+  - function: 0
+    useElementSchema: 1
+    label: Strobe1.Value.Single
+    attribute: 2
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 15
     absoluteChannel: 15
-  - function: 12
+  - function: 0
+    useElementSchema: 1
+    label: Focus1.Value.Single
+    attribute: 18
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 16
     absoluteChannel: 16
   - function: 0
+    useElementSchema: 1
+    label: Dimmer1.Value.Single
+    attribute: 1
+    instance: 1
+    role: 0
+    byteRole: 0
     relativeChannel: 17
     absoluteChannel: 17
-  - function: 19
+  - function: 0
+    useElementSchema: 1
+    label: Dimmer1.Speed.Single
+    attribute: 1
+    instance: 1
+    role: 5
+    byteRole: 0
     relativeChannel: 18
     absoluteChannel: 18
+  syncIrisToDmx: 1
+  irisProfile: {fileID: 0}
+  irisInstance: 1
 --- !u!4 &8876304756517623177 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}

@@ -52,7 +52,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -672,6 +672,7 @@ MonoBehaviour:
   lensDimmerScale: 1
   lensApertureFeather: 0
   syncLensGoboToDmx: 1
+  syncLensIrisToDmx: 1
   syncLensGoboZoomToDmx: 1
   lensGoboTextureProperty: _GoboTexture
   lensGoboRotationProperty: _GoboRotationDeg
@@ -705,7 +706,7 @@ MonoBehaviour:
   maxOuterSpotAngle: 54
   invertZoom: 0
   zoomInnerSpotPercent: 80
-  prismDefinition: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
+  prismProfile: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
   enablePrism: 1
   prismDrawMode: 2
   prismRenderMode: 1
@@ -1000,8 +1001,8 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Iris1.Value.Single
+    attribute: 16
     instance: 1
     role: 0
     byteRole: 0
@@ -1180,10 +1181,10 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Control1.Control.Single
+    attribute: 23
     instance: 1
-    role: 0
+    role: 7
     byteRole: 0
     relativeCh: 42
     absoluteCh: 42
@@ -1464,8 +1465,8 @@ MonoBehaviour:
     absoluteChannel: 23
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Iris1.Value.Single
+    attribute: 16
     instance: 1
     role: 0
     byteRole: 0
@@ -1626,10 +1627,10 @@ MonoBehaviour:
     absoluteChannel: 41
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Control1.Control.Single
+    attribute: 23
     instance: 1
-    role: 0
+    role: 7
     byteRole: 0
     relativeChannel: 42
     absoluteChannel: 42

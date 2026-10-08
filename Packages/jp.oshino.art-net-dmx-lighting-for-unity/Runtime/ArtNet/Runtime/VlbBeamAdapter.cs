@@ -50,6 +50,7 @@ namespace ArtNet.Runtime
             public Vector2 cookieHdTranslation;
             public Vector2 cookieHdScale;
             public bool irisHdApplied;
+            public float irisHdOriginalRadius;
             public bool irisSdApplied;
             public bool irisSdOriginalFromLight;
             public float irisSdOriginalAngle;
@@ -285,9 +286,9 @@ namespace ArtNet.Runtime
         {
             foreach (var entry in _entries)
             {
+                RestoreHdIris(entry);
                 RestoreSdIris(entry);
                 RestoreSdSkew(entry);
-                if (entry.irisHdApplied) RestoreCookieHdBaseline(entry);
             }
         }
 
@@ -341,24 +342,63 @@ namespace ArtNet.Runtime
             ApplyPrismHd(entry.hd, entry.light, null, overrides);
             Disable(entry.sd);
 
-            if (state.irisEnabled && entry.cookieHd == null)
+            bool hasActiveGobo = state.goboEnabled && state.goboTexture != null;
+            if (state.irisEnabled && hasActiveGobo)
             {
-                entry.cookieHd = EnsureCookieHd(entry.light.gameObject);
-                RefreshComponents(entry);
-            }
+                // With a selected gobo, retain the original VLB HD Cookie path so the
+                // composited gobo + iris texture remains visible inside the volume.
+                RestoreHdIris(entry);
+                if (entry.cookieHd == null && entry.light != null)
+                {
+                    entry.cookieHd = EnsureCookieHd(entry.light.gameObject);
+                    RefreshComponents(entry);
+                }
 
-            if (entry.cookieHd == null)
+                if (entry.cookieHd != null)
+                {
+                    Texture lightCookie = entry.light != null ? entry.light.cookie : null;
+                    ApplyPrismCookieHd(entry.cookieHd, lightCookie != null, lightCookie, 1f, Vector2.one);
+                }
                 return;
+            }
 
             if (state.irisEnabled)
             {
-                // The Light already carries the post-gobo iris cookie, in the light's projection space.
+                // VLB HD's Cookie component renders a second volumetric projection of the
+                // iris cookie. That creates visible repeated aperture silhouettes, especially
+                // with a plain (open-gobo) beam. Keep the precise iris cookie on the Unity
+                // Light and approximate only the VLB volume geometrically, as VLB SD does.
+                // This leaves the projected gobo's magnification unchanged.
+                if (!entry.irisHdApplied)
+                {
+                    entry.irisHdOriginalRadius = VlbReflection.GetFloat(entry.hd, "coneRadiusStart", 0f);
+                    entry.irisHdApplied = true;
+                }
+
+                float baseAngle = entry.light != null
+                    ? entry.light.spotAngle * VlbReflection.GetFloat(entry.hd, "spotAngleMultiplier", 1f)
+                    : VlbReflection.GetFloat(entry.hd, "spotAngle", 0.1f);
+                float aperture = Mathf.Clamp01(state.irisShape.x);
+                float angle = 2f * Mathf.Atan(Mathf.Tan(baseAngle * Mathf.Deg2Rad * 0.5f) * aperture) * Mathf.Rad2Deg;
+                VlbReflection.SetBool(entry.hd, "useSpotAngleFromAttachedLightSpot", false);
+                VlbReflection.SetFloat(entry.hd, "spotAngle", Mathf.Max(0.1f, angle));
+                VlbReflection.SetFloat(entry.hd, "coneRadiusStart", entry.irisHdOriginalRadius * aperture);
+                VlbReflection.Invoke(entry.hd, "UpdateAfterManualPropertyChange");
+                if (aperture <= 0.000001f)
+                    Disable(entry.hd);
+
+                // Do not feed the composited iris Cookie to VLB HD. The direct Spot Light
+                // retains it for the accurate projection, while the VLB volume uses the
+                // geometric aperture set above.
+                Disable(entry.cookieHd);
                 entry.irisHdApplied = true;
-                ApplyPrismCookieHd(entry.cookieHd, entry.light.cookie != null, entry.light.cookie, 1f, Vector2.one);
                 return;
             }
 
-            entry.irisHdApplied = false;
+            RestoreHdIris(entry);
+
+            if (entry.cookieHd == null)
+                return;
 
             if (!syncCookie)
             {
@@ -380,6 +420,20 @@ namespace ArtNet.Runtime
                 VlbReflection.SetFloat(entry.cookieHd, "rotation", state.syncLightGoboRotationToDmx ? state.goboRotationDeg : 0f);
             if (hasCookie)
                 VlbReflection.SetVector2(entry.cookieHd, "translation", state.syncLightGoboRotationToDmx ? state.goboOffsetUv : Vector2.zero);
+        }
+
+        private static void RestoreHdIris(Entry entry)
+        {
+            if (entry.hd == null || !entry.irisHdApplied)
+                return;
+
+            // ApplyPrismHd re-enables following the attached Light's angle. The start radius
+            // is not supplied by that Light, so it must be restored explicitly.
+            VlbReflection.SetBool(entry.hd, "useSpotAngleFromAttachedLightSpot", true);
+            VlbReflection.SetFloat(entry.hd, "coneRadiusStart", entry.irisHdOriginalRadius);
+            VlbReflection.Invoke(entry.hd, "AssignPropertiesFromAttachedSpotLight");
+            VlbReflection.Invoke(entry.hd, "UpdateAfterManualPropertyChange");
+            entry.irisHdApplied = false;
         }
 
         private static void RestoreCookieHdBaseline(Entry entry)

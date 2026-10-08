@@ -25,7 +25,8 @@ namespace ArtNet.Runtime
         [Range(0, 0.25f)] public float feather = 0.01f;
         [Tooltip("0 = circle; 3..32 = regular polygon approximation, not physical blade geometry.")]
         [Range(0, 32)] public int blades;
-        [Range(0, 1)] public float lensInfluence;
+        [Tooltip("レンズ面に反映するアイリスの強さです。0で無効、1で完全に反映します。\n\nStrength of the iris effect on the lens surface. Zero disables it; one applies it fully.")]
+        [Range(0, 1)] public float lensInfluence = 1f;
         [Range(64, 1024)] public int cookieResolution = 256;
     }
 }

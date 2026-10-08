@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1206581665617565273, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
+      propertyPath: m_Name
+      value: ParLight_ver12_WithLigh&Dmx_VLB_HDRP
+      objectReference: {fileID: 0}
     - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
       propertyPath: beamRenderMode
       value: 2
@@ -17,8 +21,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
-      propertyPath: overrideVlbHdIntensityMultiplier
-      value: 1
+      propertyPath: vlbHdrpExposureWeight
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
       propertyPath: vlbHdIntensityMultiplier
@@ -29,8 +33,8 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1411206298453158540, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
-      propertyPath: vlbHdrpExposureWeight
-      value: 0
+      propertyPath: overrideVlbHdIntensityMultiplier
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -40,7 +44,7 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 4727798502002912436}
   m_SourcePrefab: {fileID: 100100000, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
---- !u!1 &1593019490625217148 stripped
+--- !u!1 &3232896854302191458 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3840151856632156110, guid: 9641723d479cec947b5a0beaff96de7d, type: 3}
   m_PrefabInstance: {fileID: 1844078138614948012}
@@ -51,7 +55,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1593019490625217148}
+  m_GameObject: {fileID: 3232896854302191458}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92b0a6142b2b0b449a62558873544363, type: 3}
@@ -115,3 +119,4 @@ MonoBehaviour:
   m_NoiseScaleUseGlobal: 1
   m_NoiseScaleLocal: 0.5
   m_NoiseVelocityUseGlobal: 1
+  m_NoiseVelocityLocal: {x: 0.07, y: 0.18, z: 0.05}
