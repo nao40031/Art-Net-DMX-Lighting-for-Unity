@@ -16,6 +16,8 @@ https://x.com/Oshino_Tech/status/2030463515891220541?s=20
 [![Sample scene 2](docs/sample-scene/scene2-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2025485134578028589?s=20)  
 https://x.com/Oshino_Tech/status/2025485134578028589?s=20
 
+![Sample scene 2 demo](docs/sample-scene/sample-scene-2.gif)
+
 ## Documentation
 
 - Quick start: this README
