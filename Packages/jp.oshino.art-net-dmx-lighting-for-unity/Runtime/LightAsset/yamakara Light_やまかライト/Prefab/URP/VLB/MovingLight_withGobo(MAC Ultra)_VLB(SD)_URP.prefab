@@ -934,21 +934,21 @@ MonoBehaviour:
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Focus1.Value.Coarse
+    attribute: 18
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 1
     relativeCh: 27
     absoluteCh: 27
     value: 0
   - useElementSchema: 1
     function: 0
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Focus1.Value.Fine
+    attribute: 18
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 2
     relativeCh: 28
     absoluteCh: 28
     value: 0
@@ -1395,20 +1395,20 @@ MonoBehaviour:
     absoluteChannel: 26
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Focus1.Value.Coarse
+    attribute: 18
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 1
     relativeChannel: 27
     absoluteChannel: 27
   - function: 0
     useElementSchema: 1
-    label: NoFeature1.Value.Single
-    attribute: 0
+    label: Focus1.Value.Fine
+    attribute: 18
     instance: 1
     role: 0
-    byteRole: 0
+    byteRole: 2
     relativeChannel: 28
     absoluteChannel: 28
   - function: 0
@@ -1591,6 +1591,11 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 48
     absoluteChannel: 48
+  syncFocusToDmx: 1
+  focusProfile: {fileID: 0}
+  focusInstance: 1
+  focusReferenceDistanceMeters: 10
+  focusTarget: {fileID: 0}
   syncFrostToDmx: 1
   frostProfile: {fileID: 0}
   syncIrisToDmx: 1
