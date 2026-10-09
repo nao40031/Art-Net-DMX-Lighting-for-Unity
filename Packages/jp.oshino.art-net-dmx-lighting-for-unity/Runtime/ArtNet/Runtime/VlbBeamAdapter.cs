@@ -415,7 +415,7 @@ namespace ArtNet.Runtime
             float cookieContribution = overrides.overrideHdGoboCookieContribution
                 ? overrides.hdGoboCookieContribution
                 : state.lightDimmer01;
-            Texture cookieTexture = state.frostEnabled && entry.light != null && entry.light.cookie != null
+            Texture cookieTexture = (state.focusEnabled || state.frostEnabled) && entry.light != null && entry.light.cookie != null
                 ? entry.light.cookie
                 : state.goboTexture;
             ApplyPrismCookieHd(entry.cookieHd, hasCookie, cookieTexture, cookieContribution, hasCookie ? Vector2.one * cookieScale : Vector2.one);

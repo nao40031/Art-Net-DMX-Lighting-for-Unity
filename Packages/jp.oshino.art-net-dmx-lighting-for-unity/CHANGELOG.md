@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added model-independent 8/16-bit moving-light Focus with optical distance profiles, representative projection targets, cookie/lens/beam-edge defocus, and Normal/Pseudo Beam/VLB integration.
+- Added a MAC Ultra Performance Focus Profile and Basic 48-channel Focus mapping for validation against the Martin specification.
+
 ## 0.3.0
 
 - Add bilingual Japanese and English Inspector tooltips, help messages, headers, and editor-tool guidance throughout the package.

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: MACUltraPerformance
   m_EditorClassIdentifier: 
   irisProfile: {fileID: 11400000, guid: f64be412c48142198ded493a149dcddc, type: 2}
+  focusProfile: {fileID: 11400000, guid: 70489b07f0d947eb8ded6faf7667dfb3, type: 2}
   frostProfile: {fileID: 11400000, guid: 4b2c8adfda114772b28c2b759f46f106, type: 2}
   prismProfile: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
   manufacturer: Martin
@@ -290,15 +291,23 @@ MonoBehaviour:
       role: 0
       byteRole: 2
       ranges: []
-    - attribute: 0
+    - attribute: 18
       instance: 1
       role: 0
-      byteRole: 0
-      ranges: []
-    - attribute: 0
+      byteRole: 1
+      ranges:
+      - name: Focus Infinity to Near
+        dmxMin: 0
+        dmxMax: 65535
+        type: 0
+        mappingContext: 2
+        mappingPreset: 1
+        normalizedFrom: 1
+        normalizedTo: 0
+    - attribute: 18
       instance: 1
       role: 0
-      byteRole: 0
+      byteRole: 2
       ranges: []
     - attribute: 0
       instance: 1
