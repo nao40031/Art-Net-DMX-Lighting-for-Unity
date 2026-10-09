@@ -6,6 +6,13 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace ArtNet.Runtime
 {
+    public enum FocusControlMode
+    {
+        Manual,
+        AutoTarget,
+        AutoRaycast
+    }
+
     public partial class DmxFixtureComponent
     {
         [Header("Focus (all light / beam modes)")]
@@ -17,14 +24,30 @@ namespace ArtNet.Runtime
         [Tooltip("複数のFocus属性を使う場合の1始まりの番号です。\n\nOne-based instance number when multiple Focus attributes are defined.")]
         [Min(1)] public int focusInstance = 1;
 
+        [Tooltip("Focusの制御方法です。ManualはDMX値をそのまま使用し、Auto TargetとAuto Raycastは描画用Focusを距離から自動計算します。\n\nFocus control method. Manual uses the DMX value directly. Auto Target and Auto Raycast calculate the rendering focus from distance.")]
+        public FocusControlMode focusControlMode = FocusControlMode.Manual;
+
+        [Tooltip("Focus Profileの既定制御モードを、このFixtureだけで上書きします。\n\nOverrides the Focus Profile's default control mode for this fixture only.")]
+        public bool overrideFocusControlMode;
+
         [Tooltip("Focusの鮮明さを評価する代表投影距離（m）です。Targetが設定されている場合は使用しません。\n\nRepresentative projection distance in meters used to evaluate focus. Ignored when a Target is assigned.")]
         [Min(0.01f)] public float focusReferenceDistanceMeters = 10f;
 
-        [Tooltip("任意の代表投影位置です。灯体からこのTransformまでの距離をFocus評価に使用します。\n\nOptional representative projection point. Focus is evaluated using the distance from the fixture to this Transform.")]
+        [Tooltip("手動Focusの代表投影位置、またはAuto Targetの追従対象です。\n\nRepresentative projection point for Manual Focus, or the tracking target for Auto Target.")]
         public Transform focusTarget;
+
+        [Tooltip("Auto Raycastで照射面を探す最大距離（m）です。\n\nMaximum distance in meters used to find a projection surface in Auto Raycast mode.")]
+        [Min(0.01f)] public float autoFocusRaycastMaxDistanceMeters = 100f;
+
+        [Tooltip("Auto Raycastで検出対象にするレイヤーです。\n\nLayers considered as projection surfaces in Auto Raycast mode.")]
+        public LayerMask autoFocusRaycastLayers = ~0;
+
+        [Tooltip("対象距離の変化がこの値未満の場合は現在の自動Focus距離を維持します。\n\nKeeps the current auto-focus distance while target movement is below this value.")]
+        [Min(0f)] public float autoFocusDistanceDeadbandMeters = 0.01f;
 
         private readonly Dictionary<Light, FocusCookie> _focusCookies = new();
         private bool _focusHasInput;
+        private bool _autoFocusHasTarget;
         private bool _focusInitialized;
         private float _focusTarget01;
         private float _focusCurrent01;
@@ -32,17 +55,23 @@ namespace ArtNet.Runtime
         private float _focusCookieBlur;
         private float _focusLensBlur;
         private float _focusEdgeSoftness;
+        private float _autoFocusDistanceMeters;
 
         private FocusProfile ActiveFocusProfile => focusProfile != null
             ? focusProfile
             : (fixture != null ? fixture.focusProfile : null);
+
+        private FocusControlMode ActiveFocusControlMode => overrideFocusControlMode
+            ? focusControlMode
+            : (ActiveFocusProfile != null ? ActiveFocusProfile.defaultControlMode : FocusControlMode.Manual);
 
         public float CurrentFocusPosition => _focusCurrent01;
         public float CurrentFocusDistanceMeters => ActiveFocusProfile != null
             ? ActiveFocusProfile.EvaluateFocalDistanceMeters(_focusCurrent01)
             : 0f;
 
-        private bool FocusActive => syncFocusToDmx && _focusHasInput && ActiveFocusProfile != null;
+        private bool FocusActive => syncFocusToDmx && ActiveFocusProfile != null &&
+                                    (_focusHasInput || _autoFocusHasTarget);
 
         private void ReadFocus(int[] data)
         {
@@ -88,7 +117,8 @@ namespace ArtNet.Runtime
             _focusHasInput = syncFocusToDmx && profile != null && hasValue;
             if (!_focusHasInput)
             {
-                _focusInitialized = false;
+                if (ActiveFocusControlMode == FocusControlMode.Manual)
+                    _focusInitialized = false;
                 return;
             }
 
@@ -106,7 +136,22 @@ namespace ArtNet.Runtime
 
         private void UpdateFocus()
         {
-            if (!FocusActive)
+            var profile = ActiveFocusProfile;
+            if (!syncFocusToDmx || profile == null)
+            {
+                _autoFocusHasTarget = false;
+                _focusDefocus01 = 0f;
+                _focusCookieBlur = 0f;
+                _focusLensBlur = 0f;
+                _focusEdgeSoftness = 0f;
+                return;
+            }
+
+            _autoFocusHasTarget = TryGetAutoFocusDistanceMeters(out float autoFocusDistance);
+            if (_autoFocusHasTarget)
+                _autoFocusDistanceMeters = autoFocusDistance;
+
+            if (!_focusHasInput && !_autoFocusHasTarget)
             {
                 _focusDefocus01 = 0f;
                 _focusCookieBlur = 0f;
@@ -115,14 +160,22 @@ namespace ArtNet.Runtime
                 return;
             }
 
-            var profile = ActiveFocusProfile;
-            float travelSeconds = _focusTarget01 >= _focusCurrent01
+            float requestedFocus01 = _autoFocusHasTarget
+                ? profile.EvaluateFocusPositionForDistanceMeters(_autoFocusDistanceMeters)
+                : _focusTarget01;
+            if (!_focusInitialized)
+            {
+                _focusCurrent01 = requestedFocus01;
+                _focusInitialized = true;
+            }
+
+            float travelSeconds = requestedFocus01 >= _focusCurrent01
                 ? profile.nearToFarSeconds
                 : profile.farToNearSeconds;
             if (travelSeconds <= 0f || !Application.isPlaying)
-                _focusCurrent01 = _focusTarget01;
+                _focusCurrent01 = requestedFocus01;
             else
-                _focusCurrent01 = Mathf.MoveTowards(_focusCurrent01, _focusTarget01,
+                _focusCurrent01 = Mathf.MoveTowards(_focusCurrent01, requestedFocus01,
                     Time.deltaTime / Mathf.Max(0.0001f, travelSeconds));
 
             RefreshFocusOptics();
@@ -146,8 +199,38 @@ namespace ArtNet.Runtime
             _focusEdgeSoftness = _focusDefocus01 * Mathf.Clamp01(profile.maximumEdgeSoftness);
         }
 
+        private bool TryGetAutoFocusDistanceMeters(out float distanceMeters)
+        {
+            distanceMeters = 0f;
+            FocusControlMode controlMode = ActiveFocusControlMode;
+            if (controlMode == FocusControlMode.Manual) return false;
+
+            Transform origin = targetLight != null ? targetLight.transform : transform;
+            if (controlMode == FocusControlMode.AutoTarget)
+            {
+                if (focusTarget == null) return false;
+                distanceMeters = Vector3.Distance(origin.position, focusTarget.position);
+            }
+            else
+            {
+                if (!Physics.Raycast(origin.position, origin.forward, out RaycastHit hit,
+                        Mathf.Max(0.01f, autoFocusRaycastMaxDistanceMeters), autoFocusRaycastLayers,
+                        QueryTriggerInteraction.Ignore))
+                    return false;
+                distanceMeters = hit.distance;
+            }
+
+            distanceMeters = Mathf.Max(0.01f, distanceMeters);
+            if (_autoFocusHasTarget &&
+                Mathf.Abs(distanceMeters - _autoFocusDistanceMeters) < autoFocusDistanceDeadbandMeters)
+                distanceMeters = _autoFocusDistanceMeters;
+            return true;
+        }
+
         private float GetFocusReferenceDistanceMeters()
         {
+            if (_autoFocusHasTarget)
+                return _autoFocusDistanceMeters;
             if (focusTarget == null)
                 return Mathf.Max(0.01f, focusReferenceDistanceMeters);
 
@@ -212,6 +295,7 @@ namespace ArtNet.Runtime
 
             _focusCookies.Clear();
             _focusHasInput = false;
+            _autoFocusHasTarget = false;
             _focusInitialized = false;
             _focusTarget01 = 0f;
             _focusCurrent01 = 0f;
@@ -219,6 +303,7 @@ namespace ArtNet.Runtime
             _focusCookieBlur = 0f;
             _focusLensBlur = 0f;
             _focusEdgeSoftness = 0f;
+            _autoFocusDistanceMeters = 0f;
         }
     }
 }

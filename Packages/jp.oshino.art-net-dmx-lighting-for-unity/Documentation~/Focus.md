@@ -13,12 +13,23 @@ Focus controls the projection distance where gobos, framing, and beam edges appe
 3. 使用ModeのChannel ElementsでFocusチャンネルを`Attribute = Focus`、`Instance = 1`、`Role = Value`または`Position`にします。
 4. 16bitの場合はCoarseとFineを同じAttribute、Instance、Roleで定義します。
 5. Focus Directionで機種のDMX方向を指定します。ランタイム内部では`0 = Near`、`1 = Far`へ統一されます。
-6. Dmx Fixture Componentで`Reference Distance`を投影面までの距離に合わせるか、`Reference Target`を割り当てます。
+6. Dmx Fixture Componentで`Reference Distance`を投影面までの距離に合わせるか、`Focus Target`を割り当てます。
 
 Create a Focus Profile, assign it to the Fixture Type, and define the Focus Channel Elements. Coarse and Fine elements with the same Attribute, Instance, and Role provide 16-bit control. Set Reference Distance to the representative projection surface, or assign a Reference Target.
 
+## Focus Control Mode
+
+- `Manual`（既定値）: 受信したDMX Focus値をそのまま使います。`Focus Target`は鮮明さを評価する代表位置です。
+- `Auto Target`: `Focus Target`までの距離から、合焦する描画用Focus値を自動計算します。
+- `Auto Raycast`: Spot Lightの前方で最初に検出したColliderまでの距離から、合焦する描画用Focus値を自動計算します。`Auto Raycast Layers`で検出対象を限定できます。
+
+Autoモードは受信DMXを変更しません。自動計算した値はUnityの描画だけに使用され、ターゲットを失った場合は受信DMX Focusへ戻ります。`Auto Focus Deadband`は小さな距離変化を無視して、Focusの揺れを防ぎます。Auto RaycastはColliderを必要とします。Auto Focusで使用する`Focus Distance Curve`はNearからFarへ単調増加するキャリブレーションにしてください。
+
+`Manual` (the default) uses the received DMX Focus value directly. `Auto Target` calculates the rendering focus from the distance to Focus Target. `Auto Raycast` calculates it from the first Collider hit along the Spot Light direction. Auto modes never modify incoming DMX; they only affect Unity rendering and fall back to DMX Focus if no target is available.
+
 ## Focus Profile
 
+- `Default Control Mode`: このProfileを使うFixtureの既定制御モードです。Fixture側の`Override Focus Control Mode`で上書きできます。
 - `Near / Far Focus Distance`: Focus両端が表す焦点距離です。
 - `Far Is Infinity`: Far端を無限遠として扱います。
 - `Focus Distance Curve`: Focus位置から焦点距離への光学応答です。

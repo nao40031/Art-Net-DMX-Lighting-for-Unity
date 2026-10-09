@@ -6,6 +6,9 @@ namespace ArtNet.Runtime
     [CreateAssetMenu(menuName = "ArtNet/DMX/Focus Profile", fileName = "FocusProfile")]
     public sealed class FocusProfile : ScriptableObject
     {
+        [Tooltip("このProfileを使用するFixtureの既定Focus制御モードです。Fixture側で必要に応じて上書きできます。\n\nDefault Focus control mode for fixtures using this Profile. It can be overridden per fixture when needed.")]
+        public FocusControlMode defaultControlMode = FocusControlMode.Manual;
+
         [Tooltip("正規化Focus 0で合焦する最短距離（m）です。\n\nNearest focal distance in meters at normalized Focus 0.")]
         [Min(0.01f)] public float nearFocusDistanceMeters = 2f;
 
@@ -64,6 +67,33 @@ namespace ArtNet.Runtime
                                Mathf.Max(0.0001f, fullBlurDiopterDifference);
             normalized = Mathf.Clamp01(normalized);
             return Mathf.Clamp01(EvaluateCurve(defocusCurve, normalized, normalized));
+        }
+
+        /// <summary>Returns the normalized focus position that is sharp at the supplied distance.</summary>
+        public float EvaluateFocusPositionForDistanceMeters(float distanceMeters)
+        {
+            float targetDiopters = 1f / Mathf.Max(0.01f, distanceMeters);
+            float nearDiopters = 1f / Mathf.Max(0.01f, nearFocusDistanceMeters);
+            float farDiopters = farIsInfinity ? 0f : 1f / Mathf.Max(0.01f, farFocusDistanceMeters);
+            if (targetDiopters >= nearDiopters) return 0f;
+            if (targetDiopters <= farDiopters) return 1f;
+
+            // Focus profiles are calibrated as monotonic Near-to-Far curves. Invert the
+            // calibration numerically so custom curves remain usable for auto focus.
+            float low = 0f;
+            float high = 1f;
+            for (int iteration = 0; iteration < 16; iteration++)
+            {
+                float middle = (low + high) * 0.5f;
+                float focalDistance = EvaluateFocalDistanceMeters(middle);
+                float focalDiopters = float.IsInfinity(focalDistance) ? 0f : 1f / focalDistance;
+                if (focalDiopters > targetDiopters)
+                    low = middle;
+                else
+                    high = middle;
+            }
+
+            return (low + high) * 0.5f;
         }
 
         private static float EvaluateCurve(AnimationCurve curve, float input, float fallback)
