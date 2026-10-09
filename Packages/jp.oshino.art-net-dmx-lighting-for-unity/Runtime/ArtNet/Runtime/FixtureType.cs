@@ -333,6 +333,8 @@ namespace ArtNet.Runtime
     public class FixtureType : ScriptableObject
     {
         public IrisProfile irisProfile;
+        [Tooltip("灯体のFocus光学特性です。チャンネル番号とDMX方向はModeのChannel Elementsで定義します。\n\nOptical Focus characteristics for this fixture. Define channel numbers and DMX direction in the Mode Channel Elements.")]
+        public FocusProfile focusProfile;
         [Tooltip("モード側で個別指定されていないフロスト段に使用する共通プロファイルです。\n\nShared profile used by frost stages that do not specify a profile in the mode.")]
         public FrostProfile frostProfile;
         [Tooltip("この灯体の共通プリズムプロファイルです。Dmx Fixture Component側で個別に上書きできます。\n\nShared prism profile for this fixture. It can be overridden per fixture in Dmx Fixture Component.")]

@@ -33,6 +33,9 @@ namespace ArtNet.Editor
                 if (ShouldDrawIrisBefore(property.propertyPath))
                     DrawIrisSection();
 
+                if (ShouldDrawOpticalFocusBefore(property.propertyPath))
+                    DrawOpticalFocusSection();
+
                 if (ShouldDrawFrostBefore(property.propertyPath))
                     DrawFrostSection();
 
@@ -55,6 +58,12 @@ namespace ArtNet.Editor
                 // Iris is rendered explicitly below Prism so its visual order is stable,
                 // independent of partial-class field serialization order.
                 if (IsIrisProperty(property.propertyPath))
+                {
+                    enterChildren = false;
+                    continue;
+                }
+
+                if (IsOpticalFocusProperty(property.propertyPath))
                 {
                     enterChildren = false;
                     continue;
@@ -339,6 +348,18 @@ namespace ArtNet.Editor
             return propertyPath == "lightResponseMode";
         }
 
+        private static bool ShouldDrawOpticalFocusBefore(string propertyPath)
+        {
+            return propertyPath == "lightResponseMode";
+        }
+
+        private static bool IsOpticalFocusProperty(string propertyPath)
+        {
+            return propertyPath == "syncFocusToDmx" || propertyPath == "focusProfile" ||
+                   propertyPath == "focusInstance" || propertyPath == "focusReferenceDistanceMeters" ||
+                   propertyPath == "focusTarget";
+        }
+
         private static bool IsFrostProperty(string propertyPath)
         {
             return propertyPath == "syncFrostToDmx" || propertyPath == "frostProfile";
@@ -377,6 +398,29 @@ namespace ArtNet.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("frostProfile"),
                 new GUIContent("Frost Profile Override", "Fixture TypeまたはModeのFrost Profileを灯体単位で上書きします。\n\nOverrides the Frost Profile from the Fixture Type or Mode for this fixture."));
             DrawAppliedReference("Applied Frost Profile", GetAppliedFrostProfile(out string frostSource), frostSource);
+        }
+
+        private void DrawOpticalFocusSection()
+        {
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("Focus (all light / beam modes)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("syncFocusToDmx"),
+                new GUIContent("Sync Focus To DMX", "DMXで光学フォーカスを制御します。\nControls optical focus from DMX."));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("focusProfile"),
+                new GUIContent("Focus Profile Override", "Fixture TypeのFocus Profileを灯体単位で上書きします。\n\nOverrides the Focus Profile from the Fixture Type for this fixture."));
+            DrawAppliedReference("Applied Focus Profile", GetAppliedFocusProfile(out string focusSource), focusSource);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("focusInstance"),
+                new GUIContent("Focus Instance", "複数のFocus属性を使う場合の番号です。\nInstance number when multiple Focus attributes are defined."));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("focusReferenceDistanceMeters"),
+                new GUIContent("Reference Distance (m)", "Focusを評価する代表投影距離です。Targetが設定されている場合は使用しません。\n\nRepresentative projection distance used when no Target is assigned."));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("focusTarget"),
+                new GUIContent("Reference Target", "灯体からこの位置までの距離でFocusを評価します。\nEvaluates focus using the distance from the fixture to this position."));
+            EditorGUILayout.HelpBox(
+                "Focusはゴボやビーム外周が鮮明になる距離を制御します。Zoomの照射角、Irisの開口、Frostの拡散とは独立しています。\n" +
+                "Unity Lightは距離ごとに異なるCookieぼかしを持てないため、Reference DistanceまたはTargetを代表投影面として使用します。\n\n" +
+                "Focus controls the distance where gobos and beam edges appear sharp. It is independent of Zoom angle, Iris aperture, and Frost diffusion.\n" +
+                "Because a Unity Light cannot use a different cookie blur at each distance, the Reference Distance or Target represents the projection surface.",
+                MessageType.Info);
         }
 
         private void DrawGoboWheelProfile(SerializedProperty property)
@@ -453,6 +497,23 @@ namespace ArtNet.Editor
 
             source = fixture.fixture != null && fixture.fixture.frostProfile != null ? "Fixture Type" : "Built-in generic fallback";
             return fixture.fixture != null ? fixture.fixture.frostProfile : null;
+        }
+
+        private FocusProfile GetAppliedFocusProfile(out string source)
+        {
+            source = "Multiple fixtures selected";
+            if (targets.Length != 1 || target is not DmxFixtureComponent fixture)
+                return null;
+            if (fixture.focusProfile != null)
+            {
+                source = "Dmx Fixture Component override";
+                return fixture.focusProfile;
+            }
+
+            source = fixture.fixture != null && fixture.fixture.focusProfile != null
+                ? "Fixture Type"
+                : "No profile configured";
+            return fixture.fixture != null ? fixture.fixture.focusProfile : null;
         }
 
         private PrismProfile GetAppliedPrismProfile(PrismProfile overrideProfile, out string source)
