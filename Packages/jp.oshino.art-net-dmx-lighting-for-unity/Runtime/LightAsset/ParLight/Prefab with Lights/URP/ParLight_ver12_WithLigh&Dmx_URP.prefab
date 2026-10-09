@@ -751,6 +751,11 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 1
     absoluteChannel: 1
+  syncFocusToDmx: 1
+  focusProfile: {fileID: 0}
+  focusInstance: 1
+  focusReferenceDistanceMeters: 10
+  focusTarget: {fileID: 0}
   syncFrostToDmx: 1
   frostProfile: {fileID: 0}
   syncIrisToDmx: 1
