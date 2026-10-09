@@ -12,9 +12,13 @@ Unity上でArt-Net/DMXを受信し、Fixture単位でライト・Pan/Tilt・レ�
 ## サンプルシーン
 
 [![サンプルシーン1](docs/sample-scene/scene1-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2030463515891220541?s=20)  
+![サンプルシーン1 デモ](docs/sample-scene/sample-scene-1.gif)
+
 https://x.com/Oshino_Tech/status/2030463515891220541?s=20
 
 [![サンプルシーン2](docs/sample-scene/scene2-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2025485134578028589?s=20)  
+![サンプルシーン2 デモ](docs/sample-scene/sample-scene-2.gif)
+
 https://x.com/Oshino_Tech/status/2025485134578028589?s=20
 
 ## このリポジトリでできること
