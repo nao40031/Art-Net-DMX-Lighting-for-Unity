@@ -11,6 +11,8 @@ A Unity system that receives Art-Net/DMX and controls lights, Pan/Tilt, and lens
 ## Sample scenes
 
 [![Sample scene 1](docs/sample-scene/scene1-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2030463515891220541?s=20)  
+![Sample scene 1 demo](docs/sample-scene/sample-scene-1.gif)
+
 https://x.com/Oshino_Tech/status/2030463515891220541?s=20
 
 [![Sample scene 2](docs/sample-scene/scene2-thumb-new.jpg)](https://x.com/Oshino_Tech/status/2025485134578028589?s=20)  
