@@ -357,7 +357,10 @@ namespace ArtNet.Editor
         {
             return propertyPath == "syncFocusToDmx" || propertyPath == "focusProfile" ||
                    propertyPath == "focusInstance" || propertyPath == "focusReferenceDistanceMeters" ||
-                   propertyPath == "focusTarget";
+                   propertyPath == "focusControlMode" || propertyPath == "overrideFocusControlMode" ||
+                   propertyPath == "focusTarget" ||
+                   propertyPath == "autoFocusRaycastMaxDistanceMeters" ||
+                   propertyPath == "autoFocusRaycastLayers" || propertyPath == "autoFocusDistanceDeadbandMeters";
         }
 
         private static bool IsFrostProperty(string propertyPath)
@@ -403,7 +406,6 @@ namespace ArtNet.Editor
         private void DrawOpticalFocusSection()
         {
             EditorGUILayout.Space(4f);
-            EditorGUILayout.LabelField("Focus (all light / beam modes)", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("syncFocusToDmx"),
                 new GUIContent("Sync Focus To DMX", "DMXで光学フォーカスを制御します。\nControls optical focus from DMX."));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("focusProfile"),
@@ -411,15 +413,37 @@ namespace ArtNet.Editor
             DrawAppliedReference("Applied Focus Profile", GetAppliedFocusProfile(out string focusSource), focusSource);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("focusInstance"),
                 new GUIContent("Focus Instance", "複数のFocus属性を使う場合の番号です。\nInstance number when multiple Focus attributes are defined."));
+            SerializedProperty overrideFocusControlMode = serializedObject.FindProperty("overrideFocusControlMode");
+            SerializedProperty focusControlMode = serializedObject.FindProperty("focusControlMode");
+            EditorGUILayout.PropertyField(overrideFocusControlMode,
+                new GUIContent("Override Focus Control Mode", "Focus Profileの既定モードをこのFixtureだけで上書きします。\n\nOverrides the Focus Profile's default mode for this fixture only."));
+            using (new EditorGUI.DisabledScope(!overrideFocusControlMode.boolValue))
+                EditorGUILayout.PropertyField(focusControlMode,
+                    new GUIContent("Focus Control Mode", "ManualはDMX Focusを使い、Autoモードは投影距離から描画用Focusを算出します。\n\nManual uses DMX Focus. Auto modes calculate rendering focus from projection distance."));
+            FocusProfile appliedFocusProfile = GetAppliedFocusProfile(out _);
+            FocusControlMode appliedFocusControlMode = overrideFocusControlMode.boolValue
+                ? (FocusControlMode)focusControlMode.enumValueIndex
+                : (appliedFocusProfile != null ? appliedFocusProfile.defaultControlMode : FocusControlMode.Manual);
+            EditorGUILayout.LabelField("Applied Focus Control Mode", ObjectNames.NicifyVariableName(appliedFocusControlMode.ToString()));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("focusReferenceDistanceMeters"),
                 new GUIContent("Reference Distance (m)", "Focusを評価する代表投影距離です。Targetが設定されている場合は使用しません。\n\nRepresentative projection distance used when no Target is assigned."));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("focusTarget"),
-                new GUIContent("Reference Target", "灯体からこの位置までの距離でFocusを評価します。\nEvaluates focus using the distance from the fixture to this position."));
+                new GUIContent("Focus Target", "Manualでは代表投影位置、Auto Targetでは追従対象です。\n\nRepresentative projection point in Manual, or tracking target in Auto Target."));
+            if (appliedFocusControlMode == FocusControlMode.AutoRaycast)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("autoFocusRaycastMaxDistanceMeters"),
+                    new GUIContent("Auto Raycast Distance (m)", "照射面を探す最大距離です。\n\nMaximum distance used to find a projection surface."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("autoFocusRaycastLayers"),
+                    new GUIContent("Auto Raycast Layers", "照射面として検出するレイヤーです。\n\nLayers detected as projection surfaces."));
+            }
+            if (appliedFocusControlMode != FocusControlMode.Manual)
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("autoFocusDistanceDeadbandMeters"),
+                    new GUIContent("Auto Focus Deadband (m)", "この距離未満の変化は無視して揺れを抑えます。\n\nIgnores smaller distance changes to suppress jitter."));
             EditorGUILayout.HelpBox(
-                "Focusはゴボやビーム外周が鮮明になる距離を制御します。Zoomの照射角、Irisの開口、Frostの拡散とは独立しています。\n" +
-                "Unity Lightは距離ごとに異なるCookieぼかしを持てないため、Reference DistanceまたはTargetを代表投影面として使用します。\n\n" +
-                "Focus controls the distance where gobos and beam edges appear sharp. It is independent of Zoom angle, Iris aperture, and Frost diffusion.\n" +
-                "Because a Unity Light cannot use a different cookie blur at each distance, the Reference Distance or Target represents the projection surface.",
+                "ManualはDMX Focus値をそのまま使用します。Auto TargetはFocus Targetまでの距離、Auto Raycastは光軸で最初に検出したColliderまでの距離から描画用Focusを算出します。DMX値そのものは変更しません。\n" +
+                "Unity Lightは距離ごとに異なるCookieぼかしを持てないため、検出距離を代表投影面として使用します。\n\n" +
+                "Manual uses the DMX Focus value directly. Auto Target uses the distance to Focus Target, and Auto Raycast uses the first Collider found along the beam. Neither changes the incoming DMX value.\n" +
+                "Because a Unity Light cannot use a different cookie blur at each distance, the detected distance represents the projection surface.",
                 MessageType.Info);
         }
 
@@ -562,10 +586,10 @@ namespace ArtNet.Editor
             return fixture.fixture.modes[modeIndex];
         }
 
-        private static void DrawAppliedReference(string label, Object reference, string source)
+        private static void DrawAppliedReference(string label, UnityEngine.Object reference, string source)
         {
             using (new EditorGUI.DisabledScope(true))
-                EditorGUILayout.ObjectField(new GUIContent(label, "現在ランタイムで使用される参照先です。\n\nThe reference currently used at runtime."), reference, reference != null ? reference.GetType() : typeof(Object), false);
+                EditorGUILayout.ObjectField(new GUIContent(label, "現在ランタイムで使用される参照先です。\n\nThe reference currently used at runtime."), reference, reference != null ? reference.GetType() : typeof(UnityEngine.Object), false);
             EditorGUILayout.LabelField("Source", source, EditorStyles.miniLabel);
         }
 
