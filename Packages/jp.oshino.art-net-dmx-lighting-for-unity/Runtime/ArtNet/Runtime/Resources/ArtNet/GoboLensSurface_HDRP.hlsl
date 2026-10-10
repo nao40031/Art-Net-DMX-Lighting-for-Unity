@@ -113,7 +113,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 lensColor = _DmxColor.rgb * brightness * goboMask;
 
     ZERO_INITIALIZE(SurfaceData, surfaceData);
-    surfaceData.color = lensColor;
+    // The reflective lens is rendered by the underlying HDRP Lit material.
+    // This pass contributes only the DMX/gobo light so dark gobo areas keep reflections.
+    surfaceData.color = 0.0;
     surfaceData.normalWS = 0.0;
 
     ZERO_BUILTIN_INITIALIZE(builtinData);

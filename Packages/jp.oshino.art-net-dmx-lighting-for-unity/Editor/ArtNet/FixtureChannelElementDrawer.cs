@@ -137,6 +137,13 @@ namespace ArtNet.Editor
             if (IsPanTiltSpeedPreset(typeProperty))
                 DrawProperty(ref line, range.FindPropertyRelative("activationHoldSeconds"));
             DrawProperty(ref line, range.FindPropertyRelative("mappingContext"));
+            if (IsShutterTimingRange(range))
+            {
+                DrawProperty(ref line, range.FindPropertyRelative("shutterFrequencyFromHz"));
+                DrawProperty(ref line, range.FindPropertyRelative("shutterFrequencyToHz"));
+                DrawProperty(ref line, range.FindPropertyRelative("shutterDutyCycle"));
+                DrawProperty(ref line, range.FindPropertyRelative("shutterFlashDurationSeconds"));
+            }
             DrawMappingPreset(ref line, range);
             EditorGUI.indentLevel--;
 
@@ -150,7 +157,7 @@ namespace ArtNet.Editor
             SerializedProperty normalizedFrom = range.FindPropertyRelative("normalizedFrom");
             SerializedProperty normalizedTo = range.FindPropertyRelative("normalizedTo");
 
-            var context = (NormalizedMappingContext)Mathf.Clamp(contextProp.enumValueIndex, 0, (int)NormalizedMappingContext.IndexPosition);
+            var context = (NormalizedMappingContext)Mathf.Clamp(contextProp.enumValueIndex, 0, (int)NormalizedMappingContext.ShutterFrequency);
             string[] labels = GetPresetLabels(context);
             int presetIndex = Mathf.Clamp(presetProp.enumValueIndex, 0, labels.Length - 1);
 
@@ -216,6 +223,8 @@ namespace ArtNet.Editor
             int lines = 9;
             if (IsPanTiltSpeedPreset(range.FindPropertyRelative("type")))
                 lines += 1;
+            if (IsShutterTimingRange(range))
+                lines += 4;
             var preset = (NormalizedMappingPreset)Mathf.Clamp(range.FindPropertyRelative("mappingPreset").enumValueIndex, 0, (int)NormalizedMappingPreset.NotUsed);
             if (preset == NormalizedMappingPreset.Custom)
                 lines += 1;
@@ -237,7 +246,17 @@ namespace ArtNet.Editor
             range.FindPropertyRelative("mappingPreset").enumValueIndex = (int)NormalizedMappingPreset.Normal;
             range.FindPropertyRelative("normalizedFrom").floatValue = 0f;
             range.FindPropertyRelative("normalizedTo").floatValue = 1f;
+            range.FindPropertyRelative("shutterFrequencyFromHz").floatValue = 1f;
+            range.FindPropertyRelative("shutterFrequencyToHz").floatValue = 20f;
+            range.FindPropertyRelative("shutterDutyCycle").floatValue = 0.5f;
+            range.FindPropertyRelative("shutterFlashDurationSeconds").floatValue = 0f;
             range.isExpanded = true;
+        }
+
+        private static bool IsShutterTimingRange(SerializedProperty range)
+        {
+            var context = (NormalizedMappingContext)range.FindPropertyRelative("mappingContext").enumValueIndex;
+            return context == NormalizedMappingContext.ShutterFrequency;
         }
 
         private static bool IsPanTiltSpeedPreset(SerializedProperty typeProperty)
@@ -278,6 +297,7 @@ namespace ArtNet.Editor
                 FixtureAttribute.Focus => NormalizedMappingContext.Focus,
                 FixtureAttribute.Iris => NormalizedMappingContext.Iris,
                 FixtureAttribute.Frost => NormalizedMappingContext.Frost,
+                FixtureAttribute.Strobe => NormalizedMappingContext.ShutterFrequency,
                 FixtureAttribute.GoboWheel when role == FixtureChannelRole.Rotation || role == FixtureChannelRole.PositionOrRotation || role == FixtureChannelRole.Speed || role == FixtureChannelRole.SpeedDirection => NormalizedMappingContext.RotationSpeed,
                 FixtureAttribute.AnimationWheel when role == FixtureChannelRole.Rotation || role == FixtureChannelRole.PositionOrRotation || role == FixtureChannelRole.Speed || role == FixtureChannelRole.SpeedDirection => NormalizedMappingContext.RotationSpeed,
                 _ => NormalizedMappingContext.Generic
@@ -307,6 +327,7 @@ namespace ArtNet.Editor
                 NormalizedMappingContext.Frost => new GUIContent("Frost Direction"),
                 NormalizedMappingContext.RotationSpeed => new GUIContent("Speed Direction"),
                 NormalizedMappingContext.IndexPosition => new GUIContent("Index Direction"),
+                NormalizedMappingContext.ShutterFrequency => new GUIContent("Frequency Direction"),
                 _ => new GUIContent("Mapping Preset")
             };
         }
@@ -321,6 +342,7 @@ namespace ArtNet.Editor
                 NormalizedMappingContext.Frost => new[] { "DMX Low = No Frost, High = Full Frost", "DMX Low = Full Frost, High = No Frost", "Custom", "Not Used / N/A" },
                 NormalizedMappingContext.RotationSpeed => new[] { "DMX Low = Slow, High = Fast", "DMX Low = Fast, High = Slow", "Custom", "Not Used / N/A" },
                 NormalizedMappingContext.IndexPosition => new[] { "DMX Low = 0 deg, High = 360 deg", "DMX Low = 360 deg, High = 0 deg", "Custom", "Not Used / N/A" },
+                NormalizedMappingContext.ShutterFrequency => new[] { "DMX Low = Slow, High = Fast", "DMX Low = Fast, High = Slow", "Custom", "Not Used / N/A" },
                 _ => new[] { "Normal 0 -> 1", "Inverted 1 -> 0", "Custom", "Not Used / N/A" }
             };
         }

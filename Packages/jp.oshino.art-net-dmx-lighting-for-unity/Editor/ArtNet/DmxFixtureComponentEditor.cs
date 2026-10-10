@@ -610,9 +610,9 @@ namespace ArtNet.Editor
             EditorGUILayout.Space(6f);
             EditorGUILayout.LabelField("Gobo Lens Material Setup", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Setup Gobo Lens Material は、現在のRender Pipeline（HDRP / URP）を一度だけ判定し、登録済みの各Rendererスロットへ対応する共有マテリアルを割り当てます。再生中の差し替えは行いません。\n" +
+                "Setup Gobo Lens Material は、現在のRender Pipeline（HDRP / URP）を一度だけ判定し、登録済みの各Rendererへ対応する共有マテリアルを設定します。元のLitレンズを反射面として残し、その上にゴボ発光マテリアルを重ねます。再生中の差し替えは行いません。\n" +
                 "\n" +
-                "Setup Gobo Lens Material detects the current Render Pipeline (HDRP / URP) once and assigns the corresponding shared material to each registered Renderer slot. Materials are not replaced during Play Mode.",
+                "Setup Gobo Lens Material detects the current Render Pipeline (HDRP / URP) once and configures the corresponding shared material on each registered Renderer. The original Lit lens remains as the reflective surface and the gobo emission material is layered over it. Materials are not replaced during Play Mode.",
                 MessageType.Info);
 
             var bindings = serializedObject.FindProperty("lensMaterialBindings");
@@ -725,6 +725,8 @@ namespace ArtNet.Editor
             }
 
             int configured = 0;
+            bool useReflectionLayer = expectedShaderName == "ArtNet/HDRP/Gobo Lens Surface" ||
+                                      expectedShaderName == "ArtNet/URP/Gobo Lens Surface";
             for (int targetIndex = 0; targetIndex < targets.Length; targetIndex++)
             {
                 var targetObject = new SerializedObject(targets[targetIndex]);
@@ -746,8 +748,35 @@ namespace ArtNet.Editor
                     Undo.RecordObject(renderer, "Setup Gobo Lens Material");
                     var materials = renderer.sharedMaterials;
                     var original = binding.FindPropertyRelative("originalMaterial");
-                    if (original.objectReferenceValue == null) original.objectReferenceValue = materials[slot];
-                    materials[slot] = material;
+                    var originalMaterial = original.objectReferenceValue as Material;
+                    if (originalMaterial == null && materials[slot] != material)
+                    {
+                        originalMaterial = materials[slot];
+                        original.objectReferenceValue = originalMaterial;
+                    }
+
+                    if (useReflectionLayer && originalMaterial != null)
+                    {
+                        int originalSlot = System.Array.IndexOf(materials, originalMaterial);
+                        if (originalSlot < 0)
+                        {
+                            materials[slot] = originalMaterial;
+                            originalSlot = slot;
+                        }
+
+                        int overlaySlot = System.Array.IndexOf(materials, material);
+                        if (overlaySlot < 0 || overlaySlot == originalSlot)
+                        {
+                            System.Array.Resize(ref materials, materials.Length + 1);
+                            overlaySlot = materials.Length - 1;
+                            materials[overlaySlot] = material;
+                        }
+                        binding.FindPropertyRelative("materialSlot").intValue = overlaySlot;
+                    }
+                    else
+                    {
+                        materials[slot] = material;
+                    }
                     renderer.sharedMaterials = materials;
                     binding.FindPropertyRelative("goboLensMaterial").objectReferenceValue = material;
                     EditorUtility.SetDirty(renderer);
@@ -798,7 +827,19 @@ namespace ArtNet.Editor
                     if (renderer == null || original == null || slot < 0 || renderer.sharedMaterials == null || slot >= renderer.sharedMaterials.Length) continue;
                     Undo.RecordObject(renderer, "Restore Gobo Lens Material");
                     var materials = renderer.sharedMaterials;
-                    materials[slot] = original;
+                    int originalSlot = System.Array.IndexOf(materials, original);
+                    if (originalSlot >= 0 && materials[slot] != original)
+                    {
+                        var restoredMaterials = new Material[materials.Length - 1];
+                        if (slot > 0) System.Array.Copy(materials, 0, restoredMaterials, 0, slot);
+                        if (slot < materials.Length - 1) System.Array.Copy(materials, slot + 1, restoredMaterials, slot, materials.Length - slot - 1);
+                        materials = restoredMaterials;
+                        binding.FindPropertyRelative("materialSlot").intValue = System.Array.IndexOf(materials, original);
+                    }
+                    else
+                    {
+                        materials[slot] = original;
+                    }
                     renderer.sharedMaterials = materials;
                     binding.FindPropertyRelative("goboLensMaterial").objectReferenceValue = null;
                     EditorUtility.SetDirty(renderer);

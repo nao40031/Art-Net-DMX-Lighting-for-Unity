@@ -38,6 +38,46 @@ MonoBehaviour:
         mappingPreset: 0
         normalizedFrom: 0
         normalizedTo: 0
+      - name: Open
+        dmxMin: 20
+        dmxMax: 49
+        type: 2
+        mappingContext: 0
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Regular strobe slow to fast
+        dmxMin: 50
+        dmxMax: 200
+        type: 23
+        mappingContext: 7
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+        shutterFrequencyFromHz: 1
+        shutterFrequencyToHz: 20
+        shutterDutyCycle: 0.5
+        shutterFlashDurationSeconds: 0
+      - name: Open
+        dmxMin: 201
+        dmxMax: 210
+        type: 2
+        mappingContext: 0
+        mappingPreset: 3
+        normalizedFrom: 0
+        normalizedTo: 1
+      - name: Random strobe slow to fast
+        dmxMin: 211
+        dmxMax: 255
+        type: 26
+        mappingContext: 7
+        mappingPreset: 0
+        normalizedFrom: 0
+        normalizedTo: 1
+        shutterFrequencyFromHz: 1
+        shutterFrequencyToHz: 20
+        shutterDutyCycle: 0.5
+        shutterFlashDurationSeconds: 0
     - attribute: 1
       instance: 1
       role: 0

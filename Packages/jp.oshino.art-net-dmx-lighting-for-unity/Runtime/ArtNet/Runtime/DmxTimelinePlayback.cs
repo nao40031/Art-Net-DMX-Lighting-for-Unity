@@ -525,7 +525,7 @@ namespace ArtNet.Runtime
                 bool shouldApply = changed || force || (applyOnFirstFrame && !st.initialized);
                 if (shouldApply)
                 {
-                    rig.InjectUniverse(st.universe, st.buffer);
+                    rig.InjectUniverse(st.universe, st.buffer, DmxRigController.UniverseBufferSource.TimelinePlayback);
                     st.initialized = true;
                     _states[i] = st;
                 }

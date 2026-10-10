@@ -13,6 +13,11 @@ namespace ArtNet.Runtime
     {
         public float lightDimmer01;
         public float lensDimmer01;
+        public bool syncLightShutterStrobeToDmx;
+        public bool syncLensShutterStrobeToDmx;
+        public float shutterStrobeGate01;
+        public ShutterStrobeMode shutterStrobeMode;
+        public float shutterStrobeFrequencyHz;
         public Color color;
         // Sync Beam * To DMX の値。実ライト、Pseudo Beam、VLBは同じ設定に従う。
         public bool syncLightColorToDmx;

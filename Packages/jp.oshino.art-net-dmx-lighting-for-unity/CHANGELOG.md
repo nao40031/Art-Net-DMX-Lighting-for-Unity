@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Layer HDRP and URP gobo emission over the existing Lit fake-depth lens so environment reflections remain visible through dark gobo regions and when the dimmer is closed.
 - Added model-independent 8/16-bit moving-light Focus with optical distance profiles, representative projection targets, cookie/lens/beam-edge defocus, and Normal/Pseudo Beam/VLB integration.
 - Added a MAC Ultra Performance Focus Profile and Basic 48-channel Focus mapping for validation against the Martin specification.
 

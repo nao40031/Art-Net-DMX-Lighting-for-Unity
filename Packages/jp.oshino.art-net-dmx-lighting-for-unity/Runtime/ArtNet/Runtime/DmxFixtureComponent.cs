@@ -1225,6 +1225,7 @@ namespace ArtNet.Runtime
             MigrateLegacyBeamSyncSettings();
             MigrateLegacyPrismGoboSpacingMode();
             ResetPanTiltSpeedPresetState();
+            ResetShutterStrobeState();
             ResolveAll(Application.isPlaying);
 
             if (Application.isPlaying)
@@ -1350,6 +1351,7 @@ namespace ArtNet.Runtime
             UpdatePanTiltMotion();
             UpdateGoboMotion();
             UpdatePrismMotion();
+            UpdateShutterStrobe();
             UpdateLightResponse();
 
             if (!monitorEnabled) return;
@@ -1576,6 +1578,7 @@ namespace ArtNet.Runtime
             ReleaseFocus();
             ReleaseIris();
             ResetPanTiltSpeedPresetState();
+            ResetShutterStrobeState();
             _relativeMap.Clear();
             _elementMap.Clear();
             _goboWheelMap.Clear();
@@ -2228,6 +2231,7 @@ namespace ArtNet.Runtime
             ReadIris(universe512);
             ReadFocus(universe512);
             ReadFrost(universe512);
+            ReadShutterStrobe(universe512);
             if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
                 TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
             {
@@ -2240,9 +2244,6 @@ namespace ArtNet.Runtime
             float dim01 = TryReadElement01(universe512, FixtureAttribute.Dimmer, 1, FixtureChannelRole.Value, out float dim)
                 ? dim
                 : 1f;
-
-            if (TryElementValueMatchesRange(universe512, FixtureAttribute.Strobe, 1, FixtureChannelRole.Value, FixtureRangeType.Closed, out _))
-                dim01 = 0f;
 
             Color rgb = ReadElementColor(universe512);
 
@@ -2298,6 +2299,7 @@ namespace ArtNet.Runtime
             ReadIris(universe512);
             ReadFocus(universe512);
             ReadFrost(universe512);
+            ReadShutterStrobe(universe512);
             if (TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Control, FixtureRangeType.Reset, out _) ||
                 TryElementValueMatchesRange(universe512, FixtureAttribute.Control, 1, FixtureChannelRole.Value, FixtureRangeType.Reset, out _))
             {
@@ -2310,9 +2312,6 @@ namespace ArtNet.Runtime
             float dim01 = TryReadElement01(universe512, FixtureAttribute.Dimmer, 1, FixtureChannelRole.Value, out float dim)
                 ? dim
                 : 1f;
-
-            if (TryElementValueMatchesRange(universe512, FixtureAttribute.Strobe, 1, FixtureChannelRole.Value, FixtureRangeType.Closed, out _))
-                dim01 = 0f;
 
             Color rgb = ReadElementColor(universe512);
 
@@ -3330,6 +3329,7 @@ namespace ArtNet.Runtime
         {
             _iris.Reset();
             ResetPanTiltSpeedPresetState();
+            ResetShutterStrobeState();
             if (panTransform != null) panTransform.localRotation = _panBaseLocalRot;
             if (tiltTransform != null) tiltTransform.localRotation = _tiltBaseLocalRot;
             _tiltCurrentDeg = 0f;
@@ -3643,7 +3643,8 @@ namespace ArtNet.Runtime
                 l.color = state.syncLightColorToDmx ? state.color : initialColor;
                 float baseIntensity = state.syncLightDimmerToDmx ? state.lightDimmer01 * 10f : initialIntensity;
                 float frostTransmission = state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f;
-                l.intensity = state.forceLightOff ? 0f : baseIntensity * frostTransmission;
+                float shutterGate = state.syncLightShutterStrobeToDmx ? state.shutterStrobeGate01 : 1f;
+                l.intensity = state.forceLightOff ? 0f : baseIntensity * frostTransmission * shutterGate;
                 l.cookie = state.syncLightGoboToDmx ? (state.goboEnabled ? state.goboTexture : null) : initialCookie;
                 if (state.syncLightZoomToDmx && state.zoomEnabled)
                 {
@@ -3712,7 +3713,8 @@ namespace ArtNet.Runtime
             bool lensIrisEnabled = syncLensIrisToDmx && state.irisEnabled && ActiveIrisProfile != null;
             if (!lensIrisEnabled && _irisRenderers.Count > 0)
                 ResetLensIrisRenderers();
-            if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx && !lensIrisEnabled) return;
+            if (!syncLensColorToDmx && !syncLensDimmerToDmx && !syncLensGoboToDmx &&
+                !syncLensShutterStrobeToDmx && !lensIrisEnabled) return;
 
             bool hasMaterialBindings = lensMaterialBindings != null && lensMaterialBindings.Count > 0;
 
@@ -3724,7 +3726,9 @@ namespace ArtNet.Runtime
 
             if (_lensMpb == null) return;
 
-            float d = Mathf.Clamp01(state.lensDimmer01) * Mathf.Max(0f, lensDimmerScale);
+            float shutterGate = state.syncLensShutterStrobeToDmx ? state.shutterStrobeGate01 : 1f;
+            float lensBaseDimmer = syncLensDimmerToDmx ? Mathf.Clamp01(state.lensDimmer01) : 1f;
+            float d = lensBaseDimmer * Mathf.Max(0f, lensDimmerScale) * shutterGate;
 
             // 共通のMPBに値をセットし、各Rendererに適用
             _lensMpb.Clear();
@@ -3732,7 +3736,7 @@ namespace ArtNet.Runtime
             _lensMpb.SetFloat(IrisLensInfluenceId, lensIrisEnabled ? ActiveIrisProfile.lensInfluence : 0);
             if (syncLensColorToDmx)
                 _lensMpb.SetColor(_lensColorId, state.color);
-            if (syncLensDimmerToDmx)
+            if (syncLensDimmerToDmx || syncLensShutterStrobeToDmx)
                 _lensMpb.SetFloat(_lensDimmerId, d);
             if (syncLensGoboToDmx)
             {
@@ -3964,6 +3968,8 @@ namespace ArtNet.Runtime
             float d = Mathf.Clamp01(state.lightDimmer01) * Mathf.Max(0f, beamDimmerScale);
             d *= Mathf.Max(0f, dimmerMultiplier);
             d = Mathf.Max(Mathf.Clamp01(beamDimmerFloor), d);
+            if (state.syncLightShutterStrobeToDmx)
+                d *= state.shutterStrobeGate01;
 
             _beamMpb.Clear();
             _beamMpb.SetVector(IrisShapeId, state.irisEnabled ? state.irisShape : new Vector4(1, 0, 0, 0));
@@ -4561,10 +4567,15 @@ namespace ArtNet.Runtime
                 color = rgb,
                 syncLightColorToDmx = syncBeamColorToDmx,
                 syncLightDimmerToDmx = syncBeamDimmerToDmx,
+                syncLightShutterStrobeToDmx = syncBeamShutterStrobeToDmx,
+                syncLensShutterStrobeToDmx = syncLensShutterStrobeToDmx,
                 syncLightGoboToDmx = syncBeamGoboToDmx,
                 syncLightGoboRotationToDmx = syncBeamGoboRotationToDmx,
                 syncLightZoomToDmx = syncBeamZoomToDmx || focusEnabled || frostEnabled,
                 syncBeamPrismToDmx = syncBeamPrismToDmx,
+                shutterStrobeGate01 = _shutterStrobeGate01,
+                shutterStrobeMode = CurrentShutterStrobeMode,
+                shutterStrobeFrequencyHz = CurrentShutterStrobeFrequencyHz,
                 goboEnabled = goboEnabled && goboTextureForRender != null,
                 goboTexture = goboTextureForRender,
                 goboRotationDeg = goboRotationDeg,
@@ -5574,9 +5585,10 @@ namespace ArtNet.Runtime
                 ? Mathf.Clamp01(state.lightDimmer01) * maxIntensity
                 : GetPrismSourceInitialIntensity(source, maxIntensity);
             float frostTransmission = state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f;
-            float intensity = sourceIntensity * perFacetScale * frostTransmission;
+            float shutterGate = state.syncLightShutterStrobeToDmx ? state.shutterStrobeGate01 : 1f;
+            float intensity = sourceIntensity * perFacetScale * frostTransmission * shutterGate;
             Color color = source != null ? source.color : Color.white;
-            float cookieContribution = state.syncLightDimmerToDmx ? Mathf.Clamp01(state.lightDimmer01) : 1f;
+            float cookieContribution = (state.syncLightDimmerToDmx ? Mathf.Clamp01(state.lightDimmer01) : 1f) * shutterGate;
 
             light.enabled = true;
             light.type = LightType.Spot;

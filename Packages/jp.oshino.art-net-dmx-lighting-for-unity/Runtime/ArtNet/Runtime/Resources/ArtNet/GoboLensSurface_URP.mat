@@ -19,11 +19,38 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties:
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _GoboTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
-    m_Colors: []
+    m_Floats:
+    - _DmxDimmer: 1
+    - _GoboEnabled: 0
+    - _GoboLensBlur: 0
+    - _GoboLensEmission: 2
+    - _GoboLensFresnelPower: 4
+    - _GoboLensFresnelStrength: 0
+    - _GoboLensHotspotInner: 0.12
+    - _GoboLensHotspotOuter: 0.55
+    - _GoboLensHotspotStrength: 0.35
+    - _GoboLensInfluence: 1
+    - _GoboLensScale: 1
+    - _GoboRotationDeg: 0
+    - _IrisLensInfluence: 0
+    - _LensApertureFeather: 0
+    - _LensPrismFacetCount: 1
+    - _LensPrismGoboMode: 1
+    - _LensPrismGoboSpacingScale: 1
+    - _LensPrismRotationDeg: 0
+    - _LensPrismSpread: 0
+    m_Colors:
+    - _DmxColor: {r: 1, g: 1, b: 1, a: 1}
+    - _GoboOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _IrisShape: {r: 1, g: 0.01, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
