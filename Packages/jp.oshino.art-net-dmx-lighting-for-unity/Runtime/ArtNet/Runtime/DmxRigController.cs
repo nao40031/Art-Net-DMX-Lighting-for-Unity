@@ -34,6 +34,16 @@ namespace ArtNet.Runtime
             LiveAndPlayback,
         }
 
+        /// <summary>
+        /// Identifies the writer of the current effective Universe buffer.
+        /// </summary>
+        public enum UniverseBufferSource
+        {
+            LiveArtNet,
+            TimelinePlayback,
+            ExternalInjection,
+        }
+
         [Header("Input Mode")]
         public InputMode inputMode = InputMode.LiveOnly;
 
@@ -90,7 +100,10 @@ namespace ArtNet.Runtime
 
         private readonly object _lock = new object();
         private readonly Dictionary<int, byte[]> _universeBuffers = new Dictionary<int, byte[]>();
+        private readonly Dictionary<int, UniverseBufferSource> _universeBufferSources = new Dictionary<int, UniverseBufferSource>();
+        private readonly Dictionary<int, long> _universeBufferRevisions = new Dictionary<int, long>();
         private readonly Dictionary<int, List<DmxFixtureComponent>> _fixturesByUniverse = new Dictionary<int, List<DmxFixtureComponent>>();
+        private long _nextUniverseBufferRevision;
 
         // Dirty universe apply (avoid applying only last universe and reduce allocations)
         private readonly HashSet<int> _dirtyUniverses = new HashSet<int>();
@@ -130,6 +143,8 @@ namespace ArtNet.Runtime
             {
                 _dirtyUniverses.Clear();
                 _dirtyScratch.Clear();
+                _universeBufferSources.Clear();
+                _universeBufferRevisions.Clear();
                 _rxCount = 0;
                 _lastUniverse = 0;
                 _lastOffset = 0;
@@ -201,19 +216,19 @@ namespace ArtNet.Runtime
             if (inputMode == InputMode.PlaybackOnly) return;
             if (data.Channels == null) return;
 
-            byte[] buf = GetOrCreateUniverseBuffer(data.Universe);
-
-            int len = Mathf.Min(512, data.Channels.Length);
-            for (int i = 0; i < len; i++)
-            {
-                int v = data.Channels[i];
-                if (v < 0) v = 0;
-                if (v > 255) v = 255;
-                buf[i] = (byte)v;
-            }
-
             lock (_lock)
             {
+                byte[] buf = GetOrCreateUniverseBuffer(data.Universe);
+                int len = Mathf.Min(512, data.Channels.Length);
+                for (int i = 0; i < len; i++)
+                {
+                    int v = data.Channels[i];
+                    if (v < 0) v = 0;
+                    if (v > 255) v = 255;
+                    buf[i] = (byte)v;
+                }
+
+                MarkUniverseBufferUpdated(data.Universe, UniverseBufferSource.LiveArtNet);
                 _rxCount++;
                 _lastUniverse = data.Universe;
                 _lastOffset = 0;
@@ -227,24 +242,79 @@ namespace ArtNet.Runtime
 
         public void InjectUniverse(int universe, byte[] src)
         {
+            InjectUniverse(universe, src, UniverseBufferSource.ExternalInjection);
+        }
+
+        /// <summary>
+        /// Copies a complete or partial Universe frame into the effective rig buffer.
+        /// Timeline playback should identify itself so monitoring can report its source.
+        /// </summary>
+        public void InjectUniverse(int universe, byte[] src, UniverseBufferSource source)
+        {
             if (inputMode == InputMode.LiveOnly) return;
             if (src == null || src.Length == 0) return;
 
-            byte[] buf = GetOrCreateUniverseBuffer(universe);
-            int len = Mathf.Min(512, src.Length);
-            for (int i = 0; i < len; i++)
-                buf[i] = src[i];
-
             if (!Application.isPlaying)
             {
+                lock (_lock)
+                {
+                    byte[] editModeBuffer = GetOrCreateUniverseBuffer(universe);
+                    int editModeLength = Mathf.Min(512, src.Length);
+                    for (int i = 0; i < editModeLength; i++)
+                        editModeBuffer[i] = src[i];
+                    MarkUniverseBufferUpdated(universe, source);
+                }
                 ApplyUniverse(universe);
                 return;
             }
 
             lock (_lock)
             {
+                byte[] buf = GetOrCreateUniverseBuffer(universe);
+                int len = Mathf.Min(512, src.Length);
+                for (int i = 0; i < len; i++)
+                    buf[i] = src[i];
+
+                MarkUniverseBufferUpdated(universe, source);
                 _dirtyUniverses.Add(universe);
             }
+        }
+
+        /// <summary>
+        /// Copies the effective 512-channel Universe buffer without exposing its internal storage.
+        /// Returns the source and monotonically increasing revision of that buffer snapshot.
+        /// </summary>
+        public bool TryCopyUniverseBuffer(
+            int universe,
+            byte[] destination,
+            out UniverseBufferSource source,
+            out long revision)
+        {
+            if (destination == null)
+                throw new ArgumentNullException(nameof(destination));
+            if (destination.Length < 512)
+                throw new ArgumentException("Destination must contain at least 512 elements.", nameof(destination));
+
+            lock (_lock)
+            {
+                if (!_universeBuffers.TryGetValue(universe, out var buffer) || buffer == null || buffer.Length < 512)
+                {
+                    source = default;
+                    revision = 0;
+                    return false;
+                }
+
+                Buffer.BlockCopy(buffer, 0, destination, 0, 512);
+                _universeBufferSources.TryGetValue(universe, out source);
+                _universeBufferRevisions.TryGetValue(universe, out revision);
+                return true;
+            }
+        }
+
+        private void MarkUniverseBufferUpdated(int universe, UniverseBufferSource source)
+        {
+            _universeBufferSources[universe] = source;
+            _universeBufferRevisions[universe] = ++_nextUniverseBufferRevision;
         }
 
         // ------------------------------------------------------------

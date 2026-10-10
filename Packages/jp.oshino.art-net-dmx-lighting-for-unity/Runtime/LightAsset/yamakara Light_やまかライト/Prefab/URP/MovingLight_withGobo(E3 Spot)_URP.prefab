@@ -295,7 +295,15 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: c16797c950334e3e9e462d0029e71206, type: 2}
     - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
+    - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
     - target: {fileID: -7511558181221131132, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
@@ -435,7 +443,7 @@ MonoBehaviour:
   - {fileID: 2523771333444109262}
   lensMaterialBindings:
   - renderer: {fileID: 2523771333444109262}
-    materialSlot: 0
+    materialSlot: 1
     originalMaterial: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
     goboLensMaterial: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
   syncLensToDmx: 1
@@ -895,13 +903,24 @@ MonoBehaviour:
   syncFocusToDmx: 1
   focusProfile: {fileID: 0}
   focusInstance: 1
+  focusControlMode: 0
+  overrideFocusControlMode: 0
   focusReferenceDistanceMeters: 10
   focusTarget: {fileID: 0}
+  autoFocusRaycastMaxDistanceMeters: 100
+  autoFocusRaycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  autoFocusDistanceDeadbandMeters: 0.01
   syncFrostToDmx: 1
   frostProfile: {fileID: 0}
   syncIrisToDmx: 1
   irisProfile: {fileID: 0}
   irisInstance: 1
+  syncBeamShutterStrobeToDmx: 1
+  syncLensShutterStrobeToDmx: 1
+  shutterStrobePreviewMode: 2
+  shutterStrobeRandomSeed: 0
 --- !u!4 &8876304756517623177 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3799853098428086121, guid: 9f144af643915a74a99e84152069a3b8, type: 3}

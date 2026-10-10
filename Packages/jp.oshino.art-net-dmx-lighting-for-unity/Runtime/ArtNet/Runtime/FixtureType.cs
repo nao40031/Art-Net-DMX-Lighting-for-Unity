@@ -134,7 +134,15 @@ namespace ArtNet.Runtime
         IrisPulseReverse = 19,
         PanTiltSpeedStandard = 20,
         PanTiltSpeedFast = 21,
-        PanTiltSpeedSmooth = 22
+        PanTiltSpeedSmooth = 22,
+        RegularStrobe = 23,
+        PulseOpen = 24,
+        PulseClose = 25,
+        RandomStrobe = 26,
+        RandomPulse = 27,
+        RandomPulseOpen = 28,
+        RandomPulseClose = 29,
+        ShutterEffect = 30
     }
 
     public enum NormalizedMappingContext
@@ -145,7 +153,8 @@ namespace ArtNet.Runtime
         Iris = 3,
         Frost = 4,
         RotationSpeed = 5,
-        IndexPosition = 6
+        IndexPosition = 6,
+        ShutterFrequency = 7
     }
 
     public enum NormalizedMappingPreset
@@ -177,6 +186,22 @@ namespace ArtNet.Runtime
         public NormalizedMappingPreset mappingPreset = NormalizedMappingPreset.Normal;
         public float normalizedFrom = 0f;
         public float normalizedTo = 1f;
+
+        [Min(0f)]
+        [Tooltip("このシャッター／ストロボ範囲のDMX最小側に対応する周波数（Hz）です。\n\nFrequency in Hz at the DMX-minimum side of this shutter/strobe range.")]
+        public float shutterFrequencyFromHz = 1f;
+
+        [Min(0f)]
+        [Tooltip("このシャッター／ストロボ範囲のDMX最大側に対応する周波数（Hz）です。\n\nFrequency in Hz at the DMX-maximum side of this shutter/strobe range.")]
+        public float shutterFrequencyToHz = 20f;
+
+        [Range(0.01f, 0.99f)]
+        [Tooltip("1周期のうちシャッターが開いている割合です。Flash Durationが0より大きい場合はFlash Durationを優先します。\n\nFraction of each cycle for which the shutter is open. Flash Duration takes priority when greater than zero.")]
+        public float shutterDutyCycle = 0.5f;
+
+        [Min(0f)]
+        [Tooltip("1回の発光時間（秒）です。0の場合はDuty Cycleを使用します。\n\nDuration of one flash in seconds. Zero uses Duty Cycle instead.")]
+        public float shutterFlashDurationSeconds = 0f;
 
         public bool Contains(int dmxValue)
         {

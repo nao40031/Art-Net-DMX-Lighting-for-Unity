@@ -1159,13 +1159,24 @@ MonoBehaviour:
   syncFocusToDmx: 1
   focusProfile: {fileID: 0}
   focusInstance: 1
+  focusControlMode: 0
+  overrideFocusControlMode: 0
   focusReferenceDistanceMeters: 10
   focusTarget: {fileID: 0}
+  autoFocusRaycastMaxDistanceMeters: 100
+  autoFocusRaycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  autoFocusDistanceDeadbandMeters: 0.01
   syncFrostToDmx: 1
   frostProfile: {fileID: 0}
   syncIrisToDmx: 1
   irisProfile: {fileID: 0}
   irisInstance: 1
+  syncBeamShutterStrobeToDmx: 1
+  syncLensShutterStrobeToDmx: 1
+  shutterStrobePreviewMode: 2
+  shutterStrobeRandomSeed: 0
 --- !u!114 &3617892565423662184
 MonoBehaviour:
   m_ObjectHideFlags: 0

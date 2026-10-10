@@ -1,0 +1,22 @@
+{
+    "name": "ArtNet.Editor.Tests",
+    "rootNamespace": "",
+    "references": [
+        "ArtNet.Editor",
+        "ArtNet.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

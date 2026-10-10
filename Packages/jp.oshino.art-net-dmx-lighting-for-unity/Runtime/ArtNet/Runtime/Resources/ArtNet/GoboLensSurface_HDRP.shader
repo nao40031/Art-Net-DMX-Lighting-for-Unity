@@ -18,7 +18,7 @@ Shader "ArtNet/HDRP/Gobo Lens Surface"
         _GoboLensHotspotStrength ("Hotspot Strength", Float) = 0.35
         _GoboLensHotspotInner ("Hotspot Inner", Range(0, 1)) = 0.12
         _GoboLensHotspotOuter ("Hotspot Outer", Range(0, 1)) = 0.55
-        _GoboLensFresnelStrength ("Fresnel Strength", Float) = 0.25
+        _GoboLensFresnelStrength ("Fresnel Strength", Float) = 0
         _GoboLensFresnelPower ("Fresnel Power", Float) = 4
         _LensPrismGoboMode ("Lens Prism Gobo Mode", Float) = 1
         _LensPrismFacetCount ("Lens Prism Facet Count", Float) = 1
@@ -26,13 +26,13 @@ Shader "ArtNet/HDRP/Gobo Lens Surface"
         _LensPrismGoboSpacingScale ("Lens Prism Gobo Spacing Scale", Float) = 1
         _LensPrismRotationDeg ("Lens Prism Rotation", Float) = 0
         _EmissiveExposureWeight ("Emissive Exposure Weight", Range(0, 1)) = 1
-        [HideInInspector] _SurfaceType ("Surface Type", Float) = 0
-        [HideInInspector] _BlendMode ("Blend Mode", Float) = 0
+        [HideInInspector] _SurfaceType ("Surface Type", Float) = 1
+        [HideInInspector] _BlendMode ("Blend Mode", Float) = 1
         [HideInInspector] _SrcBlend ("Src Blend", Float) = 1
-        [HideInInspector] _DstBlend ("Dst Blend", Float) = 0
+        [HideInInspector] _DstBlend ("Dst Blend", Float) = 1
         [HideInInspector] _AlphaSrcBlend ("Alpha Src Blend", Float) = 1
         [HideInInspector] _AlphaDstBlend ("Alpha Dst Blend", Float) = 0
-        [HideInInspector] _ZWrite ("ZWrite", Float) = 1
+        [HideInInspector] _ZWrite ("ZWrite", Float) = 0
         [HideInInspector] _CullMode ("Cull Mode", Float) = 2
     }
 
@@ -47,13 +47,14 @@ Shader "ArtNet/HDRP/Gobo Lens Surface"
 
     SubShader
     {
-        Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDUnlitShader" }
+        Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Transparent" "Queue" = "Transparent+10" }
         Pass
         {
             Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
-            Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
-            ZWrite [_ZWrite]
+            Blend One One
+            ZWrite Off
+            ZTest LEqual
             Cull [_CullMode]
             HLSLPROGRAM
             #pragma multi_compile_instancing

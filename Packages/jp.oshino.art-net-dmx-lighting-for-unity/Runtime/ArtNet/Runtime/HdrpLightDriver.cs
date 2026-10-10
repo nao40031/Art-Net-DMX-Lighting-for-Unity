@@ -69,7 +69,8 @@ namespace ArtNet.Runtime
             float d = ApplyCurve(state.lightDimmer01);
             float baseIntensity = state.syncLightDimmerToDmx ? d * maxIntensity : _initialIntensity;
             float frostTransmission = state.frostEnabled ? Mathf.Clamp01(state.frostTransmission) : 1f;
-            float intensity = state.forceLightOff ? 0f : baseIntensity * frostTransmission;
+            float shutterGate = state.syncLightShutterStrobeToDmx ? Mathf.Clamp01(state.shutterStrobeGate01) : 1f;
+            float intensity = state.forceLightOff ? 0f : baseIntensity * frostTransmission * shutterGate;
             Texture cookie = state.goboEnabled ? state.goboTexture : Texture2D.whiteTexture;
 
             _light.color = state.syncLightColorToDmx ? state.color : _initialColor;
@@ -78,7 +79,7 @@ namespace ArtNet.Runtime
             {
                 try
                 {
-                    if (state.forceLightOff || state.syncLightDimmerToDmx || state.frostEnabled || _frostApplied)
+                    if (state.forceLightOff || state.syncLightDimmerToDmx || state.syncLightShutterStrobeToDmx || state.frostEnabled || _frostApplied)
                         _hd.SetIntensity(intensity, ToLightUnit(unit));
                     if (state.syncLightGoboToDmx)
                         _hd.SetCookie(cookie);
@@ -99,7 +100,7 @@ namespace ArtNet.Runtime
                 }
                 catch
                 {
-                    if (state.forceLightOff || state.syncLightDimmerToDmx || state.frostEnabled || _frostApplied)
+                    if (state.forceLightOff || state.syncLightDimmerToDmx || state.syncLightShutterStrobeToDmx || state.frostEnabled || _frostApplied)
                         _light.intensity = intensity;
                     if (state.syncLightGoboToDmx)
                         _light.cookie = state.goboEnabled ? state.goboTexture : null;
@@ -116,7 +117,7 @@ namespace ArtNet.Runtime
             }
             else
             {
-                if (state.forceLightOff || state.syncLightDimmerToDmx || state.frostEnabled || _frostApplied)
+                if (state.forceLightOff || state.syncLightDimmerToDmx || state.syncLightShutterStrobeToDmx || state.frostEnabled || _frostApplied)
                     _light.intensity = intensity;
                 if (state.syncLightGoboToDmx)
                     _light.cookie = state.goboEnabled ? state.goboTexture : null;

@@ -18,7 +18,7 @@ Shader "ArtNet/URP/Gobo Lens Surface"
         _GoboLensHotspotStrength ("Hotspot Strength", Float) = 0.35
         _GoboLensHotspotInner ("Hotspot Inner", Range(0, 1)) = 0.12
         _GoboLensHotspotOuter ("Hotspot Outer", Range(0, 1)) = 0.55
-        _GoboLensFresnelStrength ("Fresnel Strength", Float) = 0.25
+        _GoboLensFresnelStrength ("Fresnel Strength", Float) = 0
         _GoboLensFresnelPower ("Fresnel Power", Float) = 4
         _LensPrismGoboMode ("Lens Prism Gobo Mode", Float) = 1
         _LensPrismFacetCount ("Lens Prism Facet Count", Float) = 1
@@ -29,12 +29,14 @@ Shader "ArtNet/URP/Gobo Lens Surface"
 
     SubShader
     {
-        Tags { "RenderPipeline" = "UniversalPipeline" "RenderType" = "Opaque" "Queue" = "Geometry" }
+        Tags { "RenderPipeline" = "UniversalPipeline" "RenderType" = "Transparent" "Queue" = "Transparent+10" }
         Pass
         {
             Name "UniversalForward"
             Tags { "LightMode" = "UniversalForward" }
-            ZWrite On
+            Blend One One
+            ZWrite Off
+            ZTest LEqual
             Cull Back
 
             HLSLPROGRAM

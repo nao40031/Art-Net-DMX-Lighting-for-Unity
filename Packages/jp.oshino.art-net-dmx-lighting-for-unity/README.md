@@ -79,7 +79,7 @@ VLBはこのパッケージの依存関係・同梱物ではありません。VL
 1. ゴボ対応の `DmxFixtureComponent` を選択します。
 2. Inspectorの **Lens (ShaderGraph DMX Sync)** を開き、**Lens Gobo** の各設定を確認します。
 3. **Gobo Lens Material Setup** の **Setup Gobo Lens Material** を押します。
-   - 現在のRender Pipelineを自動判定し、HDRPでは `GoboLensSurface_HDRP`、URPでは `GoboLensSurface_URP` を登録済みRendererスロットへ割り当てます。
+   - 現在のRender Pipelineを自動判定します。HDRP／URPとも元のLitレンズを反射面として残し、`GoboLensSurface_HDRP` または `GoboLensSurface_URP` を追加スロットへ重ねます。
    - 元のマテリアルは **Original Material** に保存され、必要に応じて **Restore Original Materials** で戻せます。
 4. **Validate Gobo Lens Setup** を押し、現在のパイプラインに合うマテリアルが設定されていることをConsoleで確認します。
 
@@ -98,9 +98,15 @@ VLBはこのパッケージの依存関係・同梱物ではありません。VL
 
 #### English summary
 
-Use **Setup Gobo Lens Material** to assign the correct shared lens material for the active HDRP or URP pipeline. The operation is an Editor-time setup only; no material replacement occurs at runtime. Use **Validate Gobo Lens Setup** to verify assignments, and **Restore Original Materials** to revert them. Included `MovingLight_withGobo` prefabs are already configured.
+Use **Setup Gobo Lens Material** to configure the correct shared lens material for the active HDRP or URP pipeline. In both pipelines, the original Lit lens remains as the reflective surface and the gobo emission material is added as an overlay slot. The operation is an Editor-time setup only; no material replacement occurs at runtime. Use **Validate Gobo Lens Setup** to verify assignments, and **Restore Original Materials** to revert them. Included `MovingLight_withGobo` prefabs are already configured.
 
 ## Editor Tools
+
+### DMX Channel Monitor
+
+`Art-Net > Monitoring > DMX Channel Monitor` は、任意Universeの512チャンネルをリアルタイム表示します。**Live Input** はシーンの `ArtNetReceiver` が受信した値を表示し、**Rig Output** は指定した `DmxRigController` の有効バッファを表示します。Rig OutputではTimeline Playback、Live Input、外部注入のうち最後にリグへ反映された値と更新元を確認できます。Live Inputで **Monitor All Receivers** を無効にすると、特定のReceiverだけを選択できます。**Pause** は表示を固定し、**Clear DMX Buffers** はモニター内部の表示バッファだけを消去します。どちらの操作もFixtureの状態やネットワーク出力を変更しません。Universe番号は受信した値を変換せず、そのまま指定してください。
+
+`Art-Net > Monitoring > DMX Channel Monitor` displays all 512 channels in real time. **Live Input** shows values received by scene `ArtNetReceiver` components, while **Rig Output** shows the effective buffer of a selected `DmxRigController`. Rig Output identifies whether the last value applied to the rig came from Timeline Playback, Live Input, or external injection. In Live Input, disable **Monitor All Receivers** to select one receiver. **Pause** freezes only the display, and **Clear DMX Buffers** clears only the monitor's local buffers; neither operation changes fixtures or sends Art-Net data. Enter the raw received Universe number without a one-based offset.
 
 ### Generic Prefab Replacer
 

@@ -506,7 +506,15 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7b40b922ca06459fb97cd33ad2adc1a3, type: 2}
+    - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: 39be37df3c67434d9b913c3383464161, type: 2}
     - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
@@ -661,7 +669,7 @@ MonoBehaviour:
   - {fileID: 2523771333444109262}
   lensMaterialBindings:
   - renderer: {fileID: 2523771333444109262}
-    materialSlot: 0
+    materialSlot: 1
     originalMaterial: {fileID: 2100000, guid: 717a517fcb7038c4fb0c0c974b29b31e, type: 2}
     goboLensMaterial: {fileID: 2100000, guid: 39be37df3c67434d9b913c3383464161, type: 2}
   syncLensToDmx: 1
@@ -1691,8 +1699,15 @@ MonoBehaviour:
   syncFocusToDmx: 1
   focusProfile: {fileID: 0}
   focusInstance: 1
+  focusControlMode: 0
+  overrideFocusControlMode: 0
   focusReferenceDistanceMeters: 10
   focusTarget: {fileID: 0}
+  autoFocusRaycastMaxDistanceMeters: 100
+  autoFocusRaycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  autoFocusDistanceDeadbandMeters: 0.01
   syncFrostToDmx: 1
   frostProfile: {fileID: 0}
   syncIrisToDmx: 1

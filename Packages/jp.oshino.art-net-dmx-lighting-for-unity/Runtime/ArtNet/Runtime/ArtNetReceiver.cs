@@ -26,6 +26,12 @@ namespace ArtNet.Runtime
 
         public event Action<ArtNetData> OnDataReceived;
 
+        /// <summary>
+        /// Invoked from the socket receive thread after a valid Art-Net packet is decoded.
+        /// Subscribers must not call Unity APIs from this callback.
+        /// </summary>
+        public event Action<ArtNetData> OnDataReceivedInBackground;
+
         public bool IsActive => _client != null;
 
         [Header("Logging (Flood Protection)")]
@@ -249,6 +255,7 @@ namespace ArtNet.Runtime
                 try
                 {
                     var result = await _client.ReceiveAsync();
+                    NotifyBackgroundListeners(result.Buffer);
                     _bufferStream?.Enqueue(result.Buffer);
                 }
                 catch (ObjectDisposedException)
@@ -271,6 +278,25 @@ namespace ArtNet.Runtime
                     Interlocked.Increment(ref _otherReceiveErrorCount);
                     _lastReceiveErrorMessage = $"{e.GetType().Name}: {e.Message}";
                 }
+            }
+        }
+
+        private void NotifyBackgroundListeners(byte[] packet)
+        {
+            var handler = OnDataReceivedInBackground;
+            if (handler == null || packet == null || packet.Length < 18 || packet.Length > 530)
+                return;
+
+            try
+            {
+                if (!ArtNetData.IsArtNet(packet))
+                    return;
+
+                handler.Invoke(new ArtNetData(packet));
+            }
+            catch
+            {
+                // Background monitor notifications must never affect normal receiver dispatch.
             }
         }
     }
