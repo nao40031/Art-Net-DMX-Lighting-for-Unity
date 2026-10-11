@@ -19,7 +19,7 @@ namespace ArtNet.Editor
         private enum MonitorSource
         {
             LiveInput,
-            RigOutput,
+            TimelinePlayback,
         }
 
         private const string MenuPath = "Art-Net/Monitoring/DMX Channel Monitor";
@@ -204,7 +204,7 @@ namespace ArtNet.Editor
                 text = "Select an ArtNetReceiver.";
                 color = new Color(0.72f, 0.62f, 0.34f);
             }
-            else if (_monitorSource == MonitorSource.RigOutput && _selectedRig == null)
+            else if (_monitorSource == MonitorSource.TimelinePlayback && _selectedRig == null)
             {
                 text = "Select a DmxRigController.";
                 color = new Color(0.72f, 0.62f, 0.34f);
@@ -333,7 +333,7 @@ namespace ArtNet.Editor
 
         private bool TryGetSelectedSnapshot(out DmxChannelMonitorModel.Snapshot snapshot)
         {
-            if (_monitorSource == MonitorSource.RigOutput)
+            if (_monitorSource == MonitorSource.TimelinePlayback)
             {
                 if (_selectedRig == null)
                 {
@@ -377,7 +377,7 @@ namespace ArtNet.Editor
 
         private void PollRigOutput(double now)
         {
-            if (_monitorSource != MonitorSource.RigOutput || _selectedRig == null)
+            if (_monitorSource != MonitorSource.TimelinePlayback || _selectedRig == null)
                 return;
 
             if (!_selectedRig.TryCopyUniverseBuffer(
@@ -538,7 +538,7 @@ namespace ArtNet.Editor
 
         private void TryAutoSelectRig()
         {
-            if (_monitorSource != MonitorSource.RigOutput || _selectedRig != null)
+            if (_monitorSource != MonitorSource.TimelinePlayback || _selectedRig != null)
                 return;
 
             var rigs = FindObjectsByType<DmxRigController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
