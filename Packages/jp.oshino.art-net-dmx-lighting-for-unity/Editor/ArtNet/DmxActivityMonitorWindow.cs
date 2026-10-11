@@ -291,6 +291,22 @@ namespace ArtNet.Editor
             return labels;
         }
 
+        private static int GetMax(int[] values)
+        {
+            int max = 0;
+            if (values != null)
+                for (int i = 0; i < values.Length; i++) max = Mathf.Max(max, values[i]);
+            return Mathf.Clamp(max, 0, 255);
+        }
+
+        private static int GetMax(byte[] values)
+        {
+            int max = 0;
+            if (values != null)
+                for (int i = 0; i < values.Length; i++) max = Mathf.Max(max, values[i]);
+            return max;
+        }
+
         private readonly struct Frame
         {
             public readonly ArtNetData Data;
