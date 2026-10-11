@@ -311,6 +311,29 @@ namespace ArtNet.Runtime
             }
         }
 
+        /// <summary>
+        /// Gets metadata for an effective Universe buffer without copying its 512 channel values.
+        /// </summary>
+        public bool TryGetUniverseBufferRevision(
+            int universe,
+            out UniverseBufferSource source,
+            out long revision)
+        {
+            lock (_lock)
+            {
+                if (!_universeBuffers.TryGetValue(universe, out var buffer) || buffer == null || buffer.Length < 512)
+                {
+                    source = default;
+                    revision = 0;
+                    return false;
+                }
+
+                _universeBufferSources.TryGetValue(universe, out source);
+                _universeBufferRevisions.TryGetValue(universe, out revision);
+                return true;
+            }
+        }
+
         private void MarkUniverseBufferUpdated(int universe, UniverseBufferSource source)
         {
             _universeBufferSources[universe] = source;
