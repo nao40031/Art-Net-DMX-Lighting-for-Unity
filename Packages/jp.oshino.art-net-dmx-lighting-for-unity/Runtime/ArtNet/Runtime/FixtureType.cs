@@ -47,7 +47,13 @@ namespace ArtNet.Runtime
         SpecialFunction = 18,
         DimmerSpeedMode = 19,
         ColorMacro = 20,
-        Frost = 21
+        Frost = 21,
+        Cyan = 22,
+        Magenta = 23,
+        Yellow = 24,
+        CTC = 25,
+        CTO = 26,
+        CTB = 27
     }
 
     [Serializable]
@@ -86,7 +92,9 @@ namespace ArtNet.Runtime
         FramingBlade = 21,
         FramingModule = 22,
         Control = 23,
-        Fx = 24
+        Fx = 24,
+        CTO = 25,
+        CTB = 26
     }
 
     public enum FixtureChannelRole
@@ -277,13 +285,15 @@ namespace ArtNet.Runtime
     [Serializable]
     public class FixtureWheelBinding
     {
-        [Tooltip("Wheel-like attribute to bind. GoboWheel is supported now; ColorWheel/AnimationWheel can be added later.")]
+        [Tooltip("ホイール属性とInstanceの対応です。\n\nWheel attribute and instance binding.")]
         public FixtureAttribute attribute = FixtureAttribute.GoboWheel;
 
         [Min(1)]
         public int instance = 1;
 
         public GoboWheelProfile goboWheel;
+        [Tooltip("このColor WheelのDMX値と透過色の対応です。\n\nDMX-to-transmission mapping for this color wheel.")]
+        public ColorWheelProfile colorWheel;
     }
 
     [Serializable]
@@ -337,7 +347,7 @@ namespace ArtNet.Runtime
         [Tooltip("Optional CH-by-CH definition. Element 0 is CH1, Element 1 is CH2, and so on.")]
         public List<FixtureChannelElement> elements = new();
 
-        [Tooltip("Wheel definitions bound by Attribute + Instance. Used by GoboWheel slots now.")]
+        [Tooltip("属性とInstanceごとのGobo/Color Wheel定義です。\n\nGobo and color-wheel definitions by attribute and instance.")]
         public List<FixtureWheelBinding> wheelBindings = new();
 
         [Tooltip("Frost AttributeのInstanceと光学プロファイルの対応です。複数段のフロストを個別に定義できます。\n\nMaps Frost Attribute instances to optical profiles. Multiple frost stages can be defined independently.")]
@@ -364,6 +374,8 @@ namespace ArtNet.Runtime
         public FrostProfile frostProfile;
         [Tooltip("この灯体の共通プリズムプロファイルです。Dmx Fixture Component側で個別に上書きできます。\n\nShared prism profile for this fixture. It can be overridden per fixture in Dmx Fixture Component.")]
         public PrismProfile prismProfile;
+        [Tooltip("CMYと色温度フィルターの光学特性です。未設定なら従来の近似色を使用します。\n\nOptical properties of CMY and color-temperature filters. Unset preserves the legacy approximation.")]
+        public ColorMixProfile colorMixProfile;
         [Header("Identity (for humans/logs)")]
         public string manufacturer;
         public string model;

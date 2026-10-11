@@ -1,0 +1,299 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85458bea1a664067851387ca8e03b73b, type: 3}
+  m_Name: MACUltraPerformance_ColorWheelProfile
+  m_EditorClassIdentifier:
+  use16BitRanges: 0
+  ranges:
+  - name: Open to Spectral Enhancement
+    dmxMin: 1
+    dmxMax: 14
+    type: 3
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 0.65, g: 0.403, b: 0.598, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Spectral Enhancement
+    dmxMin: 15
+    dmxMax: 15
+    type: 1
+    colorA: {r: 1, g: 0.62, b: 0.92, a: 1}
+    colorB: {r: 1, g: 0.62, b: 0.92, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 1
+    neutralTransmission: 0.65
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Spectral Enhancement to Blue
+    dmxMin: 16
+    dmxMax: 29
+    type: 3
+    colorA: {r: 0.65, g: 0.403, b: 0.598, a: 1}
+    colorB: {r: 0, g: 0.03526, b: 0.043, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Blue 508 SP
+    dmxMin: 30
+    dmxMax: 30
+    type: 1
+    colorA: {r: 0, g: 0.82, b: 1, a: 1}
+    colorB: {r: 0, g: 0.82, b: 1, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 1
+    neutralTransmission: 0.043
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Blue to Deep Green
+    dmxMin: 31
+    dmxMax: 44
+    type: 3
+    colorA: {r: 0, g: 0.03526, b: 0.043, a: 1}
+    colorB: {r: 0, g: 0.25, b: 0.045, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Deep Green 500-544 SP
+    dmxMin: 45
+    dmxMax: 45
+    type: 1
+    colorA: {r: 0, g: 1, b: 0.18, a: 1}
+    colorB: {r: 0, g: 1, b: 0.18, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 1
+    neutralTransmission: 0.25
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Deep Green to Orange
+    dmxMin: 46
+    dmxMax: 59
+    type: 3
+    colorA: {r: 0, g: 0.25, b: 0.045, a: 1}
+    colorB: {r: 0.24, g: 0.1152, b: 0.0048, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Orange 591 SP
+    dmxMin: 60
+    dmxMax: 60
+    type: 1
+    colorA: {r: 1, g: 0.48, b: 0.02, a: 1}
+    colorB: {r: 1, g: 0.48, b: 0.02, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 1
+    neutralTransmission: 0.24
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Orange to Navy Blue
+    dmxMin: 61
+    dmxMax: 74
+    type: 3
+    colorA: {r: 0.24, g: 0.1152, b: 0.0048, a: 1}
+    colorB: {r: 0.00096, g: 0.0004, b: 0.004, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Navy Blue 440 SP
+    dmxMin: 75
+    dmxMax: 75
+    type: 1
+    colorA: {r: 0.24, g: 0.1, b: 1, a: 1}
+    colorB: {r: 0.24, g: 0.1, b: 1, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 1
+    neutralTransmission: 0.004
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Navy Blue to Deep Red
+    dmxMin: 76
+    dmxMax: 89
+    type: 3
+    colorA: {r: 0.00096, g: 0.0004, b: 0.004, a: 1}
+    colorB: {r: 0.041, g: 0.00082, b: 0.00041, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Deep Red 629 SP
+    dmxMin: 90
+    dmxMax: 90
+    type: 1
+    colorA: {r: 1, g: 0.02, b: 0.01, a: 1}
+    colorB: {r: 1, g: 0.02, b: 0.01, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 1
+    neutralTransmission: 0.041
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Deep Red to Open
+    dmxMin: 91
+    dmxMax: 104
+    type: 3
+    colorA: {r: 0.041, g: 0.00082, b: 0.00041, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Open
+    dmxMin: 105
+    dmxMax: 160
+    type: 1
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 1
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Spectral Enhancement fixed
+    dmxMin: 161
+    dmxMax: 163
+    type: 1
+    colorA: {r: 1, g: 0.62, b: 0.92, a: 1}
+    colorB: {r: 1, g: 0.62, b: 0.92, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 0
+    neutralTransmission: 0.65
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Blue fixed
+    dmxMin: 164
+    dmxMax: 166
+    type: 1
+    colorA: {r: 0, g: 0.82, b: 1, a: 1}
+    colorB: {r: 0, g: 0.82, b: 1, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 0
+    neutralTransmission: 0.043
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Deep Green fixed
+    dmxMin: 167
+    dmxMax: 169
+    type: 1
+    colorA: {r: 0, g: 1, b: 0.18, a: 1}
+    colorB: {r: 0, g: 1, b: 0.18, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 0
+    neutralTransmission: 0.25
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Orange fixed
+    dmxMin: 170
+    dmxMax: 172
+    type: 1
+    colorA: {r: 1, g: 0.48, b: 0.02, a: 1}
+    colorB: {r: 1, g: 0.48, b: 0.02, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 0
+    neutralTransmission: 0.24
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Navy Blue fixed
+    dmxMin: 173
+    dmxMax: 175
+    type: 1
+    colorA: {r: 0.24, g: 0.1, b: 1, a: 1}
+    colorB: {r: 0.24, g: 0.1, b: 1, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 0
+    neutralTransmission: 0.004
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Deep Red fixed
+    dmxMin: 176
+    dmxMax: 178
+    type: 1
+    colorA: {r: 1, g: 0.02, b: 0.01, a: 1}
+    colorB: {r: 1, g: 0.02, b: 0.01, a: 1}
+    splitFraction: 0.5
+    includeInSpin: 0
+    neutralTransmission: 0.041
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Open fixed
+    dmxMin: 179
+    dmxMax: 192
+    type: 0
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Wheel rotation CW fast to slow
+    dmxMin: 193
+    dmxMax: 214
+    type: 4
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 4
+    cyclesPerSecondAtMax: 0.25
+  - name: Wheel stop
+    dmxMin: 215
+    dmxMax: 221
+    type: 7
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0
+    cyclesPerSecondAtMax: 0
+  - name: Wheel rotation CCW slow to fast
+    dmxMin: 222
+    dmxMax: 243
+    type: 5
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0.25
+    cyclesPerSecondAtMax: 4
+  - name: Random color fast
+    dmxMin: 244
+    dmxMax: 247
+    type: 6
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 4
+    cyclesPerSecondAtMax: 4
+  - name: Random color medium
+    dmxMin: 248
+    dmxMax: 251
+    type: 6
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 1.5
+    cyclesPerSecondAtMax: 1.5
+  - name: Random color slow
+    dmxMin: 252
+    dmxMax: 255
+    type: 6
+    colorA: {r: 1, g: 1, b: 1, a: 1}
+    colorB: {r: 1, g: 1, b: 1, a: 1}
+    splitFraction: 0.5
+    neutralTransmission: 1
+    cyclesPerSecondAtMin: 0.4
+    cyclesPerSecondAtMax: 0.4
