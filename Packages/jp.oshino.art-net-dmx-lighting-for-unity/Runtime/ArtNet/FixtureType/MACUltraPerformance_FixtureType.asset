@@ -16,6 +16,7 @@ MonoBehaviour:
   focusProfile: {fileID: 11400000, guid: 70489b07f0d947eb8ded6faf7667dfb3, type: 2}
   frostProfile: {fileID: 11400000, guid: 4b2c8adfda114772b28c2b759f46f106, type: 2}
   prismProfile: {fileID: 11400000, guid: f8c3d2c8b9f62d64f8f6147af148c3ef, type: 2}
+  colorMixProfile: {fileID: 11400000, guid: 2d9d8afcd1b246dba322a2b2539cb5a0, type: 2}
   manufacturer: Martin
   model: MAC Ultra Performance
   revision: Basic 48ch
@@ -480,6 +481,11 @@ MonoBehaviour:
     - attribute: 12
       instance: 1
       goboWheel: {fileID: 11400000, guid: 81439add4a8498f4daf0d9c85f797b35, type: 2}
+      colorWheel: {fileID: 0}
+    - attribute: 11
+      instance: 1
+      goboWheel: {fileID: 0}
+      colorWheel: {fileID: 11400000, guid: b951b3c47c884c5faec22d717d6e7390, type: 2}
     frostBindings:
     - instance: 1
       profile: {fileID: 11400000, guid: 4b2c8adfda114772b28c2b759f46f106, type: 2}

@@ -446,6 +446,10 @@ namespace ArtNet.Runtime
         [InspectorName("Gobo Wheel Profile")]
         [SerializeField] private GoboWheelProfile goboWheel;
 
+        [Tooltip("ModeにColor Wheel Profileがない場合の共通設定です。\n\nFallback color-wheel profile when the mode has no binding.")]
+        [InspectorName("Color Wheel Profile")]
+        [SerializeField] private ColorWheelProfile colorWheel;
+
         [Tooltip("ライトのcookieへゴボを同期します。\nSynchronizes the gobo to the Light cookie.")]
         [SerializeField, HideInInspector] private bool syncLightCookieToGobo = true;
 
@@ -1226,6 +1230,7 @@ namespace ArtNet.Runtime
             MigrateLegacyPrismGoboSpacingMode();
             ResetPanTiltSpeedPresetState();
             ResetShutterStrobeState();
+            ResetColorWheelState();
             ResolveAll(Application.isPlaying);
 
             if (Application.isPlaying)
@@ -1350,6 +1355,7 @@ namespace ArtNet.Runtime
             UpdateFocus();
             UpdatePanTiltMotion();
             UpdateGoboMotion();
+            UpdateColorWheelMotion();
             UpdatePrismMotion();
             UpdateShutterStrobe();
             UpdateLightResponse();
@@ -1582,6 +1588,7 @@ namespace ArtNet.Runtime
             _relativeMap.Clear();
             _elementMap.Clear();
             _goboWheelMap.Clear();
+            ClearColorWheelBindings();
             _resolvedItems.Clear();
             _usesElementMode = false;
             _hasPanTiltSpeedPresetRanges = false;
@@ -1636,6 +1643,8 @@ namespace ArtNet.Runtime
                     absoluteChannel = abs
                 });
             }
+            if (colorWheel != null && _relativeMap.ContainsKey(FixtureFunction.ColorWheel))
+                BindColorWheel(1, colorWheel);
         }
 
         private void BuildElementMapping(FixtureMode md)
@@ -1696,12 +1705,17 @@ namespace ArtNet.Runtime
                 {
                     var binding = md.wheelBindings[i];
                     if (binding == null) continue;
-                    if (binding.goboWheel == null) continue;
-
                     var key = new WheelKey(binding.attribute, binding.instance);
-                    _goboWheelMap[key] = binding.goboWheel;
+                    if (binding.goboWheel != null && binding.attribute == FixtureAttribute.GoboWheel)
+                        _goboWheelMap[key] = binding.goboWheel;
+                    if (binding.colorWheel != null && binding.attribute == FixtureAttribute.ColorWheel &&
+                        HasColorWheelElement(instance: binding.instance))
+                        BindColorWheel(binding.instance, binding.colorWheel);
                 }
             }
+
+            if (colorWheel != null && HasColorWheelElement(1))
+                BindColorWheel(1, colorWheel, false);
 
             ResolveFrostBindings(md);
         }
@@ -2034,6 +2048,10 @@ namespace ArtNet.Runtime
                 }
             }
 
+            rgb = ApplyLegacyColorFilters(rgb, universe512);
+            ReadLegacyColorWheel(universe512);
+            rgb = ApplyColorWheels(rgb);
+
             int goboValue = 0;
             if (TryGetRelativeChannel(FixtureFunction.Gobo, out int goboRel))
                 goboValue = Read8Abs(universe512, startAddress + goboRel - 1);
@@ -2157,6 +2175,10 @@ namespace ArtNet.Runtime
                 }
             }
 
+            rgb = ApplyLegacyColorFilters(rgb, universe512);
+            ReadLegacyColorWheel(universe512);
+            rgb = ApplyColorWheels(rgb);
+
             int goboValue = 0;
             if (TryGetRelativeChannel(FixtureFunction.Gobo, out int goboRel))
                 goboValue = Read8Abs(universe512, startAddress + goboRel - 1);
@@ -2246,6 +2268,8 @@ namespace ArtNet.Runtime
                 : 1f;
 
             Color rgb = ReadElementColor(universe512);
+            ReadColorWheels(universe512);
+            rgb = ApplyColorWheels(rgb);
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
             var panTiltMotion = ResolvePanTiltMotionProfile(hasPanTiltSpeed, panTiltSpeed01);
@@ -2314,6 +2338,8 @@ namespace ArtNet.Runtime
                 : 1f;
 
             Color rgb = ReadElementColor(universe512);
+            ReadColorWheels(universe512);
+            rgb = ApplyColorWheels(rgb);
 
             bool hasPanTiltSpeed = TryReadElement01(universe512, FixtureAttribute.Pan, 1, FixtureChannelRole.Speed, out float panTiltSpeed01);
             var panTiltMotion = ResolvePanTiltMotionProfile(hasPanTiltSpeed, panTiltSpeed01);
@@ -3052,6 +3078,7 @@ namespace ArtNet.Runtime
 
         private Color ReadElementColor(int[] universe512)
         {
+            ColorMixProfile profile = fixture != null ? fixture.colorMixProfile : null;
             bool hasC = TryReadElement01(universe512, FixtureAttribute.Cyan, 1, FixtureChannelRole.Value, out float c);
             bool hasM = TryReadElement01(universe512, FixtureAttribute.Magenta, 1, FixtureChannelRole.Value, out float m);
             bool hasY = TryReadElement01(universe512, FixtureAttribute.Yellow, 1, FixtureChannelRole.Value, out float y);
@@ -3059,7 +3086,9 @@ namespace ArtNet.Runtime
             Color rgb;
             if (hasC || hasM || hasY)
             {
-                rgb = new Color(1f - (hasC ? c : 0f), 1f - (hasM ? m : 0f), 1f - (hasY ? y : 0f), 1f);
+                rgb = profile != null
+                    ? profile.EvaluateCmy(hasC ? c : 0f, hasM ? m : 0f, hasY ? y : 0f)
+                    : new Color(1f - (hasC ? c : 0f), 1f - (hasM ? m : 0f), 1f - (hasY ? y : 0f), 1f);
             }
             else
             {
@@ -3073,13 +3102,18 @@ namespace ArtNet.Runtime
                 rgb += Color.white * w;
 
             if (TryReadElement01(universe512, FixtureAttribute.CTC, 1, FixtureChannelRole.Value, out float ctc01))
-                rgb = ApplyCtcApproximation(rgb, ctc01);
+                rgb = MultiplyColor(rgb, profile != null ? profile.EvaluateTemperature(FixtureAttribute.CTC, ctc01) : ApplyCtcApproximation(Color.white, ctc01));
+            if (TryReadElement01(universe512, FixtureAttribute.CTO, 1, FixtureChannelRole.Value, out float cto01))
+                rgb = MultiplyColor(rgb, profile != null ? profile.EvaluateTemperature(FixtureAttribute.CTO, cto01) : ApplyCtcApproximation(Color.white, cto01));
+            if (TryReadElement01(universe512, FixtureAttribute.CTB, 1, FixtureChannelRole.Value, out float ctb01))
+                rgb = MultiplyColor(rgb, profile != null ? profile.EvaluateTemperature(FixtureAttribute.CTB, ctb01) : Color.Lerp(Color.white, new Color(0.65f, 0.82f, 1f), Mathf.Clamp01(ctb01)));
 
             return ClampColor(rgb);
         }
 
         private Color ReadElementColor(byte[] universe512)
         {
+            ColorMixProfile profile = fixture != null ? fixture.colorMixProfile : null;
             bool hasC = TryReadElement01(universe512, FixtureAttribute.Cyan, 1, FixtureChannelRole.Value, out float c);
             bool hasM = TryReadElement01(universe512, FixtureAttribute.Magenta, 1, FixtureChannelRole.Value, out float m);
             bool hasY = TryReadElement01(universe512, FixtureAttribute.Yellow, 1, FixtureChannelRole.Value, out float y);
@@ -3087,7 +3121,9 @@ namespace ArtNet.Runtime
             Color rgb;
             if (hasC || hasM || hasY)
             {
-                rgb = new Color(1f - (hasC ? c : 0f), 1f - (hasM ? m : 0f), 1f - (hasY ? y : 0f), 1f);
+                rgb = profile != null
+                    ? profile.EvaluateCmy(hasC ? c : 0f, hasM ? m : 0f, hasY ? y : 0f)
+                    : new Color(1f - (hasC ? c : 0f), 1f - (hasM ? m : 0f), 1f - (hasY ? y : 0f), 1f);
             }
             else
             {
@@ -3101,7 +3137,11 @@ namespace ArtNet.Runtime
                 rgb += Color.white * w;
 
             if (TryReadElement01(universe512, FixtureAttribute.CTC, 1, FixtureChannelRole.Value, out float ctc01))
-                rgb = ApplyCtcApproximation(rgb, ctc01);
+                rgb = MultiplyColor(rgb, profile != null ? profile.EvaluateTemperature(FixtureAttribute.CTC, ctc01) : ApplyCtcApproximation(Color.white, ctc01));
+            if (TryReadElement01(universe512, FixtureAttribute.CTO, 1, FixtureChannelRole.Value, out float cto01))
+                rgb = MultiplyColor(rgb, profile != null ? profile.EvaluateTemperature(FixtureAttribute.CTO, cto01) : ApplyCtcApproximation(Color.white, cto01));
+            if (TryReadElement01(universe512, FixtureAttribute.CTB, 1, FixtureChannelRole.Value, out float ctb01))
+                rgb = MultiplyColor(rgb, profile != null ? profile.EvaluateTemperature(FixtureAttribute.CTB, ctb01) : Color.Lerp(Color.white, new Color(0.65f, 0.82f, 1f), Mathf.Clamp01(ctb01)));
 
             return ClampColor(rgb);
         }
@@ -3116,6 +3156,11 @@ namespace ArtNet.Runtime
         private static Color ClampColor(Color color)
         {
             return new Color(Mathf.Clamp01(color.r), Mathf.Clamp01(color.g), Mathf.Clamp01(color.b), 1f);
+        }
+
+        private static Color MultiplyColor(Color a, Color b)
+        {
+            return new Color(a.r * b.r, a.g * b.g, a.b * b.b, 1f);
         }
 
         private GoboWheelProfile ResolveGoboWheelProfile(int instance)
@@ -3344,6 +3389,7 @@ namespace ArtNet.Runtime
             _hasDmxTargets = true;
             _targetDimmer01 = 0f;
             _targetColor = Color.white;
+            ResetColorWheelState();
             _lensTargetDimmer01 = 0f;
             _lightTargetDimmer01 = 0f;
             _currentLensDimmer01 = 0f;
