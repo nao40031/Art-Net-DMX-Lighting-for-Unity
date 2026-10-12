@@ -334,6 +334,24 @@ namespace ArtNet.Runtime
             }
         }
 
+        /// <summary>Copies Universe numbers with a current buffer revision into a reusable list.</summary>
+        public void CopyActiveUniverseNumbers(List<int> destination)
+        {
+            if (destination == null)
+                throw new ArgumentNullException(nameof(destination));
+
+            destination.Clear();
+            if (!isActiveAndEnabled) return;
+            lock (_lock)
+            {
+                foreach (var pair in _universeBufferRevisions)
+                {
+                    if (_universeBuffers.TryGetValue(pair.Key, out var buffer) && buffer != null && buffer.Length >= 512)
+                        destination.Add(pair.Key);
+                }
+            }
+        }
+
         private void MarkUniverseBufferUpdated(int universe, UniverseBufferSource source)
         {
             _universeBufferSources[universe] = source;
