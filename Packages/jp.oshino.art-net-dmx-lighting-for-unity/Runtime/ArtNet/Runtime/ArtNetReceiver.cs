@@ -15,6 +15,7 @@ using UnityEngine;
 
 namespace ArtNet.Runtime
 {
+    [ExecuteAlways]
     public class ArtNetReceiver : MonoBehaviour, IDisposable
     {
         [Header("ArtNet Settings")]
@@ -23,6 +24,10 @@ namespace ArtNet.Runtime
 
         [Tooltip("Art-Net UDPポート（通常 6454）\nArt-Net UDP port (normally 6454).")]
         public int port = 6454;
+
+        [Header("Edit Mode")]
+        [Tooltip("EditモードでもArt-Netを受信します。既定では無効です。使用後は無効に戻してください。\nReceives Art-Net in Edit Mode. Disabled by default. Turn it off when you finish monitoring.")]
+        [SerializeField] private bool receiveInEditMode;
 
         public event Action<ArtNetData> OnDataReceived;
 
@@ -33,6 +38,52 @@ namespace ArtNet.Runtime
         public event Action<ArtNetData> OnDataReceivedInBackground;
 
         public bool IsActive => _client != null;
+        public bool ReceivesInEditMode => receiveInEditMode;
+
+        /// <summary>
+        /// A main-thread snapshot of receiver status and packet counters since the socket was opened.
+        /// </summary>
+        public readonly struct ReceiveStatistics
+        {
+            public readonly bool IsActive;
+            public readonly int LocalPort;
+            public readonly string LastSenderAddress;
+            public readonly int LastSenderPort;
+            public readonly long ReceivedPacketCount;
+            public readonly long ValidArtNetPacketCount;
+            public readonly long InvalidPacketCount;
+            public readonly long ReceiveErrorCount;
+
+            internal ReceiveStatistics(
+                bool isActive,
+                int localPort,
+                string lastSenderAddress,
+                int lastSenderPort,
+                long receivedPacketCount,
+                long validArtNetPacketCount,
+                long invalidPacketCount,
+                long receiveErrorCount)
+            {
+                IsActive = isActive;
+                LocalPort = localPort;
+                LastSenderAddress = lastSenderAddress;
+                LastSenderPort = lastSenderPort;
+                ReceivedPacketCount = receivedPacketCount;
+                ValidArtNetPacketCount = validArtNetPacketCount;
+                InvalidPacketCount = invalidPacketCount;
+                ReceiveErrorCount = receiveErrorCount;
+            }
+        }
+
+        public ReceiveStatistics Statistics => new ReceiveStatistics(
+            IsActive,
+            _port,
+            Volatile.Read(ref _lastSenderAddress),
+            Volatile.Read(ref _lastSenderPort),
+            Interlocked.Read(ref _receivedPacketCount),
+            _validArtNetPacketCount,
+            _invalidPacketCount,
+            Volatile.Read(ref _socketErrorCount) + Volatile.Read(ref _otherReceiveErrorCount));
 
         [Header("Logging (Flood Protection)")]
         [Tooltip("無効パケット（短い/Art-Net以外/長すぎる/Parse失敗）を一定間隔でまとめてログ表示します\nLogs invalid packets (too short, non-Art-Net, too long, or parse failures) in periodic summaries.")]
@@ -50,7 +101,12 @@ namespace ArtNet.Runtime
         private UdpClient _client;
         private CancellationTokenSource _cts;
         private int _port;
-        private ConcurrentQueue<byte[]> _bufferStream;
+        private ConcurrentQueue<ReceivedPacket> _bufferStream;
+        private string _lastSenderAddress;
+        private int _lastSenderPort;
+        private long _receivedPacketCount;
+        private long _validArtNetPacketCount;
+        private long _invalidPacketCount;
 
         // ---- invalid packet counters (main thread: Update) ----
         private int _dropTooShort;
@@ -73,7 +129,7 @@ namespace ArtNet.Runtime
             if (_client != null) return;
 
             _port = port;
-            _bufferStream = new ConcurrentQueue<byte[]>();
+            _bufferStream = new ConcurrentQueue<ReceivedPacket>();
 
             // counters reset
             _dropTooShort = 0;
@@ -82,6 +138,11 @@ namespace ArtNet.Runtime
             _parseOrDispatchFailed = 0;
             _lastInvalidLen = 0;
             _lastInvalidReason = null;
+            _lastSenderAddress = null;
+            _lastSenderPort = 0;
+            _receivedPacketCount = 0;
+            _validArtNetPacketCount = 0;
+            _invalidPacketCount = 0;
 
             _socketErrorCount = 0;
             _otherReceiveErrorCount = 0;
@@ -113,12 +174,25 @@ namespace ArtNet.Runtime
             _cts = null;
         }
 
-        private void OnEnable() => Open();
+        private void OnEnable()
+        {
+            if (ShouldReceive)
+                Open();
+        }
         private void OnDisable() => Close();
         private void OnApplicationQuit() => Close();
 
         private void Update()
         {
+            if (!ShouldReceive)
+            {
+                Close();
+                return;
+            }
+
+            if (_client == null)
+                Open();
+
             // ポート変更検知：一旦閉じて開き直す
             if (port != _port)
             {
@@ -130,8 +204,9 @@ namespace ArtNet.Runtime
             FlushReceiveLoopErrorsIfNeeded();
 
             // パケット処理
-            while (_bufferStream != null && _bufferStream.TryDequeue(out var packet))
+            while (_bufferStream != null && _bufferStream.TryDequeue(out var receivedPacket))
             {
+                byte[] packet = receivedPacket.Buffer;
                 if (packet == null)
                 {
                     CountInvalid("packet is null", 0);
@@ -163,11 +238,15 @@ namespace ArtNet.Runtime
                 try
                 {
                     var data = new ArtNetData(packet); // 解析は ArtNetData 側
+                    Volatile.Write(ref _lastSenderAddress, receivedPacket.SenderAddress);
+                    Volatile.Write(ref _lastSenderPort, receivedPacket.SenderPort);
+                    _validArtNetPacketCount++;
                     OnDataReceived?.Invoke(data);      // 受信側は通知のみ
                 }
                 catch (Exception e)
                 {
                     _parseOrDispatchFailed++;
+                    _invalidPacketCount++;
                     _lastInvalidReason = $"parse/dispatch failed: {e.GetType().Name}";
                     _lastInvalidLen = packet.Length;
                 }
@@ -183,6 +262,7 @@ namespace ArtNet.Runtime
 
         private void CountInvalid(string reason, int len, InvalidKind kind = InvalidKind.Other)
         {
+            _invalidPacketCount++;
             switch (kind)
             {
                 case InvalidKind.TooShort: _dropTooShort++; break;
@@ -255,8 +335,16 @@ namespace ArtNet.Runtime
                 try
                 {
                     var result = await _client.ReceiveAsync();
+                    Interlocked.Increment(ref _receivedPacketCount);
+                    string senderAddress = result.RemoteEndPoint?.Address.ToString();
+                    int senderPort = result.RemoteEndPoint?.Port ?? 0;
+                    Volatile.Write(ref _lastSenderAddress, senderAddress);
+                    Volatile.Write(ref _lastSenderPort, senderPort);
                     NotifyBackgroundListeners(result.Buffer);
-                    _bufferStream?.Enqueue(result.Buffer);
+                    _bufferStream?.Enqueue(new ReceivedPacket(
+                        result.Buffer,
+                        senderAddress,
+                        senderPort));
                 }
                 catch (ObjectDisposedException)
                 {
@@ -297,6 +385,22 @@ namespace ArtNet.Runtime
             catch
             {
                 // Background monitor notifications must never affect normal receiver dispatch.
+            }
+        }
+
+        private bool ShouldReceive => Application.isPlaying || receiveInEditMode;
+
+        private readonly struct ReceivedPacket
+        {
+            public readonly byte[] Buffer;
+            public readonly string SenderAddress;
+            public readonly int SenderPort;
+
+            public ReceivedPacket(byte[] buffer, string senderAddress, int senderPort)
+            {
+                Buffer = buffer;
+                SenderAddress = senderAddress;
+                SenderPort = senderPort;
             }
         }
     }

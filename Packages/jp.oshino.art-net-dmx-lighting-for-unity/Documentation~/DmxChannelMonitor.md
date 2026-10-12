@@ -13,26 +13,29 @@ Do not begin phase two until the MVP has been checked with real Art-Net input an
 
 ## 第2弾の残タスク
 
-1. Activity Monitor: Universe範囲の非ゼロDMX値を一覧表示し、Live InputとRig Outputを切り替えられるようにする。
-2. チャンネル履歴: 値の変化と受信時刻を短時間だけ追跡できるグラフまたはタイムラインを追加する。
-3. 送信元情報: Art-Net送信元IP／ポートとReceiverごとの統計を表示する。
-4. Output監視の拡張: 複数Rig、外部注入、出力送信機を明確に区別する。
-5. Edit Mode独立受信: Play Mode外でも安全に監視できる受信ライフサイクルを検討する。
+1. 完了: Activity Monitor: Universe範囲の非ゼロDMX値を一覧表示し、Live InputとTimeline Playbackを切り替える。
+2. 完了: チャンネル履歴: 選択したチャンネルの直近10秒の値を短時間だけ追跡できるグラフを追加する。
+3. 完了: 送信元情報: Art-Net送信元IP／ポートとReceiverごとの統計をChannel Monitorに表示する。
+4. 完了: Output監視の拡張: All Rigs、Live Input、Timeline Playback、外部注入、ArtNetSender出力を区別する。
+5. 完了: Edit Mode独立受信: Receiverの明示的なオプトイン設定で、Play Mode外でも安全に監視する。
 
-Phase two backlog: Activity Monitor with Live Input/Rig Output selection, a short channel-history view, sender IP/port and receiver statistics, expanded output-source monitoring, and safe Edit Mode reception.
+Completed in phase two: Activity Monitor, channel history, receiver source statistics, output-source monitoring, and opt-in Edit Mode reception. Sender Output is available in both monitors; All Rigs is available in the Channel Monitor.
 
 ## MVPの範囲
 
 - `Art-Net > Monitoring > DMX Channel Monitor` から開くEditorWindow
-- `Live Input` はPlay Mode中の `ArtNetReceiver.OnDataReceived` を購読
-- `Rig Output` は選択した `DmxRigController` の有効Universeバッファを表示。Timeline Playback、Live Input、外部注入のうち、最後にリグへ反映された値とその更新元を確認できる
+- `Live Input` は `ArtNetReceiver.OnDataReceived` を購読し、送信元IP／ポートと受信統計を表示
+- `Timeline Playback` は選択した `DmxRigController`、またはAll Rigsの有効Universeバッファを表示。Timeline Playback、Live Input、外部注入のうち、最後にリグへ反映された値とその更新元を確認できる
+- `Sender Output` は選択した `ArtNetSender` が実送信したDMXフレームを監視
+- Edit ModeでのLive Input監視は、Receiverの `Receive In Edit Mode` を明示的に有効にした場合のみ動作
 - 32列×16行で512チャンネルを表示
 - すべてのReceiver、または指定Receiverを監視
 - 生のUniverse番号を選択
 - Pause、Clear DMX Buffers、受信状態とパケット情報
+- 選択チャンネルの直近10秒の履歴グラフ
 - Clearはモニター内部だけを消去し、Fixtureやネットワーク出力を変更しない
 
-The Editor-only monitor supports two non-mutating sources. `Live Input` observes existing receivers. `Rig Output` copies the selected rig's effective Universe buffer, including Timeline Playback values. Neither source modifies runtime routing, fixture state, or Art-Net output.
+The Editor-only monitors support non-mutating Live Input, Timeline Playback, and Sender Output sources. Live Input observes existing receivers, Timeline Playback copies effective rig buffers, and Sender Output observes packets already sent by ArtNetSender. Neither monitor modifies runtime routing, fixture state, or Art-Net output.
 
 ## 現在の自動検証
 
