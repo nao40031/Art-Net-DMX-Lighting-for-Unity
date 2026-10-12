@@ -8,7 +8,7 @@ namespace ArtNet.Editor
 {
     internal sealed class DmxActivityMonitorWindow : EditorWindow
     {
-        private enum SourceMode { LiveInput, TimelinePlayback }
+        private enum SourceMode { LiveInput, TimelinePlayback, SenderOutput }
 
         private const float ToolbarHeight = 84f;
         private const float UniverseColumnWidth = 72f;
@@ -20,10 +20,12 @@ namespace ArtNet.Editor
         private static readonly string[] ValueLabels = BuildLabels(256, 0);
         [SerializeField] private SourceMode _sourceMode;
         [SerializeField] private DmxRigController _rig;
+        [SerializeField] private ArtNetSender _sender;
         [SerializeField] private int _startUniverse;
         [SerializeField] private int _universeCount = DefaultUniverseCount;
 
         private readonly Dictionary<ArtNetReceiver, Action<ArtNetData>> _subscriptions = new Dictionary<ArtNetReceiver, Action<ArtNetData>>();
+        private readonly Dictionary<ArtNetSender, Action<ArtNetData>> _senderSubscriptions = new Dictionary<ArtNetSender, Action<ArtNetData>>();
         private readonly Dictionary<int, Frame> _liveFrames = new Dictionary<int, Frame>();
         private readonly Dictionary<int, long> _liveRevisions = new Dictionary<int, long>();
         private readonly Dictionary<int, long> _rigRevisions = new Dictionary<int, long>();
@@ -61,6 +63,7 @@ namespace ArtNet.Editor
             foreach (var pair in _subscriptions)
                 if (pair.Key != null) pair.Key.OnDataReceived -= pair.Value;
             _subscriptions.Clear();
+            RemoveSenderSubscriptions();
         }
 
         private void OnGUI()
@@ -75,7 +78,7 @@ namespace ArtNet.Editor
             EditorGUI.DrawRect(new Rect(0f, 0f, position.width, ToolbarHeight), EditorGUIUtility.isProSkin ? new Color(.075f, .075f, .075f) : new Color(.76f, .76f, .76f));
             float x = 10f;
             EditorGUI.LabelField(new Rect(x, 8f, 42f, 20f), "Mode"); x += 44f;
-            var mode = (SourceMode)EditorGUI.EnumPopup(new Rect(x, 8f, 105f, 20f), _sourceMode); x += 115f;
+            var mode = (SourceMode)EditorGUI.EnumPopup(new Rect(x, 8f, 138f, 20f), _sourceMode); x += 148f;
             if (mode != _sourceMode) { _sourceMode = mode; ResetActivityCache(); RefreshSubscriptions(); TryAutoSelectRig(); }
             if (_sourceMode == SourceMode.TimelinePlayback)
             {
@@ -83,6 +86,12 @@ namespace ArtNet.Editor
                 var rig = (DmxRigController)EditorGUI.ObjectField(new Rect(x, 8f, 210f, 20f), _rig, typeof(DmxRigController), true);
                 if (rig != _rig) { _rig = rig; ResetActivityCache(); }
                 x += 220f;
+            }
+            else if (_sourceMode == SourceMode.SenderOutput)
+            {
+                EditorGUI.LabelField(new Rect(x, 8f, 46f, 20f), "Sender"); x += 48f;
+                var sender = (ArtNetSender)EditorGUI.ObjectField(new Rect(x, 8f, 210f, 20f), _sender, typeof(ArtNetSender), true);
+                if (sender != _sender) { _sender = sender; ResetActivityCache(); RefreshSubscriptions(); }
             }
             x = 10f;
             EditorGUI.LabelField(new Rect(x, 36f, 32f, 20f), "Start"); x += 34f;
@@ -151,6 +160,7 @@ namespace ArtNet.Editor
             if (EditorApplication.timeSinceStartup < _nextRefreshAt) return;
             _nextRefreshAt = EditorApplication.timeSinceStartup + RefreshInterval;
             TryAutoSelectRig();
+            TryAutoSelectSender();
             if (RefreshActiveChannels()) Repaint();
         }
 
@@ -231,7 +241,8 @@ namespace ArtNet.Editor
 
         private void RefreshSubscriptions()
         {
-            if (_sourceMode == SourceMode.TimelinePlayback) { RemoveSubscriptions(); return; }
+            if (_sourceMode == SourceMode.TimelinePlayback) { RemoveSubscriptions(); RemoveSenderSubscriptions(); return; }
+            if (_sourceMode == SourceMode.SenderOutput) { RemoveSubscriptions(); RefreshSenderSubscriptions(); return; }
             var receivers = FindObjectsByType<ArtNetReceiver>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             var wanted = new HashSet<ArtNetReceiver>(receivers);
             var remove = new List<ArtNetReceiver>();
@@ -248,6 +259,7 @@ namespace ArtNet.Editor
                 receiver.OnDataReceived += handler;
                 _subscriptions.Add(receiver, handler);
             }
+            RemoveSenderSubscriptions();
         }
 
         private void RemoveSubscriptions()
@@ -256,11 +268,42 @@ namespace ArtNet.Editor
             _subscriptions.Clear();
         }
 
+        private void RefreshSenderSubscriptions()
+        {
+            RemoveSenderSubscriptions();
+            TryAutoSelectSender();
+            if (_sender == null)
+                return;
+
+            ArtNetSender capturedSender = _sender;
+            Action<ArtNetData> handler = data =>
+            {
+                if (data.OpCode == ArtNetOpCode.OpDmx && data.Channels != null)
+                    _liveFrames[data.Universe] = new Frame(data, ++_nextLiveFrameRevision);
+            };
+            capturedSender.OnDataSent += handler;
+            _senderSubscriptions.Add(capturedSender, handler);
+        }
+
+        private void RemoveSenderSubscriptions()
+        {
+            foreach (var pair in _senderSubscriptions)
+                if (pair.Key != null) pair.Key.OnDataSent -= pair.Value;
+            _senderSubscriptions.Clear();
+        }
+
         private void TryAutoSelectRig()
         {
             if (_sourceMode != SourceMode.TimelinePlayback || _rig != null) return;
             var rigs = FindObjectsByType<DmxRigController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             if (rigs.Length == 1) _rig = rigs[0];
+        }
+
+        private void TryAutoSelectSender()
+        {
+            if (_sourceMode != SourceMode.SenderOutput || _sender != null) return;
+            var senders = FindObjectsByType<ArtNetSender>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            if (senders.Length == 1) _sender = senders[0];
         }
 
         private bool RemoveActiveUniverse(int universe)

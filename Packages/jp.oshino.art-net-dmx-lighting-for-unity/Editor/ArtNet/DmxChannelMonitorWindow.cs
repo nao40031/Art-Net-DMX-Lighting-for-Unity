@@ -20,6 +20,7 @@ namespace ArtNet.Editor
         {
             LiveInput,
             TimelinePlayback,
+            SenderOutput,
         }
 
         private const string MenuPath = "Art-Net/Monitoring/DMX Channel Monitor";
@@ -34,9 +35,13 @@ namespace ArtNet.Editor
         private const float GridPadding = 6f;
         private const int ColumnCount = 32;
         private const int RowCount = 16;
+        private const float HistoryHeight = 96f;
+        private const int HistorySampleCapacity = 180;
         private const double RepaintInterval = 1d / 30d;
         private const double ReceiverRefreshInterval = 1d;
         private const double StaleAfterSeconds = 1d;
+        private const double HistorySampleInterval = 1d / 15d;
+        private const double HistoryDurationSeconds = 10d;
 
         private static readonly string[] ChannelLabels = BuildNumberLabels(DmxChannelMonitorModel.ChannelCount, 1);
         private static readonly string[] ValueLabels = BuildNumberLabels(256, 0);
@@ -45,27 +50,40 @@ namespace ArtNet.Editor
         [SerializeField] private ArtNetReceiver _selectedReceiver;
         [SerializeField] private MonitorSource _monitorSource;
         [SerializeField] private DmxRigController _selectedRig;
+        [SerializeField] private bool _monitorAllRigs;
+        [SerializeField] private ArtNetSender _selectedSender;
         [SerializeField] private int _selectedUniverse;
         [SerializeField] private bool _paused;
+        [SerializeField] private int _historyChannel = 1;
 
         private readonly Dictionary<ArtNetReceiver, Action<ArtNetData>> _subscriptions =
             new Dictionary<ArtNetReceiver, Action<ArtNetData>>();
         private readonly Dictionary<ArtNetReceiver, Action<ArtNetData>> _backgroundSubscriptions =
             new Dictionary<ArtNetReceiver, Action<ArtNetData>>();
+        private readonly Dictionary<ArtNetSender, Action<ArtNetData>> _senderSubscriptions =
+            new Dictionary<ArtNetSender, Action<ArtNetData>>();
         private readonly HashSet<ArtNetReceiver> _desiredReceivers = new HashSet<ArtNetReceiver>();
         private readonly List<ArtNetReceiver> _receiverScratch = new List<ArtNetReceiver>();
+        private readonly List<DmxRigController> _availableRigs = new List<DmxRigController>();
         private readonly ConcurrentDictionary<LiveFrameKey, PendingLiveFrame> _pendingLiveFrames =
             new ConcurrentDictionary<LiveFrameKey, PendingLiveFrame>();
         private readonly byte[] _displayChannels = new byte[DmxChannelMonitorModel.ChannelCount];
         private readonly byte[] _rigChannels = new byte[DmxChannelMonitorModel.ChannelCount];
+        private readonly HistorySample[] _historySamples = new HistorySample[HistorySampleCapacity];
 
         private DmxChannelMonitorModel _model;
         private Vector2 _scrollPosition;
         private GUIStyle _channelStyle;
         private GUIStyle _valueStyle;
         private GUIStyle _statusStyle;
+        private GUIStyle _historyAxisStyle;
         private double _nextRepaintAt;
         private double _nextReceiverRefreshAt;
+        private double _nextHistorySampleAt;
+        private int _historySampleStart;
+        private int _historySampleCount;
+        private int _historySourceId = int.MinValue;
+        private int _historyUniverse = -1;
 
         [MenuItem(MenuPath)]
         private static void Open()
@@ -100,7 +118,10 @@ namespace ArtNet.Editor
         {
             EnsureStyles();
             DrawToolbar();
-            DrawChannelGrid(new Rect(0f, ToolbarHeight, position.width, Mathf.Max(0f, position.height - ToolbarHeight)));
+            float historyHeight = Mathf.Min(HistoryHeight, Mathf.Max(0f, position.height - ToolbarHeight - 120f));
+            float historyY = position.height - historyHeight;
+            DrawChannelGrid(new Rect(0f, ToolbarHeight, position.width, Mathf.Max(0f, historyY - ToolbarHeight)));
+            DrawHistory(new Rect(0f, historyY, position.width, historyHeight));
         }
 
         private void DrawToolbar()
@@ -116,15 +137,16 @@ namespace ArtNet.Editor
             EditorGUI.LabelField(new Rect(x, rowOneY, 42f, controlHeight), "Mode");
             x += 44f;
             var monitorSource = (MonitorSource)EditorGUI.EnumPopup(
-                new Rect(x, rowOneY, 108f, controlHeight), _monitorSource);
+                new Rect(x, rowOneY, 138f, controlHeight), _monitorSource);
             if (monitorSource != _monitorSource)
             {
                 _monitorSource = monitorSource;
                 RefreshReceiverSubscriptions();
                 _model.Clear();
+                ResetHistory();
                 TryAutoSelectRig();
             }
-            x += 118f;
+            x += 148f;
 
             if (_monitorSource == MonitorSource.LiveInput)
             {
@@ -145,28 +167,65 @@ namespace ArtNet.Editor
                     {
                         _selectedReceiver = receiver;
                         RefreshReceiverSubscriptions();
+                        ResetHistory();
                     }
                 }
                 x += 200f;
             }
             else
             {
-                EditorGUI.LabelField(new Rect(x, rowOneY, 24f, controlHeight), "Rig");
-                x += 26f;
-                var rig = (DmxRigController)EditorGUI.ObjectField(
-                    new Rect(x, rowOneY, 255f, controlHeight), _selectedRig, typeof(DmxRigController), true);
-                if (rig != _selectedRig)
+                if (_monitorSource == MonitorSource.SenderOutput)
                 {
-                    _selectedRig = rig;
-                    _model.Clear();
+                    EditorGUI.LabelField(new Rect(x, rowOneY, 46f, controlHeight), "Sender");
+                    x += 48f;
+                    var sender = (ArtNetSender)EditorGUI.ObjectField(
+                        new Rect(x, rowOneY, 231f, controlHeight), _selectedSender, typeof(ArtNetSender), true);
+                    if (sender != _selectedSender)
+                    {
+                        _selectedSender = sender;
+                        _model.Clear();
+                        ResetHistory();
+                        RefreshReceiverSubscriptions();
+                    }
+                    x += 241f;
                 }
-                x += 265f;
+                else
+                {
+                    bool monitorAllRigs = EditorGUI.ToggleLeft(
+                        new Rect(x, rowOneY, 72f, controlHeight), "All Rigs", _monitorAllRigs);
+                    if (monitorAllRigs != _monitorAllRigs)
+                    {
+                        _monitorAllRigs = monitorAllRigs;
+                        _model.Clear();
+                        ResetHistory();
+                    }
+                    x += 74f;
+                    EditorGUI.LabelField(new Rect(x, rowOneY, 24f, controlHeight), "Rig");
+                    x += 26f;
+                    using (new EditorGUI.DisabledScope(_monitorAllRigs))
+                    {
+                        var rig = (DmxRigController)EditorGUI.ObjectField(
+                            new Rect(x, rowOneY, 180f, controlHeight), _selectedRig, typeof(DmxRigController), true);
+                        if (rig != _selectedRig)
+                        {
+                            _selectedRig = rig;
+                            _model.Clear();
+                            ResetHistory();
+                        }
+                    }
+                    x += 190f;
+                }
             }
 
             EditorGUI.LabelField(new Rect(x, rowOneY, 86f, controlHeight), "Local Universe");
             x += 88f;
             int universe = EditorGUI.IntField(new Rect(x, rowOneY, 62f, controlHeight), _selectedUniverse);
-            _selectedUniverse = Mathf.Clamp(universe, 0, 32767);
+            int selectedUniverse = Mathf.Clamp(universe, 0, 32767);
+            if (selectedUniverse != _selectedUniverse)
+            {
+                _selectedUniverse = selectedUniverse;
+                ResetHistory();
+            }
             x += 72f;
 
             string pauseLabel = _paused ? "Resume" : "Pause";
@@ -182,6 +241,7 @@ namespace ArtNet.Editor
             {
                 _model.Clear();
                 Array.Clear(_displayChannels, 0, _displayChannels.Length);
+                ResetHistory();
                 Repaint();
             }
 
@@ -194,7 +254,7 @@ namespace ArtNet.Editor
 
             string text;
             Color color;
-            if (!EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying && (_monitorSource != MonitorSource.LiveInput || !HasEditModeReceiver()))
             {
                 text = "Start Play Mode to monitor incoming ArtDMX.";
                 color = new Color(0.62f, 0.62f, 0.62f);
@@ -204,9 +264,14 @@ namespace ArtNet.Editor
                 text = "Select an ArtNetReceiver.";
                 color = new Color(0.72f, 0.62f, 0.34f);
             }
-            else if (_monitorSource == MonitorSource.TimelinePlayback && _selectedRig == null)
+            else if (_monitorSource == MonitorSource.TimelinePlayback && !_monitorAllRigs && _selectedRig == null)
             {
                 text = "Select a DmxRigController.";
+                color = new Color(0.72f, 0.62f, 0.34f);
+            }
+            else if (_monitorSource == MonitorSource.SenderOutput && _selectedSender == null)
+            {
+                text = "Select an ArtNetSender.";
                 color = new Color(0.72f, 0.62f, 0.34f);
             }
             else if (!TryGetSelectedSnapshot(out var snapshot))
@@ -221,8 +286,14 @@ namespace ArtNet.Editor
                 string frameDetails = snapshot.IsRigOutput
                     ? $"Updates: {snapshot.PacketsPerSecond:0.0}/s   Revision: {snapshot.Revision}"
                     : $"RX: {snapshot.PacketsPerSecond:0.0}/s   Seq: {snapshot.Sequence}   Phys: {snapshot.Physical}";
+                string receiverDetails = string.Empty;
+                if (!snapshot.IsRigOutput && TryGetReceiver(snapshot.SourceId, out var receiver))
+                {
+                    ArtNetReceiver.ReceiveStatistics statistics = receiver.Statistics;
+                    receiverDetails = $"   Packets: {statistics.ReceivedPacketCount}   Invalid: {statistics.InvalidPacketCount}";
+                }
                 text = $"{state}   Source: {snapshot.SourceName}   {frameDetails}   " +
-                       $"Last: {age:0.00}s   Length: {snapshot.Length}";
+                       $"Last: {age:0.00}s   Length: {snapshot.Length}{receiverDetails}";
                 color = _paused
                     ? new Color(0.52f, 0.68f, 0.86f)
                     : age <= StaleAfterSeconds
@@ -293,12 +364,83 @@ namespace ArtNet.Editor
                 float headerHeight = Mathf.Clamp(inner.height * 0.38f, 9f, 15f);
                 float separatorY = inner.y + headerHeight;
                 EditorGUI.DrawRect(new Rect(inner.x + 3f, separatorY, Mathf.Max(0f, inner.width - 6f), 1f), separatorColor);
+                if (index == _historyChannel - 1)
+                {
+                    Color selectedColor = new Color(0.22f, 0.76f, 1f);
+                    const float selectedBorderWidth = 2f;
+                    EditorGUI.DrawRect(new Rect(cell.x, cell.y, cell.width, selectedBorderWidth), selectedColor);
+                    EditorGUI.DrawRect(new Rect(cell.x, cell.yMax - selectedBorderWidth, cell.width, selectedBorderWidth), selectedColor);
+                    EditorGUI.DrawRect(new Rect(cell.x, cell.y, selectedBorderWidth, cell.height), selectedColor);
+                    EditorGUI.DrawRect(new Rect(cell.xMax - selectedBorderWidth, cell.y, selectedBorderWidth, cell.height), selectedColor);
+                }
                 GUI.Label(new Rect(inner.x, inner.y, inner.width, headerHeight), ChannelLabels[index], _channelStyle);
                 GUI.Label(new Rect(inner.x, separatorY + 1f, inner.width, inner.height - headerHeight - 1f),
                     ValueLabels[value], _valueStyle);
+
+                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && cell.Contains(Event.current.mousePosition))
+                {
+                    _historyChannel = index + 1;
+                    ResetHistory();
+                    Event.current.Use();
+                }
             }
 
             GUI.EndScrollView();
+        }
+
+        private void DrawHistory(Rect rect)
+        {
+            if (rect.height <= 0f)
+                return;
+
+            bool proSkin = EditorGUIUtility.isProSkin;
+            EditorGUI.DrawRect(rect, proSkin ? new Color(0.055f, 0.06f, 0.068f) : new Color(0.82f, 0.84f, 0.86f));
+            EditorGUI.LabelField(new Rect(10f, rect.y + 6f, 72f, 20f), "History Ch");
+            int historyChannel = Mathf.Clamp(EditorGUI.IntField(new Rect(84f, rect.y + 6f, 48f, 20f), _historyChannel), 1, DmxChannelMonitorModel.ChannelCount);
+            if (historyChannel != _historyChannel)
+            {
+                _historyChannel = historyChannel;
+                ResetHistory();
+            }
+
+            if (GUI.Button(new Rect(142f, rect.y + 6f, 92f, 20f), "Clear History"))
+                ResetHistory();
+
+            EditorGUI.LabelField(new Rect(244f, rect.y + 6f, 148f, 20f), "Last 10 seconds", EditorStyles.miniLabel);
+            const float axisLabelWidth = 24f;
+            var graph = new Rect(10f + axisLabelWidth, rect.y + 30f,
+                Mathf.Max(0f, rect.width - axisLabelWidth - 20f), Mathf.Max(0f, rect.height - 38f));
+            EditorGUI.DrawRect(graph, proSkin ? new Color(0.035f, 0.04f, 0.048f) : new Color(0.9f, 0.92f, 0.94f));
+            GUI.Label(new Rect(8f, graph.y - 6f, axisLabelWidth, 14f), "255", _historyAxisStyle);
+            GUI.Label(new Rect(8f, graph.yMax - 8f, axisLabelWidth, 14f), "0", _historyAxisStyle);
+            DrawHistoryGraph(graph, EditorApplication.timeSinceStartup);
+        }
+
+        private void DrawHistoryGraph(Rect graph, double now)
+        {
+            if (_historySampleCount == 0 || graph.width <= 0f || graph.height <= 0f)
+                return;
+
+            double earliestTime = now - HistoryDurationSeconds;
+            bool hasPrevious = false;
+            Vector3 previous = default;
+            Color previousColor = Handles.color;
+            Handles.color = new Color(0.08f, 0.62f, 0.96f);
+            for (int i = 0; i < _historySampleCount; i++)
+            {
+                HistorySample sample = _historySamples[(_historySampleStart + i) % HistorySampleCapacity];
+                if (sample.Time < earliestTime)
+                    continue;
+
+                float x = graph.x + Mathf.Clamp01((float)((sample.Time - earliestTime) / HistoryDurationSeconds)) * graph.width;
+                float y = graph.yMax - sample.Value / 255f * graph.height;
+                Vector3 point = new Vector3(x, y, 0f);
+                if (hasPrevious)
+                    Handles.DrawLine(previous, point);
+                previous = point;
+                hasPrevious = true;
+            }
+            Handles.color = previousColor;
         }
 
         private static void GetResponsiveGridMetrics(
@@ -335,13 +477,25 @@ namespace ArtNet.Editor
         {
             if (_monitorSource == MonitorSource.TimelinePlayback)
             {
-                if (_selectedRig == null)
+                if (!_monitorAllRigs && _selectedRig == null)
                 {
                     snapshot = null;
                     return false;
                 }
 
-                return _model.TryGetSnapshot(_selectedUniverse, _selectedRig.GetInstanceID(), out snapshot);
+                return _model.TryGetSnapshot(_selectedUniverse,
+                    _monitorAllRigs ? (int?)null : _selectedRig.GetInstanceID(), out snapshot);
+            }
+
+            if (_monitorSource == MonitorSource.SenderOutput)
+            {
+                if (_selectedSender == null)
+                {
+                    snapshot = null;
+                    return false;
+                }
+
+                return _model.TryGetSnapshot(_selectedUniverse, _selectedSender.GetInstanceID(), out snapshot);
             }
 
             if (!_monitorAllReceivers && _selectedReceiver == null)
@@ -371,29 +525,82 @@ namespace ArtNet.Editor
 
             _nextRepaintAt = now + RepaintInterval;
             PollRigOutput(now);
-            if (EditorApplication.isPlaying || _paused)
+            CaptureHistory(now);
+            if (EditorApplication.isPlaying || _paused || _monitorSource == MonitorSource.LiveInput)
                 Repaint();
+        }
+
+        private void CaptureHistory(double now)
+        {
+            if (_paused || now < _nextHistorySampleAt || !TryGetSelectedSnapshot(out var snapshot))
+                return;
+
+            _nextHistorySampleAt = now + HistorySampleInterval;
+            if (_historySourceId != snapshot.SourceId || _historyUniverse != snapshot.Universe)
+            {
+                ResetHistory();
+                _historySourceId = snapshot.SourceId;
+                _historyUniverse = snapshot.Universe;
+                _nextHistorySampleAt = now + HistorySampleInterval;
+            }
+
+            AppendHistorySample(new HistorySample(now, snapshot.GetChannel(_historyChannel - 1)));
+        }
+
+        private void AppendHistorySample(HistorySample sample)
+        {
+            if (_historySampleCount < HistorySampleCapacity)
+            {
+                int index = (_historySampleStart + _historySampleCount) % HistorySampleCapacity;
+                _historySamples[index] = sample;
+                _historySampleCount++;
+                return;
+            }
+
+            _historySamples[_historySampleStart] = sample;
+            _historySampleStart = (_historySampleStart + 1) % HistorySampleCapacity;
+        }
+
+        private void ResetHistory()
+        {
+            _historySampleStart = 0;
+            _historySampleCount = 0;
+            _historySourceId = int.MinValue;
+            _historyUniverse = -1;
+            _nextHistorySampleAt = 0d;
         }
 
         private void PollRigOutput(double now)
         {
-            if (_monitorSource != MonitorSource.TimelinePlayback || _selectedRig == null)
+            if (_monitorSource != MonitorSource.TimelinePlayback)
                 return;
 
-            if (!_selectedRig.TryCopyUniverseBuffer(
+            if (_monitorAllRigs)
+            {
+                for (int i = 0; i < _availableRigs.Count; i++)
+                    PollRigOutput(_availableRigs[i], now);
+                return;
+            }
+
+            PollRigOutput(_selectedRig, now);
+        }
+
+        private void PollRigOutput(DmxRigController rig, double now)
+        {
+            if (rig == null || !rig.TryCopyUniverseBuffer(
                     _selectedUniverse,
                     _rigChannels,
                     out var source,
                     out long revision))
                 return;
 
-            if (_model.TryGetSnapshot(_selectedUniverse, _selectedRig.GetInstanceID(), out var current) &&
+            if (_model.TryGetSnapshot(_selectedUniverse, rig.GetInstanceID(), out var current) &&
                 current.IsRigOutput && current.Revision == revision)
                 return;
 
             _model.ReceiveRigBuffer(
-                _selectedRig.GetInstanceID(),
-                $"{_selectedRig.name} ({GetRigSourceName(source)})",
+                rig.GetInstanceID(),
+                $"{rig.name} ({GetRigSourceName(source)})",
                 _selectedUniverse,
                 _rigChannels,
                 revision,
@@ -420,14 +627,70 @@ namespace ArtNet.Editor
 
             _pendingLiveFrames.TryRemove(
                 new LiveFrameKey(receiver.GetInstanceID(), data.Universe), out _);
-            _model.Receive(receiver.GetInstanceID(), receiver.name, data, EditorApplication.timeSinceStartup);
+            _model.Receive(receiver.GetInstanceID(), GetReceiverSourceName(receiver), data, EditorApplication.timeSinceStartup);
         }
 
-        private void OnDataReceivedInBackground(int sourceId, string sourceName, ArtNetData data)
+        private void OnDataSent(ArtNetSender sender, ArtNetData data)
+        {
+            if (sender == null || data.OpCode != ArtNetOpCode.OpDmx)
+                return;
+
+            _model.Receive(sender.GetInstanceID(), $"{sender.name} (Sender Output: {sender.Host}:{sender.port})",
+                data, EditorApplication.timeSinceStartup);
+        }
+
+        private static string GetReceiverSourceName(ArtNetReceiver receiver)
+        {
+            ArtNetReceiver.ReceiveStatistics statistics = receiver.Statistics;
+            return GetReceiverSourceName(receiver.name, statistics);
+        }
+
+        private static string GetReceiverSourceName(
+            string receiverName,
+            ArtNetReceiver.ReceiveStatistics statistics)
+        {
+            if (string.IsNullOrEmpty(statistics.LastSenderAddress))
+                return receiverName;
+
+            return $"{receiverName} ({statistics.LastSenderAddress}:{statistics.LastSenderPort})";
+        }
+
+        private bool TryGetReceiver(int sourceId, out ArtNetReceiver receiver)
+        {
+            foreach (var pair in _subscriptions)
+            {
+                if (pair.Key != null && pair.Key.GetInstanceID() == sourceId)
+                {
+                    receiver = pair.Key;
+                    return true;
+                }
+            }
+
+            receiver = null;
+            return false;
+        }
+
+        private bool HasEditModeReceiver()
+        {
+            foreach (var pair in _subscriptions)
+            {
+                if (pair.Key != null && pair.Key.ReceivesInEditMode)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void OnDataReceivedInBackground(
+            ArtNetReceiver receiver,
+            int sourceId,
+            string receiverName,
+            ArtNetData data)
         {
             if (data.OpCode != ArtNetOpCode.OpDmx || data.Channels == null)
                 return;
 
+            string sourceName = GetReceiverSourceName(receiverName, receiver.Statistics);
             _pendingLiveFrames[new LiveFrameKey(sourceId, data.Universe)] =
                 new PendingLiveFrame(sourceId, sourceName, data);
         }
@@ -450,6 +713,7 @@ namespace ArtNet.Editor
             {
                 _model.Clear();
                 _pendingLiveFrames.Clear();
+                ResetHistory();
             }
             RefreshReceiverSubscriptions();
             Repaint();
@@ -466,10 +730,8 @@ namespace ArtNet.Editor
             if (_monitorSource != MonitorSource.LiveInput)
             {
                 RemoveAllSubscriptions();
-                return;
             }
-
-            if (_monitorAllReceivers)
+            else if (_monitorAllReceivers)
             {
                 var receivers = FindObjectsByType<ArtNetReceiver>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
                 for (int i = 0; i < receivers.Length; i++)
@@ -509,13 +771,16 @@ namespace ArtNet.Editor
                 ArtNetReceiver capturedReceiver = receiver;
                 Action<ArtNetData> handler = data => OnDataReceived(capturedReceiver, data);
                 int sourceId = receiver.GetInstanceID();
-                string sourceName = receiver.name;
-                Action<ArtNetData> backgroundHandler = data => OnDataReceivedInBackground(sourceId, sourceName, data);
+                string receiverName = receiver.name;
+                Action<ArtNetData> backgroundHandler = data =>
+                    OnDataReceivedInBackground(capturedReceiver, sourceId, receiverName, data);
                 receiver.OnDataReceived += handler;
                 receiver.OnDataReceivedInBackground += backgroundHandler;
                 _subscriptions.Add(receiver, handler);
                 _backgroundSubscriptions.Add(receiver, backgroundHandler);
             }
+
+            RefreshSenderSubscriptions();
         }
 
         private void RemoveAllSubscriptions()
@@ -532,18 +797,79 @@ namespace ArtNet.Editor
             }
             _subscriptions.Clear();
             _backgroundSubscriptions.Clear();
+            foreach (var pair in _senderSubscriptions)
+            {
+                if (pair.Key != null)
+                    pair.Key.OnDataSent -= pair.Value;
+            }
+            _senderSubscriptions.Clear();
             _desiredReceivers.Clear();
             _receiverScratch.Clear();
         }
 
-        private void TryAutoSelectRig()
+        private void RefreshSenderSubscriptions()
         {
-            if (_monitorSource != MonitorSource.TimelinePlayback || _selectedRig != null)
+            if (_monitorSource != MonitorSource.SenderOutput)
+            {
+                RemoveSenderSubscriptions();
+                return;
+            }
+
+            TryAutoSelectSender();
+            foreach (var pair in _senderSubscriptions)
+            {
+                if (pair.Key != _selectedSender && pair.Key != null)
+                    pair.Key.OnDataSent -= pair.Value;
+            }
+            _senderSubscriptions.Clear();
+
+            if (_selectedSender == null)
                 return;
 
+            ArtNetSender capturedSender = _selectedSender;
+            Action<ArtNetData> handler = data => OnDataSent(capturedSender, data);
+            capturedSender.OnDataSent += handler;
+            _senderSubscriptions.Add(capturedSender, handler);
+        }
+
+        private void RemoveSenderSubscriptions()
+        {
+            foreach (var pair in _senderSubscriptions)
+            {
+                if (pair.Key != null)
+                    pair.Key.OnDataSent -= pair.Value;
+            }
+            _senderSubscriptions.Clear();
+        }
+
+        private void TryAutoSelectRig()
+        {
+            if (_monitorSource != MonitorSource.TimelinePlayback)
+            {
+                _availableRigs.Clear();
+                return;
+            }
+
+            _availableRigs.Clear();
             var rigs = FindObjectsByType<DmxRigController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-            if (rigs.Length == 1)
-                _selectedRig = rigs[0];
+            for (int i = 0; i < rigs.Length; i++)
+                if (rigs[i] != null) _availableRigs.Add(rigs[i]);
+
+            if (_selectedRig != null)
+                return;
+
+            if (_availableRigs.Count == 1)
+                _selectedRig = _availableRigs[0];
+        }
+
+        private void TryAutoSelectSender()
+        {
+            if (_monitorSource != MonitorSource.SenderOutput || _selectedSender != null)
+                return;
+
+            var senders = FindObjectsByType<ArtNetSender>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            if (senders.Length == 1)
+                _selectedSender = senders[0];
         }
 
         private readonly struct LiveFrameKey : IEquatable<LiveFrameKey>
@@ -573,6 +899,18 @@ namespace ArtNet.Editor
                 SourceId = sourceId;
                 SourceName = sourceName;
                 Data = data;
+            }
+        }
+
+        private readonly struct HistorySample
+        {
+            public readonly double Time;
+            public readonly byte Value;
+
+            public HistorySample(double time, byte value)
+            {
+                Time = time;
+                Value = value;
             }
         }
 
@@ -608,6 +946,15 @@ namespace ArtNet.Editor
                 };
             }
 
+            if (_historyAxisStyle == null)
+            {
+                _historyAxisStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    alignment = TextAnchor.MiddleRight,
+                    clipping = TextClipping.Clip
+                };
+            }
+
             Color textColor = EditorGUIUtility.isProSkin
                 ? new Color(0.88f, 0.93f, 0.97f)
                 : new Color(0.08f, 0.12f, 0.16f);
@@ -615,6 +962,7 @@ namespace ArtNet.Editor
                 ? new Color(0.46f, 0.66f, 0.78f)
                 : new Color(0.12f, 0.34f, 0.48f);
             _valueStyle.normal.textColor = textColor;
+            _historyAxisStyle.normal.textColor = _channelStyle.normal.textColor;
         }
 
         private static string[] BuildNumberLabels(int count, int offset)

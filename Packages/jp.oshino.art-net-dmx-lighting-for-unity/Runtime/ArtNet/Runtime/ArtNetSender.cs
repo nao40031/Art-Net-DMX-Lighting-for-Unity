@@ -12,6 +12,8 @@ namespace ArtNet.Runtime
         private Queue<ArtNetData> bufferStream;
         private UdpClient _client;
         public bool IsActive => this._client != null;
+        public string Host => host;
+        public event Action<ArtNetData> OnDataSent;
         private int _port;
 
         public void Open()
@@ -54,7 +56,7 @@ namespace ArtNet.Runtime
             int lengthLo = 0)
         {
             if (!IsActive) return;
-            var sendBuf = new ArtNetData(
+            var data = new ArtNetData(
                 channels: channels,
                 opCode: opCode,
                 sequence: sequence,
@@ -64,8 +66,10 @@ namespace ArtNet.Runtime
                 protocolVersionLo: protocolVersionLo,
                 lengthHi: lengthHi,
                 lengthLo: lengthLo
-            ).ToBytes();
+            );
+            var sendBuf = data.ToBytes();
             _client.Send(sendBuf, sendBuf.Length);
+            OnDataSent?.Invoke(data);
         }
     }
 }
