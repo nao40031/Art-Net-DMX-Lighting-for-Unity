@@ -296,7 +296,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7823613260035186992, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
       propertyPath: m_Materials.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -7823613260035186992, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -305,7 +305,11 @@ PrefabInstance:
     - target: {fileID: -7823613260035186992, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
+      objectReference: {fileID: 2100000, guid: 4ec03ffb98c44ca89aa5c69383f580d0, type: 2}
+    - target: {fileID: -7823613260035186992, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: bcc3df70c14e4438a04c076fc1ab3589, type: 2}
     - target: {fileID: 919132149155446097, guid: a8db24e36456408e8fd5bf103ce2117c, type: 3}
       propertyPath: m_Name
       value: MovingLight_withGobo(MAC Ultra)_URP
@@ -459,7 +463,7 @@ MonoBehaviour:
   - renderer: {fileID: 2523771333444109262}
     materialSlot: 1
     originalMaterial: {fileID: 2100000, guid: a12f2473b070c2843825c1f252ea70df, type: 2}
-    goboLensMaterial: {fileID: 2100000, guid: c7f6a49b270d441d97b05a4054cfa8a6, type: 2}
+    goboLensMaterial: {fileID: 2100000, guid: 4ec03ffb98c44ca89aa5c69383f580d0, type: 2}
   syncLensToDmx: 1
   syncLensColorToDmx: 1
   syncLensDimmerToDmx: 1
@@ -1484,6 +1488,10 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 48
     absoluteChannel: 48
+  enableLensHalo: 1
+  lensHaloSourceRenderer: {fileID: 2523771333444109262}
+  lensHaloMaterial: {fileID: 2100000, guid: 7640c8fe639c467b81b893d218779a77, type: 2}
+  lensHaloSize: 1.55
   syncFocusToDmx: 1
   focusProfile: {fileID: 0}
   focusInstance: 1

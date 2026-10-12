@@ -530,7 +530,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: m_Materials.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -539,7 +539,11 @@ PrefabInstance:
     - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 39be37df3c67434d9b913c3383464161, type: 2}
+      objectReference: {fileID: 2100000, guid: 8852dcdb21d34aaea603dde0cac2a60f, type: 2}
+    - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2a693c3f305c426b9c3cae0ca45fe006, type: 2}
     - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: m_Name
       value: MovingLight_withGobo(MAC Ultra)_VLB(SD)_HDRP
@@ -692,9 +696,13 @@ MonoBehaviour:
   - {fileID: 2523771333444109262}
   lensMaterialBindings:
   - renderer: {fileID: 2523771333444109262}
+    materialSlot: 0
+    originalMaterial: {fileID: 2100000, guid: 7b40b922ca06459fb97cd33ad2adc1a3, type: 2}
+    goboLensMaterial: {fileID: 2100000, guid: 7b40b922ca06459fb97cd33ad2adc1a3, type: 2}
+  - renderer: {fileID: 2523771333444109262}
     materialSlot: 1
     originalMaterial: {fileID: 2100000, guid: 717a517fcb7038c4fb0c0c974b29b31e, type: 2}
-    goboLensMaterial: {fileID: 2100000, guid: 39be37df3c67434d9b913c3383464161, type: 2}
+    goboLensMaterial: {fileID: 2100000, guid: 8852dcdb21d34aaea603dde0cac2a60f, type: 2}
   syncLensToDmx: 1
   syncLensColorToDmx: 1
   syncLensDimmerToDmx: 1
@@ -1719,6 +1727,10 @@ MonoBehaviour:
     byteRole: 0
     relativeChannel: 48
     absoluteChannel: 48
+  enableLensHalo: 1
+  lensHaloSourceRenderer: {fileID: 2523771333444109262}
+  lensHaloMaterial: {fileID: 2100000, guid: 8e38b0f605714075b13cfe1e0f5d00b8, type: 2}
+  lensHaloSize: 1.55
   syncFocusToDmx: 1
   focusProfile: {fileID: 0}
   focusInstance: 1

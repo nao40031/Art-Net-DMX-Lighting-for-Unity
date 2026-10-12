@@ -18,6 +18,10 @@ Shader "ArtNet/HDRP/Gobo Lens Surface"
         _GoboLensHotspotStrength ("Hotspot Strength", Float) = 0.35
         _GoboLensHotspotInner ("Hotspot Inner", Range(0, 1)) = 0.12
         _GoboLensHotspotOuter ("Hotspot Outer", Range(0, 1)) = 0.55
+        _LensSourceEmission ("Source Emission", Range(0, 16)) = 0
+        _LensSourceInner ("Source Inner Radius", Range(0, 1)) = 0.12
+        _LensSourceOuter ("Source Outer Radius", Range(0, 1)) = 0.42
+        _LensSourceParallax ("Source Parallax", Range(-0.25, 0.25)) = 0
         _GoboLensFresnelStrength ("Fresnel Strength", Float) = 0
         _GoboLensFresnelPower ("Fresnel Power", Float) = 4
         _LensPrismGoboMode ("Lens Prism Gobo Mode", Float) = 1

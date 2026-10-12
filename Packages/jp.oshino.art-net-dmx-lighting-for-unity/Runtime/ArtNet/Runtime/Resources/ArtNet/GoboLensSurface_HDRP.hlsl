@@ -22,6 +22,10 @@ float _LensApertureFeather;
 float _GoboLensHotspotStrength;
 float _GoboLensHotspotInner;
 float _GoboLensHotspotOuter;
+float _LensSourceEmission;
+float _LensSourceInner;
+float _LensSourceOuter;
+float _LensSourceParallax;
 float _GoboLensFresnelStrength;
 float _GoboLensFresnelPower;
 float _LensPrismGoboMode;
@@ -106,9 +110,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float goboActive = saturate(_GoboEnabled) * saturate(_GoboLensInfluence);
     float goboMask = lerp(1.0, lerp(1.0, gobo, apertureTransmission), goboActive);
 
-    float lensDistance = length((lensUv - 0.5) * 2.0);
-    float hotspot = 1.0 - smoothstep(_GoboLensHotspotInner, max(_GoboLensHotspotInner + 0.0001, _GoboLensHotspotOuter), lensDistance);
-    float fresnel = pow(1.0 - saturate(abs(dot(normalize(input.tangentToWorld[2]), normalize(V)))), max(0.01, _GoboLensFresnelPower));
+    // Shift only the recessed source. The gobo remains on the lens plane.
+    float3 viewDirection = normalize(V);
+    float2 sourceParallax = float2(dot(viewDirection, input.tangentToWorld[0]), dot(viewDirection, input.tangentToWorld[1])) * _LensSourceParallax;
+    float lensSurfaceDistance = length((lensUv - 0.5) * 2.0);
+    float sourceDistance = length(((lensUv - 0.5) + sourceParallax) * 2.0);
+    float hotspot = 1.0 - smoothstep(_GoboLensHotspotInner, max(_GoboLensHotspotInner + 0.0001, _GoboLensHotspotOuter), lensSurfaceDistance);
+    float sourceCircle = 1.0 - smoothstep(_LensSourceInner, max(_LensSourceInner + 0.0001, _LensSourceOuter), sourceDistance);
+    float fresnel = pow(1.0 - saturate(abs(dot(normalize(input.tangentToWorld[2]), viewDirection))), max(0.01, _GoboLensFresnelPower));
     float brightness = saturate(_DmxDimmer) * (1.0 + hotspot * max(0.0, _GoboLensHotspotStrength));
     float3 lensColor = _DmxColor.rgb * brightness * goboMask;
 
@@ -121,6 +130,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ZERO_BUILTIN_INITIALIZE(builtinData);
     builtinData.opacity = 1.0;
     builtinData.emissiveColor = lensColor * max(0.0, _GoboLensEmission);
+    // A dim inner emitter remains visible below the separately added gobo pattern.
+    builtinData.emissiveColor += _DmxColor.rgb * saturate(_DmxDimmer) * sourceCircle * max(0.0, _LensSourceEmission);
     builtinData.emissiveColor += _DmxColor.rgb * saturate(_DmxDimmer) * fresnel * max(0.0, _GoboLensFresnelStrength);
     float3 emissiveRcpExposure = builtinData.emissiveColor * GetInverseCurrentExposureMultiplier();
     float iris = lerp(1.0, IrisTransmission(lensUv, _IrisShape), saturate(_IrisLensInfluence));

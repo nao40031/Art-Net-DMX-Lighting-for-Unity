@@ -18,6 +18,10 @@ Shader "ArtNet/URP/Gobo Lens Surface"
         _GoboLensHotspotStrength ("Hotspot Strength", Float) = 0.35
         _GoboLensHotspotInner ("Hotspot Inner", Range(0, 1)) = 0.12
         _GoboLensHotspotOuter ("Hotspot Outer", Range(0, 1)) = 0.55
+        _LensSourceEmission ("Source Emission", Range(0, 16)) = 0
+        _LensSourceInner ("Source Inner Radius", Range(0, 1)) = 0.12
+        _LensSourceOuter ("Source Outer Radius", Range(0, 1)) = 0.42
+        _LensSourceParallax ("Source Parallax", Range(-0.25, 0.25)) = 0
         _GoboLensFresnelStrength ("Fresnel Strength", Float) = 0
         _GoboLensFresnelPower ("Fresnel Power", Float) = 4
         _LensPrismGoboMode ("Lens Prism Gobo Mode", Float) = 1
@@ -65,6 +69,10 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 float _GoboLensHotspotStrength;
                 float _GoboLensHotspotInner;
                 float _GoboLensHotspotOuter;
+                float _LensSourceEmission;
+                float _LensSourceInner;
+                float _LensSourceOuter;
+                float _LensSourceParallax;
                 float _GoboLensFresnelStrength;
                 float _GoboLensFresnelPower;
                 float _LensPrismGoboMode;
@@ -74,8 +82,8 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 float _LensPrismRotationDeg;
             CBUFFER_END
 
-            struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; float2 uv : TEXCOORD0; };
-            struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float3 normalWS : TEXCOORD1; float2 uv : TEXCOORD2; };
+            struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; float4 tangentOS : TANGENT; float2 uv : TEXCOORD0; };
+            struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float3 normalWS : TEXCOORD1; float3 tangentWS : TEXCOORD2; float3 bitangentWS : TEXCOORD3; float2 uv : TEXCOORD4; };
 
             Varyings Vert(Attributes input)
             {
@@ -84,6 +92,8 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 output.positionCS = positionInputs.positionCS;
                 output.positionWS = positionInputs.positionWS;
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                output.tangentWS = SafeNormalize(TransformObjectToWorldDir(input.tangentOS.xyz));
+                output.bitangentWS = SafeNormalize(cross(output.normalWS, output.tangentWS) * input.tangentOS.w);
                 output.uv = input.uv;
                 return output;
             }
@@ -149,13 +159,19 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 float apertureTransmission = edgeFeather > 0.0001 ? smoothstep(0.0, edgeFeather, edgeDistance) : 1.0;
                 float goboActive = saturate(_GoboEnabled) * saturate(_GoboLensInfluence);
                 float goboMask = lerp(1.0, lerp(1.0, gobo, apertureTransmission), goboActive);
-                float lensDistance = length((lensUv - 0.5) * 2.0);
-                float hotspot = 1.0 - smoothstep(_GoboLensHotspotInner, max(_GoboLensHotspotInner + 0.0001, _GoboLensHotspotOuter), lensDistance);
                 float3 viewDirection = SafeNormalize(GetCameraPositionWS() - input.positionWS);
+                // Shift only the recessed source. The gobo remains on the lens plane.
+                float2 sourceParallax = float2(dot(viewDirection, input.tangentWS), dot(viewDirection, input.bitangentWS)) * _LensSourceParallax;
+                float lensSurfaceDistance = length((lensUv - 0.5) * 2.0);
+                float sourceDistance = length(((lensUv - 0.5) + sourceParallax) * 2.0);
+                float hotspot = 1.0 - smoothstep(_GoboLensHotspotInner, max(_GoboLensHotspotInner + 0.0001, _GoboLensHotspotOuter), lensSurfaceDistance);
+                float sourceCircle = 1.0 - smoothstep(_LensSourceInner, max(_LensSourceInner + 0.0001, _LensSourceOuter), sourceDistance);
                 float fresnel = pow(1.0 - saturate(abs(dot(normalize(input.normalWS), viewDirection))), max(0.01, _GoboLensFresnelPower));
                 float brightness = saturate(_DmxDimmer) * (1.0 + hotspot * max(0.0, _GoboLensHotspotStrength));
                 float3 lensColor = _DmxColor.rgb * brightness * goboMask;
                 lensColor *= max(0.0, _GoboLensEmission);
+                // A dim inner emitter remains visible below the separately added gobo pattern.
+                lensColor += _DmxColor.rgb * saturate(_DmxDimmer) * sourceCircle * max(0.0, _LensSourceEmission);
                 lensColor += _DmxColor.rgb * saturate(_DmxDimmer) * fresnel * max(0.0, _GoboLensFresnelStrength);
                 lensColor *= lerp(1.0, IrisTransmission(lensUv, _IrisShape), saturate(_IrisLensInfluence));
                 return half4(lensColor, 1.0);
