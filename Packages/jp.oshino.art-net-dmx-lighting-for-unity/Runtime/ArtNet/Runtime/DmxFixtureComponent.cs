@@ -1234,7 +1234,10 @@ namespace ArtNet.Runtime
             ResolveAll(Application.isPlaying);
 
             if (Application.isPlaying)
+            {
                 CaptureMovementBaseIfNeeded(force: true);
+                CreateLensHalo();
+            }
 
             _nextLogTime = Time.unscaledTime + Mathf.Max(0.1f, logIntervalSec);
             _hasNewDataSinceLastLog = false;
@@ -1254,6 +1257,7 @@ namespace ArtNet.Runtime
 
         private void OnDisable()
         {
+            ReleaseLensHalo();
             ReleaseFrost();
             ReleaseFocus();
             ReleaseIris();
@@ -3817,6 +3821,8 @@ namespace ArtNet.Runtime
                 _lensMpb.SetFloat(_lensPrismGoboSpacingScaleId, GetPrismGoboSpacingScale(state));
                 _lensMpb.SetFloat(_lensPrismRotationId, state.prismRotationDeg);
             }
+
+            ApplyLensHaloDmx(_lensMpb);
 
             if (hasMaterialBindings)
             {

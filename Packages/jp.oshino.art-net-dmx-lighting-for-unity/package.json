@@ -13,5 +13,17 @@
     "dmx",
     "lighting",
     "moving-light"
+  ],
+  "samples": [
+    {
+      "displayName": "MAC Ultra Lens Bloom (HDRP)",
+      "description": "Optional HDRP Bloom Volume Profile for bright moving-light lenses.",
+      "path": "Samples~/Lens Bloom HDRP"
+    },
+    {
+      "displayName": "MAC Ultra Lens Bloom (URP)",
+      "description": "Optional URP Bloom Volume Profile for bright moving-light lenses.",
+      "path": "Samples~/Lens Bloom URP"
+    }
   ]
 }
