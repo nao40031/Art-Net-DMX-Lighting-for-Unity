@@ -6,6 +6,8 @@ Shader "ArtNet/URP/Lens Glass Coating"
         _CenterOpacity ("Center Opacity", Range(0, 1)) = 0.055
         _EdgeOpacity ("Edge Opacity", Range(0, 1)) = 0.2
         _HighlightStrength ("Highlight Strength", Range(0, 2)) = 0.8
+        _SurfaceMetallic ("Surface Metallic", Range(0, 1)) = 0
+        _SurfaceSmoothness ("Surface Smoothness", Range(0, 1)) = 0.5
     }
 
     SubShader
@@ -33,6 +35,8 @@ Shader "ArtNet/URP/Lens Glass Coating"
                 float _CenterOpacity;
                 float _EdgeOpacity;
                 float _HighlightStrength;
+                float _SurfaceMetallic;
+                float _SurfaceSmoothness;
             CBUFFER_END
 
             struct Attributes
@@ -66,7 +70,7 @@ Shader "ArtNet/URP/Lens Glass Coating"
                 float opacity;
                 EvaluateLensGlassCoating(input.uv, input.normalWS,
                     GetCameraPositionWS() - input.positionWS, _GlassTint, _CenterOpacity, _EdgeOpacity,
-                    _HighlightStrength, color, opacity);
+                    _HighlightStrength, _SurfaceMetallic, _SurfaceSmoothness, color, opacity);
                 return half4(color * opacity, 1.0);
             }
             ENDHLSL

@@ -6,6 +6,7 @@
 void EvaluateLensGlassCoating(float2 uv, float3 normalWS, float3 viewWS,
     float4 glassTint,
     float centerOpacity, float edgeOpacity, float highlightStrength,
+    float surfaceMetallic, float surfaceSmoothness,
     out float3 color, out float opacity)
 {
     float3 n = normalize(normalWS);
@@ -18,9 +19,12 @@ void EvaluateLensGlassCoating(float2 uv, float3 normalWS, float3 viewWS,
     float2 parallax = reflect(-v, n).xy * 0.11;
     float2 broad = (lens - float2(-0.32, 0.42) - parallax) * float2(0.85, 1.8);
     float2 small = (lens - float2(0.55, 0.27) + parallax * 0.5) * float2(2.4, 2.0);
-    float reflection = exp(-dot(broad, broad) * 3.0) * 0.7
-                     + exp(-dot(small, small) * 5.0) * 0.3;
-    reflection *= max(0.0, highlightStrength);
+    // Metallic raises the reflected contribution and
+    // smoothness tightens the optical highlight without requiring a screen grab.
+    float lobeSharpness = lerp(1.0, 2.4, saturate(surfaceSmoothness));
+    float reflection = exp(-dot(broad, broad) * 3.0 * lobeSharpness) * 0.7
+                     + exp(-dot(small, small) * 5.0 * lobeSharpness) * 0.3;
+    reflection *= max(0.0, highlightStrength) * lerp(1.0, 1.65, saturate(surfaceMetallic));
 
     opacity = saturate(centerOpacity + edgeOpacity * (rim * 0.7 + grazing * 0.3)
                        + reflection * 0.27);

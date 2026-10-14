@@ -22,6 +22,10 @@ Shader "ArtNet/URP/Gobo Lens Surface"
         _LensSourceInner ("Source Inner Radius", Range(0, 1)) = 0.12
         _LensSourceOuter ("Source Outer Radius", Range(0, 1)) = 0.42
         _LensSourceParallax ("Source Parallax", Range(-0.25, 0.25)) = 0
+        _OpenLensCenterLevel ("Open Lens Center Level", Range(0, 1)) = 1
+        _OpenLensEdgeLevel ("Open Lens Edge Level", Range(0, 1)) = 1
+        _OpenLensRimEmission ("Open Lens Rim Emission", Range(0, 4)) = 0
+        _OpenLensHighlightEmission ("Open Lens Highlight Emission", Range(0, 4)) = 0
         _GoboLensFresnelStrength ("Fresnel Strength", Float) = 0
         _GoboLensFresnelPower ("Fresnel Power", Float) = 4
         _LensPrismGoboMode ("Lens Prism Gobo Mode", Float) = 1
@@ -73,6 +77,10 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 float _LensSourceInner;
                 float _LensSourceOuter;
                 float _LensSourceParallax;
+                float _OpenLensCenterLevel;
+                float _OpenLensEdgeLevel;
+                float _OpenLensRimEmission;
+                float _OpenLensHighlightEmission;
                 float _GoboLensFresnelStrength;
                 float _GoboLensFresnelPower;
                 float _LensPrismGoboMode;
@@ -167,11 +175,22 @@ Shader "ArtNet/URP/Gobo Lens Surface"
                 float hotspot = 1.0 - smoothstep(_GoboLensHotspotInner, max(_GoboLensHotspotInner + 0.0001, _GoboLensHotspotOuter), lensSurfaceDistance);
                 float sourceCircle = 1.0 - smoothstep(_LensSourceInner, max(_LensSourceInner + 0.0001, _LensSourceOuter), sourceDistance);
                 float fresnel = pow(1.0 - saturate(abs(dot(normalize(input.normalWS), viewDirection))), max(0.01, _GoboLensFresnelPower));
-                float brightness = saturate(_DmxDimmer) * (1.0 + hotspot * max(0.0, _GoboLensHotspotStrength));
-                float3 lensColor = _DmxColor.rgb * brightness * goboMask;
-                lensColor *= max(0.0, _GoboLensEmission);
+                float openLens = 1.0 - goboActive;
+                float radialFade = 1.0 - smoothstep(0.08, 0.78, lensSurfaceDistance);
+                float openField = lerp(_OpenLensEdgeLevel, _OpenLensCenterLevel, radialFade);
+                float goboField = (1.0 + hotspot * max(0.0, _GoboLensHotspotStrength)) * goboMask;
+                float field = lerp(goboField, openField, openLens);
+                float3 lensColor = _DmxColor.rgb * saturate(_DmxDimmer) * field * max(0.0, _GoboLensEmission);
                 // A dim inner emitter remains visible below the separately added gobo pattern.
                 lensColor += _DmxColor.rgb * saturate(_DmxDimmer) * sourceCircle * max(0.0, _LensSourceEmission);
+                // Both details stay inside the aperture and disappear when a gobo is active.
+                float innerRim = smoothstep(0.81, 0.85, lensSurfaceDistance);
+                float outerRim = 1.0 - smoothstep(0.87, 0.92, lensSurfaceDistance);
+                float rim = innerRim * outerRim;
+                float2 highlightOffset = ((lensUv - (float2(0.46, 0.56) + sourceParallax * 0.5)) * 2.0);
+                float highlight = exp2(-75.0 * dot(highlightOffset, highlightOffset));
+                lensColor += _DmxColor.rgb * saturate(_DmxDimmer) * openLens *
+                    (rim * max(0.0, _OpenLensRimEmission) + highlight * max(0.0, _OpenLensHighlightEmission));
                 lensColor += _DmxColor.rgb * saturate(_DmxDimmer) * fresnel * max(0.0, _GoboLensFresnelStrength);
                 lensColor *= lerp(1.0, IrisTransmission(lensUv, _IrisShape), saturate(_IrisLensInfluence));
                 return half4(lensColor, 1.0);

@@ -6,6 +6,8 @@ Shader "ArtNet/HDRP/Lens Glass Coating"
         _CenterOpacity ("Center Opacity", Range(0, 1)) = 0.055
         _EdgeOpacity ("Edge Opacity", Range(0, 1)) = 0.2
         _HighlightStrength ("Highlight Strength", Range(0, 2)) = 0.8
+        _SurfaceMetallic ("Surface Metallic", Range(0, 1)) = 0
+        _SurfaceSmoothness ("Surface Smoothness", Range(0, 1)) = 0.5
         [HideInInspector] _CullMode ("Cull Mode", Float) = 2
     }
 

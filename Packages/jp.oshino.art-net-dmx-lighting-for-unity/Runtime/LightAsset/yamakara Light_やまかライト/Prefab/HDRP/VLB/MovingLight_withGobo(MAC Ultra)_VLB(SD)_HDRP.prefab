@@ -543,7 +543,7 @@ PrefabInstance:
     - target: {fileID: -7823613260035186992, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: 'm_Materials.Array.data[2]'
       value: 
-      objectReference: {fileID: 2100000, guid: 2a693c3f305c426b9c3cae0ca45fe006, type: 2}
+      objectReference: {fileID: 2100000, guid: 0e3c60c2b69842bba930a4fe22057f90, type: 2}
     - target: {fileID: 919132149155446097, guid: 9f144af643915a74a99e84152069a3b8, type: 3}
       propertyPath: m_Name
       value: MovingLight_withGobo(MAC Ultra)_VLB(SD)_HDRP

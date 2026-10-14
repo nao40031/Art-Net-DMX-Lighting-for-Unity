@@ -26,6 +26,10 @@ float _LensSourceEmission;
 float _LensSourceInner;
 float _LensSourceOuter;
 float _LensSourceParallax;
+float _OpenLensCenterLevel;
+float _OpenLensEdgeLevel;
+float _OpenLensRimEmission;
+float _OpenLensHighlightEmission;
 float _GoboLensFresnelStrength;
 float _GoboLensFresnelPower;
 float _LensPrismGoboMode;
@@ -118,8 +122,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float hotspot = 1.0 - smoothstep(_GoboLensHotspotInner, max(_GoboLensHotspotInner + 0.0001, _GoboLensHotspotOuter), lensSurfaceDistance);
     float sourceCircle = 1.0 - smoothstep(_LensSourceInner, max(_LensSourceInner + 0.0001, _LensSourceOuter), sourceDistance);
     float fresnel = pow(1.0 - saturate(abs(dot(normalize(input.tangentToWorld[2]), viewDirection))), max(0.01, _GoboLensFresnelPower));
-    float brightness = saturate(_DmxDimmer) * (1.0 + hotspot * max(0.0, _GoboLensHotspotStrength));
-    float3 lensColor = _DmxColor.rgb * brightness * goboMask;
+    float openLens = 1.0 - goboActive;
+    float radialFade = 1.0 - smoothstep(0.08, 0.78, lensSurfaceDistance);
+    float openField = lerp(_OpenLensEdgeLevel, _OpenLensCenterLevel, radialFade);
+    float goboField = (1.0 + hotspot * max(0.0, _GoboLensHotspotStrength)) * goboMask;
+    float field = lerp(goboField, openField, openLens);
+    float3 lensColor = _DmxColor.rgb * saturate(_DmxDimmer) * field;
 
     ZERO_INITIALIZE(SurfaceData, surfaceData);
     // The reflective lens is rendered by the underlying HDRP Lit material.
@@ -132,6 +140,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = lensColor * max(0.0, _GoboLensEmission);
     // A dim inner emitter remains visible below the separately added gobo pattern.
     builtinData.emissiveColor += _DmxColor.rgb * saturate(_DmxDimmer) * sourceCircle * max(0.0, _LensSourceEmission);
+    // Keep the narrow rim and glint within the aperture, only for Open Gobo.
+    float innerRim = smoothstep(0.81, 0.85, lensSurfaceDistance);
+    float outerRim = 1.0 - smoothstep(0.87, 0.92, lensSurfaceDistance);
+    float rim = innerRim * outerRim;
+    float2 highlightOffset = ((lensUv - (float2(0.46, 0.56) + sourceParallax * 0.5)) * 2.0);
+    float highlight = exp2(-75.0 * dot(highlightOffset, highlightOffset));
+    builtinData.emissiveColor += _DmxColor.rgb * saturate(_DmxDimmer) * openLens *
+        (rim * max(0.0, _OpenLensRimEmission) + highlight * max(0.0, _OpenLensHighlightEmission));
     builtinData.emissiveColor += _DmxColor.rgb * saturate(_DmxDimmer) * fresnel * max(0.0, _GoboLensFresnelStrength);
     float3 emissiveRcpExposure = builtinData.emissiveColor * GetInverseCurrentExposureMultiplier();
     float iris = lerp(1.0, IrisTransmission(lensUv, _IrisShape), saturate(_IrisLensInfluence));
