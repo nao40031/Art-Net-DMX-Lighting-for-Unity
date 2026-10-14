@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: GoboLensSurface_MACUltra_HDRP
-  m_Shader: {fileID: 4800000, guid: 84cee2f8fb974a6aa2144baac88392cf, type: 3}
+  m_Name: GoboLensSurface_MovingLight_URP
+  m_Shader: {fileID: 4800000, guid: b0dd5f86dc5a4e7f8d3b1e6c8a3f9d11, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -29,13 +29,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AlphaDstBlend: 0
-    - _AlphaSrcBlend: 1
-    - _BlendMode: 1
-    - _CullMode: 2
     - _DmxDimmer: 1
-    - _DstBlend: 1
-    - _EmissiveExposureWeight: 0
     - _GoboEnabled: 0
     - _GoboLensBlur: 0
     - _GoboLensEmission: 2
@@ -54,13 +48,14 @@ Material:
     - _LensPrismGoboSpacingScale: 1
     - _LensPrismRotationDeg: 0
     - _LensPrismSpread: 0
-    - _LensSourceEmission: 0.97
+    - _LensSourceEmission: 1.37
     - _LensSourceInner: 0.12
     - _LensSourceOuter: 0.42
     - _LensSourceParallax: 0.035
-    - _SrcBlend: 1
-    - _SurfaceType: 1
-    - _ZWrite: 0
+    - _OpenLensCenterLevel: 0.36
+    - _OpenLensEdgeLevel: 0.12
+    - _OpenLensRimEmission: 0.55
+    - _OpenLensHighlightEmission: 0.35
     m_Colors:
     - _DmxColor: {r: 1, g: 1, b: 1, a: 1}
     - _GoboOffset: {r: 0, g: 0, b: 0, a: 0}

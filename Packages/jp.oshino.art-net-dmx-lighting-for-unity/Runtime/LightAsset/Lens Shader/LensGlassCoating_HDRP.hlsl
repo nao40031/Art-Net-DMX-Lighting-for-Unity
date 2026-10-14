@@ -7,6 +7,8 @@ float4 _GlassTint;
 float _CenterOpacity;
 float _EdgeOpacity;
 float _HighlightStrength;
+float _SurfaceMetallic;
+float _SurfaceSmoothness;
 CBUFFER_END
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput,
@@ -17,6 +19,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     EvaluateLensGlassCoating(input.texCoord0.xy, input.tangentToWorld[2], V,
         _GlassTint,
         _CenterOpacity, _EdgeOpacity, _HighlightStrength,
+        _SurfaceMetallic, _SurfaceSmoothness,
         coatingColor, coatingOpacity);
 
     ZERO_INITIALIZE(SurfaceData, surfaceData);

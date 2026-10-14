@@ -10,15 +10,23 @@ The demo scenes do not automatically include a reflection probe. A material or S
 
 ## MAC Ultra center emitter and Bloom
 
-MAC Ultra専用の `GoboLensSurface_MACUltra_HDRP.mat` / `GoboLensSurface_MACUltra_URP.mat` は、ゴボとは別の中心円Emissionを持ちます。`Source Emission`（0–16）で明るさ、`Source Inner Radius` / `Source Outer Radius` で円の広がりを調整できます。EmissionはDMXカラー・ディマー・シャッターに連動し、アイリスの影響も受けます。ゴボ模様の明るさは `Gobo Emission` で別に調整してください。
+汎用マテリアル `GoboLensSurface_MovingLight_HDRP.mat` / `GoboLensSurface_MovingLight_URP.mat` は、ゴボとは別の中心円Emissionを持ちます。`Source Emission`（0–16）で明るさ、`Source Inner Radius` / `Source Outer Radius` で円の広がりを調整できます。EmissionはDMXカラー・ディマー・シャッターに連動し、アイリスの影響も受けます。ゴボ模様の明るさは `Gobo Emission` で別に調整してください。
 
 Bloomはマテリアルだけでは発生しません。導入先シーンでHDR対応のカメラとGlobal VolumeのBloomを有効にしてください。URPではカメラのPost ProcessingとVolume Layer Maskも確認します。開始値はThreshold 2、Intensity 0.5、Scatter 0.65です。Bloomは同じシーンの他の明るい部分にも作用するため、導入先の照明・露出に合わせて調整してください。パッケージはシーンのVolume設定を自動変更しません。
 
-The MAC Ultra-specific gobo materials have an independent center emitter beneath the gobo overlay. `Source Emission` (0–16) sets its strength; `Source Inner Radius` and `Source Outer Radius` shape it. The emitter follows DMX color, dimmer, shutter, and iris. Adjust `Gobo Emission` separately for the pattern. Bloom requires an HDR-capable camera and an enabled Bloom override in the destination scene's Volume; in URP, also enable camera post-processing and include the Volume layer. Start with threshold 2, intensity 0.5, and scatter 0.65, then tune for the scene. The package does not automatically change consumer scenes.
+The general-purpose moving-light gobo materials have an independent center emitter beneath the gobo overlay. `Source Emission` (0–16) sets its strength; `Source Inner Radius` and `Source Outer Radius` shape it. The emitter follows DMX color, dimmer, shutter, and iris. Adjust `Gobo Emission` separately for the pattern. Bloom requires an HDR-capable camera and an enabled Bloom override in the destination scene's Volume; in URP, also enable camera post-processing and include the Volume layer. Start with threshold 2, intensity 0.5, and scatter 0.65, then tune for the scene. The package does not automatically change consumer scenes.
 
 `Source Parallax` adds view-dependent offset to the center emitter only. A positive or negative value changes the offset direction; the MAC Ultra materials start at `0.035`. The gobo, lens-surface hotspot, reflection, and glass coating remain fixed, making the emitter appear recessed beneath the gobo. Keep this value small (roughly -0.08 to 0.08) because it is a lightweight UV-based depth illusion rather than real geometry.
 
+Open Goboでは、中心から外側へ弱まる発光の上に、レンズ内側の細い輪郭線と中心寄りの小さなハイライトを重ねます。`Open Lens Center Level` / `Open Lens Edge Level` で面の明暗差、`Open Lens Rim Emission` / `Open Lens Highlight Emission` で輪郭線とハイライトを調整します。これらはゴボ表示時には適用されません。青いガラス材質は変更せず、外側の発光を抑えることで質感を見せます。
+
+With Open Gobo, the surface emission falls from center to edge, with a thin inner rim and a small near-center glint. `Open Lens Center Level` and `Open Lens Edge Level` set the field contrast; `Open Lens Rim Emission` and `Open Lens Highlight Emission` tune the two accents. The effect fades out when a gobo is active. The glass material is unchanged; reduced outer emission reveals more of its blue tint.
+
 ## Lens halo without post-processing
+
+MAC Ultraのムービングライトプレハブ（通常/VLB HD/VLB SD、HDRP/URP）は、標準で `MovingLight_LensGlossy_HDRP/URP.mat` をレンズ表面に使用します。透明な表面で比較したい場合は `MovingLight_LensClear_HDRP/URP.mat` または対応する `_LensClear` プレハブを使用してください。ゴボと中心光源のマテリアルは両バリエーションで共通です。
+
+The MAC Ultra moving-light prefabs (regular/VLB HD/VLB SD, HDRP/URP) use `MovingLight_LensGlossy_HDRP/URP.mat` as their default lens coating. For a clear surface, assign `MovingLight_LensClear_HDRP/URP.mat` or use the matching `_LensClear` prefab. Both variants share the gobo and center-emitter materials.
 
 MAC UltraのHDRP/URPプレハブには、カメラのポストプロセスに依存しないレンズ周辺光を追加しました。再生時にレンズ前面へ小さな加算Quadを生成し、DMXカラー・ディマー・シャッターとアイリス開口に連動します。ゴボ、反射、ガラスコーティングとは別のマテリアルなので、ゴボ模様を隠さずに調整できます。`Dmx Fixture Component` の `Enable Lens Halo`、`Lens Halo Size` と `MovingLight_LensHalo_HDRP/URP.mat` の `Halo Intensity`、`Halo Tint` で調整してください。このQuadは再生時のみ生成されます。
 
