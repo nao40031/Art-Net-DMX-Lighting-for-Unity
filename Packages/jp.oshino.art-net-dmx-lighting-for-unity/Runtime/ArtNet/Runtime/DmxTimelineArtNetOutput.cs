@@ -22,8 +22,8 @@ namespace ArtNet.Runtime
         public enum RigSelection { Assigned, AllActive }
 
         [Header("Output")]
-        [Tooltip("Explicitly enables Art-Net output. Off by default.")]
-        [SerializeField] private bool enableOutput;
+        [Tooltip("Enables Art-Net output in Play Mode by default. Edit Mode requires Send In Edit Mode.")]
+        [SerializeField] private bool enableOutput = true;
         [Tooltip("ArtNetSender used for output.")]
         [SerializeField] private ArtNetSender sender;
         [Tooltip("Allow output in Edit Mode. Use care with physical fixtures.")]
