@@ -25,6 +25,8 @@ namespace ArtNet.Editor
 
         private const string MenuPath = "Art-Net/Monitoring/DMX Channel Monitor";
         private const float ToolbarHeight = 66f;
+        private const float CompactToolbarHeight = 94f;
+        private const float CompactToolbarWidth = 980f;
         private const float PreferredCellWidth = 39f;
         private const float PreferredCellHeight = 43f;
         private const float MinimumCellWidth = 22f;
@@ -45,6 +47,9 @@ namespace ArtNet.Editor
 
         private static readonly string[] ChannelLabels = BuildNumberLabels(DmxChannelMonitorModel.ChannelCount, 1);
         private static readonly string[] ValueLabels = BuildNumberLabels(256, 0);
+        private static readonly string[] MonitorSourceLabels = { "Live", "Timeline Playback", "Sender Output" };
+        private static readonly int[] HistoryValueTicks = { 255, 192, 128, 64, 0 };
+        private static readonly string[] HistoryValueLabels = { "255", "192", "128", "64", "0" };
 
         [SerializeField] private bool _monitorAllReceivers = true;
         [SerializeField] private ArtNetReceiver _selectedReceiver;
@@ -117,27 +122,29 @@ namespace ArtNet.Editor
         private void OnGUI()
         {
             EnsureStyles();
-            DrawToolbar();
-            float historyHeight = Mathf.Min(HistoryHeight, Mathf.Max(0f, position.height - ToolbarHeight - 120f));
+            float toolbarHeight = position.width < CompactToolbarWidth ? CompactToolbarHeight : ToolbarHeight;
+            DrawToolbar(toolbarHeight);
+            float historyHeight = Mathf.Min(HistoryHeight, Mathf.Max(0f, position.height - toolbarHeight - 120f));
             float historyY = position.height - historyHeight;
-            DrawChannelGrid(new Rect(0f, ToolbarHeight, position.width, Mathf.Max(0f, historyY - ToolbarHeight)));
+            DrawChannelGrid(new Rect(0f, toolbarHeight, position.width, Mathf.Max(0f, historyY - toolbarHeight)));
             DrawHistory(new Rect(0f, historyY, position.width, historyHeight));
         }
 
-        private void DrawToolbar()
+        private void DrawToolbar(float toolbarHeight)
         {
             bool proSkin = EditorGUIUtility.isProSkin;
-            EditorGUI.DrawRect(new Rect(0f, 0f, position.width, ToolbarHeight),
+            EditorGUI.DrawRect(new Rect(0f, 0f, position.width, toolbarHeight),
                 proSkin ? new Color(0.075f, 0.075f, 0.075f) : new Color(0.76f, 0.76f, 0.76f));
 
             float x = 10f;
             const float rowOneY = 8f;
             const float controlHeight = 20f;
+            float actionY = rowOneY;
 
             EditorGUI.LabelField(new Rect(x, rowOneY, 42f, controlHeight), "Mode");
             x += 44f;
-            var monitorSource = (MonitorSource)EditorGUI.EnumPopup(
-                new Rect(x, rowOneY, 138f, controlHeight), _monitorSource);
+            var monitorSource = (MonitorSource)EditorGUI.Popup(
+                new Rect(x, rowOneY, 138f, controlHeight), (int)_monitorSource, MonitorSourceLabels);
             if (monitorSource != _monitorSource)
             {
                 _monitorSource = monitorSource;
@@ -217,9 +224,15 @@ namespace ArtNet.Editor
                 }
             }
 
-            EditorGUI.LabelField(new Rect(x, rowOneY, 86f, controlHeight), "Local Universe");
+            if (toolbarHeight > ToolbarHeight)
+            {
+                x = 10f;
+                actionY = 36f;
+            }
+
+            EditorGUI.LabelField(new Rect(x, actionY, 86f, controlHeight), "Local Universe");
             x += 88f;
-            int universe = EditorGUI.IntField(new Rect(x, rowOneY, 62f, controlHeight), _selectedUniverse);
+            int universe = EditorGUI.IntField(new Rect(x, actionY, 62f, controlHeight), _selectedUniverse);
             int selectedUniverse = Mathf.Clamp(universe, 0, 32767);
             if (selectedUniverse != _selectedUniverse)
             {
@@ -229,7 +242,7 @@ namespace ArtNet.Editor
             x += 72f;
 
             string pauseLabel = _paused ? "Resume" : "Pause";
-            if (GUI.Button(new Rect(x, rowOneY, 70f, controlHeight), pauseLabel))
+            if (GUI.Button(new Rect(x, actionY, 70f, controlHeight), pauseLabel))
             {
                 _paused = !_paused;
                 _model.SetPaused(_paused);
@@ -237,7 +250,7 @@ namespace ArtNet.Editor
             }
             x += 78f;
 
-            if (GUI.Button(new Rect(x, rowOneY, 142f, controlHeight), "Clear DMX Buffers"))
+            if (GUI.Button(new Rect(x, actionY, 142f, controlHeight), "Clear DMX Buffers"))
             {
                 _model.Clear();
                 Array.Clear(_displayChannels, 0, _displayChannels.Length);
@@ -245,7 +258,7 @@ namespace ArtNet.Editor
                 Repaint();
             }
 
-            DrawStatus(new Rect(10f, 36f, Mathf.Max(0f, position.width - 20f), 22f));
+            DrawStatus(new Rect(10f, toolbarHeight - 30f, Mathf.Max(0f, position.width - 20f), 22f));
         }
 
         private void DrawStatus(Rect rect)
@@ -411,8 +424,13 @@ namespace ArtNet.Editor
             var graph = new Rect(10f + axisLabelWidth, rect.y + 30f,
                 Mathf.Max(0f, rect.width - axisLabelWidth - 20f), Mathf.Max(0f, rect.height - 38f));
             EditorGUI.DrawRect(graph, proSkin ? new Color(0.035f, 0.04f, 0.048f) : new Color(0.9f, 0.92f, 0.94f));
-            GUI.Label(new Rect(8f, graph.y - 6f, axisLabelWidth, 14f), "255", _historyAxisStyle);
-            GUI.Label(new Rect(8f, graph.yMax - 8f, axisLabelWidth, 14f), "0", _historyAxisStyle);
+            Color gridColor = proSkin ? new Color(.13f, .2f, .24f) : new Color(.68f, .74f, .77f);
+            for (int i = 0; i < HistoryValueTicks.Length; i++)
+            {
+                float y = graph.yMax - HistoryValueTicks[i] / 255f * graph.height;
+                EditorGUI.DrawRect(new Rect(graph.x, y, graph.width, 1f), gridColor);
+                GUI.Label(new Rect(8f, y - 7f, axisLabelWidth, 14f), HistoryValueLabels[i], _historyAxisStyle);
+            }
             DrawHistoryGraph(graph, EditorApplication.timeSinceStartup);
         }
 
@@ -612,7 +630,7 @@ namespace ArtNet.Editor
             switch (source)
             {
                 case DmxRigController.UniverseBufferSource.LiveArtNet:
-                    return "Live Input";
+                    return "Live";
                 case DmxRigController.UniverseBufferSource.TimelinePlayback:
                     return "Timeline Playback";
                 default:
@@ -635,7 +653,7 @@ namespace ArtNet.Editor
             if (sender == null || data.OpCode != ArtNetOpCode.OpDmx)
                 return;
 
-            _model.Receive(sender.GetInstanceID(), $"{sender.name} (Sender Output: {sender.Host}:{sender.port})",
+            _model.Receive(sender.GetInstanceID(), $"{sender.name} (Sender Output: {sender.DestinationAddress}:{sender.port})",
                 data, EditorApplication.timeSinceStartup);
         }
 
