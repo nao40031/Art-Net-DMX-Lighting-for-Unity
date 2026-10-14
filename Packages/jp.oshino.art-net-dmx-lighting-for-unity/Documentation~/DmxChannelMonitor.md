@@ -33,9 +33,12 @@ Completed in phase two: Activity Monitor, channel history, receiver source stati
 - 生のUniverse番号を選択
 - Pause、Clear DMX Buffers、受信状態とパケット情報
 - 選択チャンネルの直近10秒の履歴グラフ
+- Activity Monitorでも非ゼロのセルをクリックすると、選択したUniverse／チャンネルの直近10秒の履歴グラフを表示する。値が0になってセルが消えた後も追跡を続ける
 - Clearはモニター内部だけを消去し、Fixtureやネットワーク出力を変更しない
 
 The Editor-only monitors support non-mutating Live Input, Timeline Playback, and Sender Output sources. Live Input observes existing receivers, Timeline Playback copies effective rig buffers, and Sender Output observes packets already sent by ArtNetSender. Neither monitor modifies runtime routing, fixture state, or Art-Net output.
+
+In the Activity Monitor, click a nonzero channel cell to graph that Universe and channel for the last 10 seconds. The graph continues to track the selected channel when its value falls to zero and the cell disappears.
 
 ## 現在の自動検証
 

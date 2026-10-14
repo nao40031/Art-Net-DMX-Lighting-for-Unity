@@ -104,9 +104,9 @@ Use **Setup Gobo Lens Material** to configure the correct shared lens material f
 
 ### DMX Channel Monitor
 
-`Art-Net > Monitoring > DMX Channel Monitor` は、任意Universeの512チャンネルをリアルタイム表示します。**Live Input** はシーンの `ArtNetReceiver` が受信した値を表示し、**Rig Output** は指定した `DmxRigController` の有効バッファを表示します。Rig OutputではTimeline Playback、Live Input、外部注入のうち最後にリグへ反映された値と更新元を確認できます。Live Inputで **Monitor All Receivers** を無効にすると、特定のReceiverだけを選択できます。**Pause** は表示を固定し、**Clear DMX Buffers** はモニター内部の表示バッファだけを消去します。どちらの操作もFixtureの状態やネットワーク出力を変更しません。Universe番号は受信した値を変換せず、そのまま指定してください。
+`Art-Net > Monitoring > DMX Channel Monitor` は、任意Universeの512チャンネルをリアルタイム表示します。**Live** はシーンの `ArtNetReceiver` が受信した値を表示し、**Timeline Playback** は指定した `DmxRigController` の有効バッファを表示します。RigのバッファにはTimeline Playback、Live受信、外部注入の値が反映されます。Liveで **Monitor All Receivers** を無効にすると、特定のReceiverだけを選択できます。**Pause** は表示を固定し、**Clear DMX Buffers** はモニター内部の表示バッファだけを消去します。どちらの操作もFixtureの状態やネットワーク出力を変更しません。Universe番号は受信した値を変換せず、そのまま指定してください。
 
-`Art-Net > Monitoring > DMX Channel Monitor` displays all 512 channels in real time. **Live Input** shows values received by scene `ArtNetReceiver` components, while **Rig Output** shows the effective buffer of a selected `DmxRigController`. Rig Output identifies whether the last value applied to the rig came from Timeline Playback, Live Input, or external injection. In Live Input, disable **Monitor All Receivers** to select one receiver. **Pause** freezes only the display, and **Clear DMX Buffers** clears only the monitor's local buffers; neither operation changes fixtures or sends Art-Net data. Enter the raw received Universe number without a one-based offset.
+`Art-Net > Monitoring > DMX Channel Monitor` displays all 512 channels in real time. **Live** shows values received by scene `ArtNetReceiver` components, while **Timeline Playback** shows the effective buffer of a selected `DmxRigController`. Rig buffers may contain values from Timeline Playback, Live reception, or external injection. In Live mode, disable **Monitor All Receivers** to select one receiver. **Pause** freezes only the display, and **Clear DMX Buffers** clears only the monitor's local buffers; neither operation changes fixtures or sends Art-Net data. Enter the raw received Universe number without a one-based offset.
 
 ### Generic Prefab Replacer
 
