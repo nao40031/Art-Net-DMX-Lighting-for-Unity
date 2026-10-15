@@ -15,6 +15,7 @@
 
 ## Unity GUI automation / Computer Use
 
+- Before Unity GUI automation, inspect the Computer Use tools available in the current session. Check for `node_repl` and `@oai/sky`; when available, confirm the target with `sky.list_apps()`, `sky.list_windows()`, and `sky.get_window_state()` using their actual results. An empty app list from a browser-oriented API alone does not establish that local GUI control is unavailable. If Sky is unavailable, inspect the supported API in that environment instead of guessing.
 - When using Codex Computer Use to interact with Unity Editor, Windows file pickers, or GDTF import/review dialogs, **read and follow** [`docs/testing/computer-use-unity.md`](docs/testing/computer-use-unity.md) before the GUI operation.
 - In a Windows file picker, explicitly click the filename field, enter or paste the file path, and **visually confirm** the complete value before pressing Open. Never treat a successful tool response as proof the UI changed.
 - If text entry fails, use the runbook's focus and recovery checks before declaring the step blocked. Report any unresolved failure with UI evidence; do not bypass existing import/correction behavior or modify production logic just to work around automation.

@@ -1,8 +1,48 @@
 # Unity Editor Computer Use: GUI input and file-dialog runbook
 
-> Status: working procedure based on manual observations reported on 2026-10-15.  
-> Scope: Windows, Unity Editor, Codex Computer Use (`@oai/sky`).  
-> This document is a troubleshooting runbook, not proof that every environment or dialog will behave the same way.
+> Status: working procedure based on manual observations reported on 2026-10-15.
+> Scope: Windows, Unity Editor, Codex Computer Use (`@oai/sky`).
+> This document is a troubleshooting runbook, not proof that every environment or dialog will behave the same way. The file-picker input and cancel flow was verified again on 2026-10-16 in Unity 6.0 (6000.0.48f1).
+
+## Discover the API in the current session
+
+Check the tools exposed to the current Codex session before concluding that desktop control is unavailable. On 2026-10-15, `node_repl` with `@oai/sky` controlled Windows applications, while the available `cua_repl` instance exposed browser methods and returned an empty `apps` list. That browser result did not describe Sky's desktop access.
+
+When `node_repl` is available, initialize Sky in its persistent JavaScript session:
+
+```js
+if (!globalThis.sky) {
+  const { sky } = await import("@oai/sky");
+  globalThis.sky = sky;
+}
+globalThis.apps = await sky.list_apps();
+globalThis.windows = await sky.list_windows();
+nodeRepl.write(JSON.stringify(windows.filter(w =>
+  /Unity|Notepad|メモ帳/i.test(`${w.app} ${w.title}`)
+), null, 2));
+```
+
+Choose **exactly one** returned Unity Editor window for the intended project. Use its returned `id` and `app` rather than constructing a handle. Then inspect it:
+
+```js
+const matches = windows.filter(w =>
+  /Unity\.exe$/i.test(w.app) && w.title?.includes("<project name>")
+);
+if (matches.length !== 1) throw new Error(`Expected one Editor window; found ${matches.length}`);
+globalThis.unityWindow = await sky.get_window({ id: matches[0].id, app: matches[0].app });
+globalThis.unityState = await sky.get_window_state({
+  window: unityWindow, include_screenshot: true, include_text: true
+});
+globalThis.unityWindow = unityState.window;
+```
+
+Inspect the rendered screenshot and the returned window title. A loading window such as `Compiling Scripts` is not yet the ready Editor; list windows again after it finishes because the window ID can change. Before each click or text entry, use a fresh observation and verify the result on screen.
+
+If `node_repl` or the `@oai/sky` import is unavailable, inspect the tools and API documentation **actually exposed in that session**. Check the returned method list or a documented read-only inventory call; do not assume that methods described by another Computer Use surface exist. If Sky lists no Unity Editor window, check whether the Editor is running; Unity Hub alone is a different window. Record any import, connection, or permission error verbatim before attributing a cause.
+
+### 2026-10-15 API discovery incident
+
+An empty `cua.getState().apps` result was initially treated as a loss of local Windows access. The active `cua` object exposed browser methods, but `getApp`, `listApps`, and `listWindows` were absent. A subsequent tool inventory found `node_repl`; importing `@oai/sky` succeeded. `sky.list_apps()` found Notepad and Unity Hub, `sky.list_windows()` found the Unity Editor after it was opened from Hub, and `sky.get_window_state()` returned its screenshot. The earlier conclusion was caused by overlooking the available Sky tool, not by an observed Windows permission error. A shell process listing also failed to show apps that Sky found, so use Sky's window inventory to decide whether Sky can target a GUI window.
 
 ## Observed results
 
@@ -12,6 +52,7 @@
 | Unity Inspector editable name field | `sky.type_text()` worked; the original name was restored |
 | Notepad **Save As** filename field | Text entry worked; saving was canceled |
 | Unity GDTF file picker | Direct text entry, text entry after `Alt+N`, and `Ctrl+V` paste worked on the later retry |
+| Unity GDTF file picker, 2026-10-16 | Direct click and `sky.type_text()` entered an existing GDTF archive's absolute path. The complete value was visible after enlarging the dialog and pressing Home; Cancel closed the dialog without importing. |
 | Immediately after switching back from Notepad | `Alt+N` alone did not reliably show filename-field selection |
 | Earlier Unity GDTF picker attempt | Text entry did not show up; the failure could not be reproduced on the later retry |
 
@@ -25,6 +66,8 @@
 4. Select any existing field text with `Ctrl+A` as appropriate, then use the supported `sky.type_text()` operation to enter the **absolute path** of an existing `.gdtf` file.
 5. Recheck the screen. Only after the full path is visibly present should the agent click **Open** or press Enter.
 6. Verify the Unity import result using the resulting UI and Unity Console. An API call reporting success is not equivalent to a visible UI change.
+
+For an input-only check, enlarge the dialog or press Home if the field is horizontally scrolled, visually check the full path, and click **Cancel** without opening the file. Do not report an import result for that check.
 
 Avoid hardcoding user-specific drive letters or paths in shared documentation. Resolve the file's existing absolute path within the active environment.
 
@@ -44,8 +87,9 @@ Do not assume `sky.set_value()` can manipulate a native Windows dialog: an earli
 - [ ] Correct Unity project/window is foreground and the expected dialog is visible
 - [ ] Filename field has been explicitly clicked (or focus otherwise visibly verified)
 - [ ] Full GDTF path is visibly present before clicking Open
-- [ ] Selected file exists and the import results are visible in the Editor
-- [ ] Unity Console checked for logs, warnings, and errors
+- [ ] Selected file exists; if importing, the results are visible in the Editor
+- [ ] For an input-only check, Cancel closes the dialog without importing
+- [ ] If importing, Unity Console checked for logs, warnings, and errors
 - [ ] UI output validated separately from any API/test return values
 - [ ] Any temporary assets or test-only menu entries removed; original project data preserved
 
