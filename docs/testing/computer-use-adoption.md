@@ -8,7 +8,7 @@ Ask Codex to install the skill from:
 
 `https://github.com/nao40031/Art-Net-DMX-Lighting-for-Unity/tree/release/skills/windows-desktop-computer-use`
 
-Codex's `skill-installer` can install a GitHub skill path into the user's skills directory. Start a new session after installation so the skill is discoverable. An environment that already has this skill can skip installation and update it from the same source when needed.
+Ask Codex to use `skill-installer` with its Git method (`--method git`) for this repository. Its default ZIP method can fail while extracting unrelated Japanese-named assets in the repository; Git's sparse checkout fetches the requested skill path. Start a new session after installation so the skill is discoverable. An environment that already has this skill can skip installation and update it from the same source when needed.
 
 ## Add a short project instruction
 
