@@ -2,9 +2,14 @@
 
 ## Unreleased
 
-- Layer HDRP and URP gobo emission over the existing Lit fake-depth lens so environment reflections remain visible through dark gobo regions and when the dimmer is closed.
-- Added model-independent 8/16-bit moving-light Focus with optical distance profiles, representative projection targets, cookie/lens/beam-edge defocus, and Normal/Pseudo Beam/VLB integration.
-- Added a MAC Ultra Performance Focus Profile and Basic 48-channel Focus mapping for validation against the Martin specification.
+## 0.5.0
+
+- Add Art-Net sender output from Timeline playback and controls for active Timeline universes.
+- Add DMX activity and channel monitors with history, filtering, and inspector controls.
+- Add fixture color mixing, color-wheel profiles, shutter/strobe, frost, and 8/16-bit focus support.
+- Add HDRP and URP MAC Ultra lens variants with reflective, clear, and glossy finishes.
+- Improve HDRP and URP gobo lens rendering so reflections remain visible through dark gobo regions and with a closed dimmer.
+- Add a MAC Ultra Performance Focus Profile and Basic 48-channel Focus mapping for validation against the Martin specification.
 
 ## 0.3.0
 
