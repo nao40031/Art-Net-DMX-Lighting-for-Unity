@@ -12,3 +12,10 @@
 - Preserve Pan/Tilt axes, direction, range, clamp, normalization, initial pose, and parent-transform behavior; likewise preserve Invert, Offset, and Smoothing order, units, signs, defaults, and delta-time behavior.
 - Use a single agent by default. Use one read-only subagent only when explicitly requested or a focused, independent investigation is genuinely necessary; give it a narrow question and paths, and do not repeat exploration.
 - Validate only the changed scope. Report changed files, validation, use/setup notes when relevant, and remaining risks concisely.
+
+## Unity GUI automation / Computer Use
+
+- When using Codex Computer Use to interact with Unity Editor, Windows file pickers, or GDTF import/review dialogs, **read and follow** [`docs/testing/computer-use-unity.md`](docs/testing/computer-use-unity.md) before the GUI operation.
+- In a Windows file picker, explicitly click the filename field, enter or paste the file path, and **visually confirm** the complete value before pressing Open. Never treat a successful tool response as proof the UI changed.
+- If text entry fails, use the runbook's focus and recovery checks before declaring the step blocked. Report any unresolved failure with UI evidence; do not bypass existing import/correction behavior or modify production logic just to work around automation.
+- Apply this section only to GUI automation. Keep normal code edits and investigations on the project's existing minimal-change and validation rules.
