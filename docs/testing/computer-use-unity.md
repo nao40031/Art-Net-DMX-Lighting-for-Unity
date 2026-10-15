@@ -6,6 +6,8 @@
 
 ## Discover the API in the current session
 
+Follow the reusable [`windows-desktop-computer-use` skill](../../skills/windows-desktop-computer-use/SKILL.md) for the current API discovery and window-selection rules. The examples below record the API that worked during this incident; check availability again in each session.
+
 Check the tools exposed to the current Codex session before concluding that desktop control is unavailable. On 2026-10-15, `node_repl` with `@oai/sky` controlled Windows applications, while the available `cua_repl` instance exposed browser methods and returned an empty `apps` list. That browser result did not describe Sky's desktop access.
 
 When `node_repl` is available, initialize Sky in its persistent JavaScript session:
