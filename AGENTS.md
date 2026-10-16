@@ -17,6 +17,7 @@
 
 - Before Windows desktop GUI automation, use the [reusable `windows-desktop-computer-use` skill](https://github.com/nao40031/codex-windows-desktop-computer-use/tree/main/skills/windows-desktop-computer-use) for API discovery and screen verification.
 - When using Codex Computer Use to interact with Unity Editor, Windows file pickers, or GDTF import/review dialogs, **read and follow** [`docs/testing/computer-use-unity.md`](docs/testing/computer-use-unity.md) before the GUI operation.
+- Before capturing a screenshot of Unity Editor, maximize its window and confirm the intended content is visible. For a modal dialog, maximize it if possible or enlarge it enough to show the relevant content; restore the prior window size afterward when needed.
 - In a Windows file picker, explicitly click the filename field, enter or paste the file path, and **visually confirm** the complete value before pressing Open. Never treat a successful tool response as proof the UI changed.
 - If text entry fails, use the runbook's focus and recovery checks before declaring the step blocked. Report any unresolved failure with UI evidence; do not bypass existing import/correction behavior or modify production logic just to work around automation.
 - Apply this section only to GUI automation. Keep normal code edits and investigations on the project's existing minimal-change and validation rules.

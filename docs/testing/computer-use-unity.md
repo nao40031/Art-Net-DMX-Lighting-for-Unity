@@ -60,6 +60,10 @@ An empty `cua.getState().apps` result was initially treated as a loss of local W
 
 **Important:** The root cause of the earlier failure is **not confirmed**. Foreground-window state and keyboard focus are plausible explanations; process privileges were not confirmed in the observed environment.
 
+## Screenshot capture
+
+Before capturing a Unity Editor screenshot, maximize the Editor window and check that the intended content is visible in the rendered image. If a native file picker or other modal dialog is the subject, maximize that dialog when supported; otherwise enlarge it until its relevant controls and values are readable. If routine work should continue at the previous size, restore the window after the capture.
+
 ## Standard procedure: choose a GDTF file
 
 1. Make sure the correct Unity Editor window and project are visible. Avoid typing while another app or dialog is in front.
