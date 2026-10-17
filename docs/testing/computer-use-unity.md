@@ -62,7 +62,7 @@ An empty `cua.getState().apps` result was initially treated as a loss of local W
 
 ## Screenshot capture
 
-Before capturing a Unity Editor screenshot, maximize the Editor window and check that the intended content is visible in the rendered image. If a native file picker or other modal dialog is the subject, maximize that dialog when supported; otherwise enlarge it until its relevant controls and values are readable. If routine work should continue at the previous size, restore the window after the capture.
+For screenshots of the Editor or its dialogs, follow the shared skill's general rule: maximize the target window when possible, verify the relevant content is visible, and enlarge dialogs that cannot be maximized.
 
 ## Standard procedure: choose a GDTF file
 
